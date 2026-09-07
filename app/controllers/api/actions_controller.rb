@@ -4,9 +4,7 @@ module Api
 
     def create
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
-      room = find_room(project, params[:room_id])
+      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
       user = User.find_by(id: params[:user_id])

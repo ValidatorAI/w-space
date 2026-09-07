@@ -8,9 +8,7 @@ module Api
 
     def index
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
-      room = find_room(project, params[:room_id])
+      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
       messages = room.messages.ordered
@@ -48,9 +46,7 @@ module Api
 
     def create
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
-      room = find_room(project, params[:room_id])
+      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
       user = User.find_by(id: params[:user_id])
@@ -104,9 +100,7 @@ module Api
     def locate_message
       if params[:room_id].present?
         project = find_project(params[:project_id])
-        return render(json: { error: "Project not found" }, status: :not_found) && nil unless project
-
-        room = find_room(project, params[:room_id])
+        room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
         return render(json: { error: "Room not found" }, status: :not_found) && nil unless room
 
         message = room.messages.find_by(id: params[:id])

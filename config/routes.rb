@@ -141,6 +141,16 @@ Rails.application.routes.draw do
     get "company_status_periods/by_slug/:slug", to: "company_status_periods#by_slug", as: :by_slug_api_company_status_periods
     get "company_status_periods/by_name", to: "company_status_periods#by_name", as: :name_api_company_status_periods
 
+    resources :rooms, only: %i[ index show ] do
+      resources :messages, only: %i[ index show create update destroy ] do
+        get :attachment, on: :member
+      end
+      resources :actions, only: :create
+      resources :decisions, only: :create
+      get :threads, on: :member
+      get :search, on: :collection
+    end
+
     resources :projects, only: %i[ index show ] do
       resources :rooms, only: %i[ index show ] do
         resources :messages, only: %i[ index show create update destroy ] do

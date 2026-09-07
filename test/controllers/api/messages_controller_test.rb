@@ -53,6 +53,30 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ @message.id, second_message.id ], body["messages"].map { |message| message["id"] }
   end
 
+  test "allows room-scoped message listing without a project_id" do
+    second_message = @room.messages.create!(body: "Second message", client_message_id: "api-msg-2", creator: users(:david))
+
+    get api_room_messages_url(@room.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal 2, body["count"]
+    assert_equal [ @message.id, second_message.id ], body["messages"].map { |message| message["id"] }
+  end
+
+  test "allows posting a message to a room without a project_id" do
+    assert_difference -> { @room.messages.count }, 1 do
+      post api_room_messages_url(@room.id),
+        params: { user_id: users(:jason).id, body: "Posted via room-only API" },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "Posted via room-only API", body["body"]
+    assert_equal users(:jason).id, body["creator_id"]
+  end
+
   test "paginates messages when a page param is given" do
     second_message = @room.messages.create!(body: "Second message", client_message_id: "api-msg-2", creator: users(:david))
 

@@ -7,16 +7,14 @@ module Api
 
     def index
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
+      rooms = project.present? ? project.rooms : Room.all
 
-      render json: project.rooms.as_json(only: ROOM_FIELDS)
+      render json: rooms.as_json(only: ROOM_FIELDS)
     end
 
     def show
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
-      room = find_room(project, params[:id])
+      room = project.present? ? find_room(project, params[:id]) : find_room(params[:id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
       render json: room.as_json(only: ROOM_FIELDS)
@@ -24,22 +22,23 @@ module Api
 
     def threads
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
-      room = find_room(project, params[:id])
+      room = project.present? ? find_room(project, params[:id]) : find_room(params[:id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
-      render json: project.rooms.where(parent_id: room.id).ordered.as_json(only: ROOM_FIELDS)
+      room_scope = project.present? ? project.rooms : Room.all
+      render json: room_scope.where(parent_id: room.id).ordered.as_json(only: ROOM_FIELDS)
     end
 
     def search
       project = find_project(params[:project_id])
-      return render json: { error: "Project not found" }, status: :not_found unless project
-
       query = params[:q].to_s.strip
       return render json: { error: "Missing query param: q" }, status: :bad_request if query.blank?
 
-      matches = project.rooms.where("name LIKE ? ESCAPE '\\'", "%#{sanitize_like(query)}%")
+      matches = if project.present?
+                  project.rooms.where("name LIKE ? ESCAPE '\\'", "%#{sanitize_like(query)}%")
+                else
+                  Room.where("name LIKE ? ESCAPE '\\'", "%#{sanitize_like(query)}%")
+                end
       ranked = matches.sort_by { |room| relevance_rank(room.name.to_s, query) }
 
       render json: ranked.as_json(only: ROOM_FIELDS)
