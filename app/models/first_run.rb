@@ -1,5 +1,5 @@
 class FirstRun
-  ACCOUNT_NAME = "Bonfire"
+  ACCOUNT_NAME = "W space"
   FIRST_ROOM_NAME = "All Talk"
   META_ROOM_NAME = "Meta Events"
   HUMAN_OVERSEER_NAME = "Human Overseer"

@@ -106,7 +106,7 @@ class SystemMessage
 
     def system_user
       @system_user ||= User.find_or_create_by!(email_address: SYSTEM_USER_EMAIL) do |u|
-        u.name = "Bonfire System"
+        u.name = "W space System"
         u.role = :bot
         u.password = SecureRandom.hex(32)
       end
