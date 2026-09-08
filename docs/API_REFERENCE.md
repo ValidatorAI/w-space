@@ -46,6 +46,16 @@ update to connected web clients in that room, in addition to the JSON response.
 | GET | `/api/messages/:id/attachment` | Download a message's uploaded file (flat) | No |
 | POST | `/api/rooms/:room_id/actions` | Send a real-time action (e.g. typing indicator) on behalf of a user | **Yes** — ActionCable broadcast (that's its only purpose) |
 | POST | `/api/rooms/:room_id/decisions` | Approve/confirm/deny/cancel an approval request on behalf of a user | **Yes** — Turbo Stream replace of the approval request card |
+| GET | `/api/rooms/:room_id/approval_requests` | List approval requests for a room (paginated or not, includes `count`) | No |
+| POST | `/api/rooms/:room_id/approval_requests` | Create an approval request in a room | **Yes** — Turbo Stream replace of the parent message or approval card |
+| GET | `/api/rooms/:room_id/approval_requests/:id` | Get a single approval request | No |
+| PATCH/PUT | `/api/rooms/:room_id/approval_requests/:id` | Update an approval request | **Yes** — Turbo Stream replace |
+| DELETE | `/api/rooms/:room_id/approval_requests/:id` | Delete an approval request | **Yes** — Turbo Stream replace (message) or remove (standalone) |
+| GET | `/api/projects/:project_id/rooms/:room_id/approval_requests` | Legacy project-scoped approval request listing | No |
+| POST | `/api/projects/:project_id/rooms/:room_id/approval_requests` | Legacy project-scoped approval request create | **Yes** |
+| GET | `/api/projects/:project_id/rooms/:room_id/approval_requests/:id` | Legacy project-scoped approval request lookup | No |
+| PATCH/PUT | `/api/projects/:project_id/rooms/:room_id/approval_requests/:id` | Legacy project-scoped approval request update | **Yes** |
+| DELETE | `/api/projects/:project_id/rooms/:room_id/approval_requests/:id` | Legacy project-scoped approval request delete | **Yes** |
 | GET | `/api/attention_items` | List attention items with optional filtering and pagination | No |
 | GET | `/api/attention_items/:id` | Get a single attention item | No |
 | POST | `/api/attention_items` | Create an attention item | No |
@@ -345,6 +355,101 @@ Resolves an approval request (a "decision") on behalf of a user.
   request belongs to a different room)
 - `400` — unsupported `decision`
 - `422` — validation error
+
+---
+
+## Approval Requests
+
+Room-scoped CRUD for `ApprovalRequest` records. Approval requests can be attached to a room directly or to a message inside the room (`message_id`).
+
+> **Note:** `POST /api/rooms/:room_id/decisions` is still the preferred way to *resolve* an approval request on behalf of a user. It records an `ApprovalRequestAction`, resolves linked attention items, and may create a `ProjectAdr`. The endpoints below are for managing the raw approval request record.
+
+### `GET /api/rooms/:room_id/approval_requests`
+
+Lists approval requests for a room, most recently requested first.
+
+**Params**:
+- `page` (optional — default: 1)
+- `per_page` (optional — default: 40, max: 200)
+
+**Response** `200` (paginated when `page` is provided):
+```json
+{
+  "count": 2,
+  "page": 1,
+  "per_page": 40,
+  "approval_requests": [
+    {
+      "id": 1,
+      "room_id": 1,
+      "message_id": 5,
+      "agent_id": null,
+      "request_type": "decision",
+      "status": "pending",
+      "requested_at": "...",
+      "resolved_at": null,
+      "resolved_by_id": null,
+      "created_at": "...",
+      "updated_at": "...",
+      "decision_text": "Ship it"
+    }
+  ]
+}
+```
+
+### `GET /api/rooms/:room_id/approval_requests/:id`
+
+Fetches a single approval request.
+
+**Response** `200` — approval request object.
+
+**Errors** `404` — room or approval request not found, or approval request does not belong to the room.
+
+### `POST /api/rooms/:room_id/approval_requests`
+
+Creates a new approval request in the room.
+
+**Params**:
+- `request_type` (required — e.g. `decision`, `knowledge_proposal`)
+- `payload` (optional JSON object)
+- `message_id` (optional — must belong to the room)
+- `agent_id` (optional)
+- `status` (optional — defaults to `pending`)
+- `requested_at` (optional — defaults to current time)
+
+**Realtime:** Yes — if `message_id` is provided, replaces the message presentation in the room; otherwise replaces the standalone approval request card.
+
+**Response** `201` — the created approval request.
+
+**Errors**
+- `404` — room not found
+- `422` — validation error, or `message_id` belongs to a different room
+
+### `PATCH/PUT /api/rooms/:room_id/approval_requests/:id`
+
+Updates an approval request.
+
+**Params**: any of `request_type`, `payload`, `message_id`, `agent_id`, `status`, `requested_at`, `resolved_at`, `resolved_by_id`.
+
+**Status transition note:** If `status` is changed to a resolved state (`approved`, `denied`, or `canceled`) and `resolved_at` is blank, it is automatically set to the current time. Direct status edits here do **not** create `ApprovalRequestAction` records or trigger attention-item/ADR side effects — use `POST /api/rooms/:room_id/decisions` for that.
+
+**Realtime:** Yes — replaces the parent message presentation or approval card.
+
+**Response** `200` — the updated approval request.
+
+**Errors**
+- `404` — room or approval request not found
+- `422` — validation error
+
+### `DELETE /api/rooms/:room_id/approval_requests/:id`
+
+Deletes an approval request.
+
+**Realtime:** Yes — if `message_id` is present, the message presentation is re-rendered without the card; otherwise the standalone card is removed from the room.
+
+**Response** `204 No Content`.
+
+**Errors** `404` — room or approval request not found.
 
 ---
 

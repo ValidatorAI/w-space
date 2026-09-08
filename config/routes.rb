@@ -147,6 +147,7 @@ Rails.application.routes.draw do
       end
       resources :actions, only: :create
       resources :decisions, only: :create
+      resources :approval_requests, only: %i[ index show create update destroy ]
       get :threads, on: :member
       get :search, on: :collection
     end
@@ -158,6 +159,7 @@ Rails.application.routes.draw do
         end
         resources :actions, only: :create
         resources :decisions, only: :create
+        resources :approval_requests, only: %i[ index show create update destroy ]
         get :threads, on: :member
         get :search, on: :collection
       end
