@@ -12,7 +12,16 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
 
   test "posts an unsynced event and marks it synced after a successful response" do
     group_id = SecureRandom.uuid
-    event = OutputEvent.create!(event_type: "message_created", event_id: 42, group_id: group_id, event_data: { "target_type" => "Message" })
+    knowledge_path = "<knowledge_path>\n- /company/1/projects/2/knowledge\n</knowledge_path>"
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 42,
+      group_id: group_id,
+      event_data: {
+        "target_type" => "Message",
+        "knowledge_path" => knowledge_path
+      }
+    )
     stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).to_return(status: 201)
 
     OutputEvents::DeliverJob.perform_now(event.id)
@@ -22,7 +31,8 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
       "id" => event.id,
       "event_type" => "message_created",
       "event_id" => 42,
-      "group_id" => group_id
+      "group_id" => group_id,
+      "event_data" => hash_including("knowledge_path" => knowledge_path)
     )
   end
 

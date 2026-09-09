@@ -45,16 +45,21 @@ This memory structure is intentionally user-facing and navigation-friendly. Runt
 
 ### Rooms (Room-First Runtime Contract)
 
-- /company/[company_id]/rooms
-- /company/[company_id]/rooms/[room_id]
-- /company/[company_id]/rooms/[room_id]/threads
-- /company/[company_id]/rooms/[room_id]/messages
-- /company/[company_id]/rooms/[room_id]/messages/[message_id]
-- /company/[company_id]/rooms/[room_id]/messages/[message_id]/attachment
-- /company/[company_id]/rooms/[room_id]/approval_requests
-- /company/[company_id]/rooms/[room_id]/approval_requests/[approval_request_id]
-- /company/[company_id]/rooms/[room_id]/actions
-- /company/[company_id]/rooms/[room_id]/decisions
+- /company/[company_id]/projects/[project_id]/rooms
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]/messages
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]/approval_requests
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]/actions
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]/decisions
+
+#### Children rooms (threaded hierarchy) 
+
+Same as room but with a parent room context:
+
+- /company/[company_id]/projects/[project_id]/rooms/[room_id]/threads/[child_room_id]
+...
+
+
 
 ### Users
 
@@ -70,11 +75,9 @@ This memory structure is intentionally user-facing and navigation-friendly. Runt
 - /company/[company_id]/status
 - /company/[company_id]/status/periods
 - /company/[company_id]/status/periods/[period_id]
-- /company/[company_id]/status/periods/current
-- /company/[company_id]/status/periods/by-slug/[slug]
 - /company/[company_id]/status/items
-- /company/[company_id]/status/items/[item_id]
 - /company/[company_id]/status/periods/[period_id]/items
+- /company/[company_id]/status/periods/[period_id]/items/[item_id]
 
 ### Approvals and Attention
 

@@ -47,11 +47,28 @@ Each request body is JSON:
   "event_data": {
     "actor": { "type": "User", "id": 1 },
     "target_type": "Message",
-    "occurred_at": "2026-09-02T12:00:00Z"
+    "occurred_at": "2026-09-02T12:00:00Z",
+    "knowledge_path": "<knowledge_path>\n- /company/1/projects/2/knowledge\n</knowledge_path>"
   },
   "created_at": "2026-09-02T12:00:00Z"
 }
 ```
+
+### Knowledge Path Format
+
+- The related knowledge location is delivered as `event_data.knowledge_path`.
+- The value is a single text block in this format:
+
+```text
+<knowledge_path>
+- /company/[company_id]/projects/[project_id]/knowledge
+- /company/[company_id]/projects/[project_id]/knowledge/adrs/[adr_id]
+</knowledge_path>
+```
+
+- If multiple related knowledge locations exist, they are included as multiple `-` list lines inside the same block.
+- If an event is project-backed but no artifact-specific path can be derived, Bonfire sends the project knowledge root.
+- If an event is not project-backed, `knowledge_path` is omitted.
 
 ## Event Types Currently Sent
 
