@@ -174,6 +174,45 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "create in direct room between two users does not record message output events" do
+    direct_room = rooms(:david_and_kevin)
+
+    assert_no_difference -> { OutputEvent.where(event_type: "message_created").count } do
+      post room_messages_url(direct_room, format: :turbo_stream), params: { message: { body: "Private human message", client_message_id: 2001 } }
+    end
+
+    assert_no_difference -> { OutputEvent.where(event_type: "ai_question_asked").count } do
+      post room_messages_url(direct_room, format: :turbo_stream), params: { message: { body: "Another private human message", client_message_id: 2002 } }
+    end
+  end
+
+  test "create in direct room with bot records message output events for user message" do
+    sign_in :kevin
+    direct_room = rooms(:bender_and_kevin)
+
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+        post room_messages_url(direct_room, format: :turbo_stream), params: { message: { body: "Bot help needed", client_message_id: 2003 } }
+      end
+    end
+  end
+
+  test "bot-authored message does not record message output events" do
+    direct_room = rooms(:bender_and_kevin)
+
+    assert_no_difference -> { OutputEvent.where(event_type: "message_created").count } do
+      post room_bot_messages_url(direct_room, users(:bender).bot_key), params: +"Automated status update"
+    end
+
+    assert_response :success
+  end
+
+  test "create in non-direct room still records message output events" do
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      post room_messages_url(@room, format: :turbo_stream), params: { message: { body: "Team update", client_message_id: 2004 } }
+    end
+  end
+
   private
     def ensure_messages_present(*messages, count: 1)
       messages.each do |message|

@@ -69,6 +69,8 @@ class Rooms::DirectsController < RoomsController
     end
 
     def record_created_message_events(message)
+      return unless OutputEvents::MessageEmissionPolicy.allowed?(message: message)
+
       group_id = SecureRandom.uuid
       OutputEvents::Recorder.record(
         event_type: "message_created",

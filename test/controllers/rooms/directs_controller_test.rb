@@ -60,6 +60,26 @@ class Rooms::DirectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Summarize the company status", room.messages.last.plain_text_body
   end
 
+  test "create with initial message in human direct does not record message output events" do
+    assert_no_difference -> { OutputEvent.where(event_type: "message_created").count } do
+      assert_no_difference -> { OutputEvent.where(event_type: "ai_question_asked").count } do
+        post rooms_directs_url, params: { user_ids: [ users(:jz).id ], message: { body: "Private sync" } }
+      end
+    end
+
+    assert_redirected_to room_url(Rooms::Direct.order(:created_at).last)
+  end
+
+  test "create with initial message in user-bot direct records message output events" do
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+        post rooms_directs_url, params: { user_ids: [ users(:bender).id ], message: { body: "Need bot summary" } }
+      end
+    end
+
+    assert_redirected_to room_url(Rooms::Direct.order(:created_at).last)
+  end
+
   test "destroy only allowed for all room users" do
     sign_in :kevin
 

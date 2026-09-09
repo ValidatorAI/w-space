@@ -102,6 +102,8 @@ class MessagesController < ApplicationController
     end
 
     def record_created_message_events
+      return unless OutputEvents::MessageEmissionPolicy.allowed?(message: @message)
+
       group_id = SecureRandom.uuid
       OutputEvents::Recorder.record(
         event_type: "message_created",
