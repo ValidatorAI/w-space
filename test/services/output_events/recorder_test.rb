@@ -41,4 +41,22 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
 
     assert_nil event.event_data["knowledge_path"]
   end
+
+  test "does not persist filtered typing action events" do
+    actor = users(:david)
+
+    assert_no_difference -> { OutputEvent.count } do
+      assert_no_enqueued_jobs only: OutputEvents::DeliverJob do
+        result = OutputEvents::Recorder.record(
+          event_type: "typing_start",
+          event_id: 1,
+          actor: actor,
+          target_type: "Room",
+          data: { "room_id" => rooms(:watercooler).id }
+        )
+
+        assert_nil result
+      end
+    end
+  end
 end

@@ -35,6 +35,16 @@ class Api::ActionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :accepted
   end
 
+  test "typing actions do not create output events" do
+    assert_no_difference -> { OutputEvent.count } do
+      post api_project_room_actions_url(@project.id, @room.id),
+        params: { user_id: users(:jason).id, action_type: "typing_start" },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :accepted
+  end
+
   test "rejects requests without a token" do
     post api_project_room_actions_url(@project.id, @room.id), params: { user_id: users(:jason).id, action_type: "typing_start" }
 

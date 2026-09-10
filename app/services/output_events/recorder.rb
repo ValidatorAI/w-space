@@ -1,6 +1,10 @@
 module OutputEvents
   class Recorder
+    FILTERED_EVENT_TYPES = %w[typing_start typing_stop].freeze
+
     def self.record(event_type:, event_id: nil, group_id: nil, actor: nil, target_type: nil, data: {})
+      return if filtered_event_type?(event_type)
+
       payload_data = (data || {}).deep_stringify_keys
       knowledge_path = KnowledgePathResolver.resolve(
         event_type: event_type,
@@ -33,5 +37,10 @@ module OutputEvents
       { "type" => actor.class.name, "id" => actor.id }
     end
     private_class_method :actor_data
+
+    def self.filtered_event_type?(event_type)
+      FILTERED_EVENT_TYPES.include?(event_type.to_s)
+    end
+    private_class_method :filtered_event_type?
   end
 end
