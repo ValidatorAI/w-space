@@ -45,7 +45,14 @@ module OutputEvents
       {
         "type" => actor.class.name,
         "id" => actor.id,
-        "username" => (actor.name if actor.respond_to?(:name))
+        "username" => (actor.name if actor.respond_to?(:name)),
+        "full_name" => (
+          if actor.respond_to?(:effective_display_name)
+            actor.effective_display_name
+          elsif actor.respond_to?(:name)
+            actor.name
+          end
+        )
       }.compact
     end
     private_class_method :actor_data

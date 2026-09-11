@@ -45,7 +45,7 @@ Non-attachment events are sent as JSON with this envelope:
   "event_id": 456,
   "group_id": "ed5f2fa4-fbcb-46cf-9411-14f7a72e9f65",
   "event_data": {
-    "actor": { "type": "User", "id": 1, "username": "alice" },
+    "actor": { "type": "User", "id": 1, "username": "alice", "full_name": "Alice Johnson" },
     "target_type": "Message",
     "content": "Can you summarize this thread?",
     "content_payload": {
@@ -84,6 +84,8 @@ Receivers should parse the multipart payload and decode `event` as JSON.
   - For metadata-only events, this may be `null`.
 - `event_data.actor.username`
   - Creator username derived from the actor `name` attribute when available.
+- `event_data.actor.full_name`
+  - Creator full name derived from `effective_display_name` when available, otherwise from `name`.
 
 ### Knowledge Path Format
 
