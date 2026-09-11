@@ -81,6 +81,17 @@ class Rooms::DirectsController < RoomsController
         data: { "room_id" => message.room_id, "content_type" => message.content_type }
       )
 
+      if message.attachment?
+        OutputEvents::Recorder.record(
+          event_type: "message_attachment_uploaded",
+          event_id: message.id,
+          group_id: group_id,
+          actor: message.creator,
+          target_type: "Message",
+          data: { "room_id" => message.room_id, "filename" => message.attachment.filename.to_s }
+        )
+      end
+
       bot_ids = message.room.users.active_bots.excluding(message.creator).pluck(:id)
       return if !message.from_user? || bot_ids.empty?
 

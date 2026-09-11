@@ -25,6 +25,10 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
         "<knowledge_path>\n- /company/#{Account.first.id}/projects/#{project.id}/knowledge\n</knowledge_path>",
         event.event_data["knowledge_path"]
       )
+      assert event.event_data.key?("content")
+      assert event.event_data.key?("content_payload")
+      assert_nil event.event_data["content"]
+      assert_nil event.event_data["content_payload"]
     end
   end
 
@@ -58,5 +62,49 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
         assert_nil result
       end
     end
+  end
+
+  test "extracts message content and structured payload" do
+    room = rooms(:watercooler)
+    message = room.messages.create_with_attachment!(body: "Ship the change", creator: users(:david))
+
+    event = OutputEvents::Recorder.record(
+      event_type: "message_created",
+      event_id: message.id,
+      actor: message.creator,
+      target_type: "Message",
+      data: { "room_id" => room.id, "content_type" => "text" }
+    )
+
+    assert_equal "Ship the change", event.event_data["content"]
+    assert_equal "message", event.event_data.dig("content_payload", "type")
+    assert_equal message.id, event.event_data.dig("content_payload", "message_id")
+    assert_equal room.id, event.event_data.dig("content_payload", "room_id")
+  end
+
+  test "extracts approval decision content" do
+    room = rooms(:watercooler)
+    request = ApprovalRequest.create!(
+      room: room,
+      request_type: "decision",
+      payload: { "decision" => "Use the batched delivery path" }
+    )
+
+    event = OutputEvents::Recorder.record(
+      event_type: "decision_approved",
+      event_id: request.id,
+      actor: users(:david),
+      target_type: "ApprovalRequest",
+      data: {
+        "request_type" => request.request_type,
+        "room_id" => room.id,
+        "status" => "approved",
+        "approval_request_action" => "approve"
+      }
+    )
+
+    assert_equal "Use the batched delivery path", event.event_data["content"]
+    assert_equal "decision", event.event_data.dig("content_payload", "type")
+    assert_equal request.id, event.event_data.dig("content_payload", "approval_request_id")
   end
 end

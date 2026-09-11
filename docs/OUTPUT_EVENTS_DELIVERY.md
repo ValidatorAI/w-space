@@ -36,7 +36,7 @@ Configured in:
 
 ## Payload Format
 
-Each request body is JSON:
+Non-attachment events are sent as JSON with this envelope:
 
 ```json
 {
@@ -47,12 +47,41 @@ Each request body is JSON:
   "event_data": {
     "actor": { "type": "User", "id": 1 },
     "target_type": "Message",
+    "content": "Can you summarize this thread?",
+    "content_payload": {
+      "type": "message",
+      "message_id": 456,
+      "room_id": 99,
+      "content_type": "text",
+      "text": "Can you summarize this thread?"
+    },
     "occurred_at": "2026-09-02T12:00:00Z",
     "knowledge_path": "<knowledge_path>\n- /company/1/projects/2/knowledge\n</knowledge_path>"
   },
   "created_at": "2026-09-02T12:00:00Z"
 }
 ```
+
+Attachment upload events (`message_attachment_uploaded`) are sent as `multipart/form-data` and include:
+
+- `event`: JSON string with the same envelope fields above.
+- `file`: full binary attachment content.
+
+Receivers should parse the multipart payload and decode `event` as JSON.
+
+### Content Fields
+
+- `event_data.content`
+  - Human-readable event content.
+  - For message events, this is the message plain text.
+  - For decision events, this is the decision text when available.
+  - For metadata-only events, this is `null`.
+- `event_data.content_payload`
+  - Structured details for downstream processors.
+  - For message events: `type: "message"` and message context.
+  - For attachment events: `type: "file"` and file metadata.
+  - For decision events: `type: "decision"` and approval context.
+  - For metadata-only events, this may be `null`.
 
 ### Knowledge Path Format
 

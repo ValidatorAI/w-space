@@ -43,4 +43,30 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
 
     assert_not_requested :post, ENV.fetch("OUTPUT_EVENTS_URL")
   end
+
+  test "posts attachment events as multipart with full file" do
+    message = rooms(:watercooler).messages.create_with_attachment!(
+      body: "Attached file",
+      creator: users(:david),
+      attachment: Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/moon.jpg"), "image/jpeg")
+    )
+    event = OutputEvent.create!(
+      event_type: "message_attachment_uploaded",
+      event_id: message.id,
+      event_data: { "room_id" => message.room_id }
+    )
+
+    stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).with { |request|
+      content_type = request.headers["Content-Type"].to_s
+      content_type.include?("multipart/form-data") &&
+        request.body.include?("name=\"event\"") &&
+        request.body.include?("\"event_type\":\"message_attachment_uploaded\"") &&
+        request.body.include?("name=\"file\"; filename=\"moon.jpg\"")
+    }.to_return(status: 201)
+
+    OutputEvents::DeliverJob.perform_now(event.id)
+
+    assert event.reload.synced?
+    assert_requested :post, ENV.fetch("OUTPUT_EVENTS_URL")
+  end
 end

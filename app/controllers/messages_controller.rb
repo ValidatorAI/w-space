@@ -53,6 +53,7 @@ class MessagesController < ApplicationController
 
   def destroy
     message_id = @message.id
+    deleted_content = @message.plain_text_body
     @message.destroy
     @message.broadcast_remove
     OutputEvents::Recorder.record(
@@ -60,7 +61,7 @@ class MessagesController < ApplicationController
       event_id: message_id,
       actor: Current.user,
       target_type: "Message",
-      data: { "room_id" => @room.id }
+      data: { "room_id" => @room.id, "content" => deleted_content }
     )
   end
 

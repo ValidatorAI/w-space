@@ -6,6 +6,12 @@ module OutputEvents
       return if filtered_event_type?(event_type)
 
       payload_data = (data || {}).deep_stringify_keys
+      normalized_content = ContentBuilder.build(
+        event_type: event_type,
+        event_id: event_id,
+        target_type: target_type,
+        data: payload_data
+      )
       knowledge_path = KnowledgePathResolver.resolve(
         event_type: event_type,
         event_id: event_id,
@@ -13,11 +19,13 @@ module OutputEvents
         data: payload_data
       )
 
-      event_data = payload_data.merge(
+      event_data = payload_data.except("content", "content_payload").merge(
         "actor" => actor_data(actor),
         "target_type" => target_type,
         "occurred_at" => Time.current.iso8601
       ).compact
+      event_data["content"] = normalized_content["content"]
+      event_data["content_payload"] = normalized_content["content_payload"]
       event_data["knowledge_path"] = knowledge_path if knowledge_path.present?
 
       event = OutputEvent.create!(
