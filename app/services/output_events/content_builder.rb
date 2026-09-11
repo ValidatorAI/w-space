@@ -15,6 +15,8 @@ module OutputEvents
         build_message_content(event_type: event_type, event_id: event_id, data: payload_data)
       when "ApprovalRequest"
         build_approval_request_content(event_id: event_id, data: payload_data)
+      when "AttentionItem"
+        build_attention_item_content(event_id: event_id, data: payload_data)
       else
         { "content" => nil, "content_payload" => nil }
       end
@@ -69,6 +71,28 @@ module OutputEvents
       }
     end
     private_class_method :build_approval_request_content
+
+    def self.build_attention_item_content(event_id:, data:)
+      attention_item = AttentionItem.find_by(id: event_id)
+      content = attention_item&.title.presence || data["title"]
+
+      {
+        "content" => content,
+        "content_payload" => {
+          "type" => "attention_item_resolution",
+          "attention_item_id" => event_id,
+          "category" => data["category"] || attention_item&.category,
+          "status" => data["status"] || attention_item&.status,
+          "action_label" => data["action_label"],
+          "target_type" => data["target_type"] || attention_item&.target_type,
+          "room_id" => data["room_id"] || attention_item&.room_id,
+          "project_id" => data["project_id"] || attention_item&.project_id,
+          "source_type" => data["source_type"] || attention_item&.source_type,
+          "source_id" => data["source_id"] || attention_item&.source_id
+        }.compact
+      }
+    end
+    private_class_method :build_attention_item_content
 
     def self.attachment_payload(message)
       return unless message&.attachment?

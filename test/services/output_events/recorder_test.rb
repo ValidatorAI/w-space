@@ -107,4 +107,30 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
     assert_equal "decision", event.event_data.dig("content_payload", "type")
     assert_equal request.id, event.event_data.dig("content_payload", "approval_request_id")
   end
+
+  test "extracts attention item resolution content" do
+    attention_item = AttentionItem.create!(
+      title: "Approve legal terms",
+      category: "decisions_waiting",
+      status: :resolved
+    )
+
+    event = OutputEvents::Recorder.record(
+      event_type: "decision_waiting_resolved",
+      event_id: attention_item.id,
+      actor: users(:david),
+      target_type: "AttentionItem",
+      data: {
+        "category" => attention_item.category,
+        "status" => attention_item.status,
+        "action_label" => "Approve"
+      }
+    )
+
+    assert_equal "Approve legal terms", event.event_data["content"]
+    assert_equal "attention_item_resolution", event.event_data.dig("content_payload", "type")
+    assert_equal attention_item.id, event.event_data.dig("content_payload", "attention_item_id")
+    assert_equal "decisions_waiting", event.event_data.dig("content_payload", "category")
+    assert_equal "resolved", event.event_data.dig("content_payload", "status")
+  end
 end

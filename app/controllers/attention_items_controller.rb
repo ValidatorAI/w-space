@@ -3,6 +3,23 @@ class AttentionItemsController < ApplicationController
 
   def resolve
     @attention_item.resolve!(Current.user)
+    OutputEvents::Recorder.record(
+      event_type: @attention_item.resolved_event_type,
+      event_id: @attention_item.id,
+      actor: Current.user,
+      target_type: "AttentionItem",
+      data: {
+        "category" => @attention_item.category,
+        "status" => @attention_item.status,
+        "title" => @attention_item.title,
+        "action_label" => @attention_item.effective_action_label,
+        "target_type" => @attention_item.target_type,
+        "room_id" => @attention_item.room_id,
+        "project_id" => @attention_item.project_id,
+        "source_type" => @attention_item.source_type,
+        "source_id" => @attention_item.source_id
+      }.compact
+    )
 
     respond_to do |format|
       format.turbo_stream
