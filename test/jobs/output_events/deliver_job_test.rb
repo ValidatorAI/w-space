@@ -18,6 +18,7 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
       event_id: 42,
       group_id: group_id,
       event_data: {
+        "actor" => { "type" => "User", "id" => users(:david).id, "username" => users(:david).name },
         "target_type" => "Message",
         "knowledge_path" => knowledge_path
       }
@@ -32,7 +33,10 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
       "event_type" => "message_created",
       "event_id" => 42,
       "group_id" => group_id,
-      "event_data" => hash_including("knowledge_path" => knowledge_path)
+      "event_data" => hash_including(
+        "actor" => hash_including("username" => users(:david).name),
+        "knowledge_path" => knowledge_path
+      )
     )
   end
 

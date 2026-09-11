@@ -42,7 +42,11 @@ module OutputEvents
     def self.actor_data(actor)
       return unless actor
 
-      { "type" => actor.class.name, "id" => actor.id }
+      {
+        "type" => actor.class.name,
+        "id" => actor.id,
+        "username" => (actor.name if actor.respond_to?(:name))
+      }.compact
     end
     private_class_method :actor_data
 

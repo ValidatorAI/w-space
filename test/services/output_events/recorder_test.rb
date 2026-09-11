@@ -20,7 +20,7 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
       assert_equal project.id, event.event_id
       assert_equal group_id, event.group_id
       assert_equal "Project", event.event_data["target_type"]
-      assert_equal({ "type" => "User", "id" => actor.id }, event.event_data["actor"])
+      assert_equal({ "type" => "User", "id" => actor.id, "username" => actor.name }, event.event_data["actor"])
       assert_equal(
         "<knowledge_path>\n- /company/#{Account.first.id}/projects/#{project.id}/knowledge\n</knowledge_path>",
         event.event_data["knowledge_path"]

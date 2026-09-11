@@ -45,7 +45,7 @@ Non-attachment events are sent as JSON with this envelope:
   "event_id": 456,
   "group_id": "ed5f2fa4-fbcb-46cf-9411-14f7a72e9f65",
   "event_data": {
-    "actor": { "type": "User", "id": 1 },
+    "actor": { "type": "User", "id": 1, "username": "alice" },
     "target_type": "Message",
     "content": "Can you summarize this thread?",
     "content_payload": {
@@ -82,6 +82,8 @@ Receivers should parse the multipart payload and decode `event` as JSON.
   - For attachment events: `type: "file"` and file metadata.
   - For decision events: `type: "decision"` and approval context.
   - For metadata-only events, this may be `null`.
+- `event_data.actor.username`
+  - Creator username derived from the actor `name` attribute when available.
 
 ### Knowledge Path Format
 
