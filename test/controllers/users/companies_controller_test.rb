@@ -71,6 +71,7 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "section[aria-label='Global AI integrations']"
     assert_select "section[aria-label='Organization profile'] input[type='file'][name='account[logo]']"
+    assert_select "a", text: "+ Register Custom Agent Webhook"
   end
 
   test "admin can open add user modal" do
@@ -88,6 +89,7 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_select "section[aria-label='Organization profile'] input[type='file'][name='account[logo]']", count: 0
+    assert_select "a", text: "+ Register Custom Agent Webhook", count: 0
   end
 
   test "non admin cannot open add user modal" do
