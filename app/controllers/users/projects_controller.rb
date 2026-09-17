@@ -47,6 +47,43 @@ class Users::ProjectsController < ApplicationController
     end
 
     broadcast_sidebar_refresh_for(selected_member_users)
+    group_id = SecureRandom.uuid
+    OutputEvents::Recorder.record(
+      event_type: "project_created",
+      event_id: @project.id,
+      group_id: group_id,
+      actor: Current.user,
+      target_type: "Project",
+      data: { "slug" => @project.slug, "member_user_ids" => selected_member_users.map(&:id) }
+    )
+    selected_member_users.each do |user|
+      OutputEvents::Recorder.record(
+        event_type: "project_member_added",
+        event_id: @project.id,
+        group_id: group_id,
+        actor: Current.user,
+        target_type: "Project",
+        data: { "member" => { "type" => "User", "id" => user.id } }
+      )
+      OutputEvents::Recorder.record(
+        event_type: "project_first_joined",
+        event_id: @project.id,
+        group_id: group_id,
+        actor: Current.user,
+        target_type: "Project",
+        data: { "member" => { "type" => "User", "id" => user.id } }
+      )
+    end
+    @project.rooms.find_each do |room|
+      OutputEvents::Recorder.record(
+        event_type: "room_created",
+        event_id: room.id,
+        group_id: group_id,
+        actor: Current.user,
+        target_type: "Room",
+        data: { "room_type" => room.type, "project_id" => @project.id, "parent_id" => room.parent_id }.compact
+      )
+    end
 
     redirect_to user_company_project_overview_path(user_id: "me", id: @project.id), notice: "Project created"
   rescue ActiveRecord::RecordInvalid
@@ -54,10 +91,11 @@ class Users::ProjectsController < ApplicationController
   end
 
   def overview
-    @project_users = @project.users.order(:name)
-    @agents = @project.agents.order(:name)
+    @project_users = @project.users.active.without_bots.ordered
+    @ai_teammates = @project.users.active_bots.ordered
     @project_rooms = @project.rooms.without_directs.order(:name)
     @attention_items = @project.attention_items.open_items.ordered
+    @project_milestones = @project.project_milestones.active.ordered
     @total_rooms_count = @project_rooms.count
     @messages_count = Message.where(room_id: @project.rooms.select(:id)).count
   end
@@ -65,23 +103,21 @@ class Users::ProjectsController < ApplicationController
   def status
     @bottlenecks = @project.bottlenecks.active.ordered
     @todos = @project.todos.ordered
-    @knowledge_items = @project.knowledge_items.ordered
+    @knowledge_items = @project.knowledge_items.active.ordered
   end
 
   def all_hands
-    @latest_meeting = @project.all_hands_meetings.ordered.first
-    @takeaways = @latest_meeting&.takeaways&.ordered || []
-    @action_items = @latest_meeting&.action_items&.ordered || []
-    @decisions = @latest_meeting&.decisions&.ordered || []
-    @previous_meetings = @project.all_hands_meetings.ordered.offset(1) || []
+    @takeaways = @project.project_all_hands_takeaways.active.ordered
+    @action_items = @project.project_all_hands_action_items.active.ordered
+    @decisions = @project.project_all_hands_decisions.active.ordered
   end
 
   def knowledge
-    @obsidian_notes = @project.obsidian_notes.ordered
+    @obsidian_notes = @project.obsidian_notes.active.ordered
     @primary_note = @obsidian_notes.first
-    @external_assets = @project.external_assets.ordered
-    @adrs = @project.adrs.ordered
-    @knowledge_activities = @project.knowledge_activities.ordered
+    @external_assets = @project.external_assets.active.ordered
+    @adrs = @project.adrs.active.ordered
+    @knowledge_activities = @project.knowledge_activities.active.ordered
     @directory_tree = ProjectKnowledge.directory_tree(@project)
   end
 

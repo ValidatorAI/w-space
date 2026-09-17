@@ -4,7 +4,15 @@ export default class extends Controller {
   static targets = [ "cancel" ]
 
   submit() {
-    this.element.requestSubmit()
+    const form = this.element?.form ?? this.element
+
+    if (!form) return
+
+    if (form.requestSubmit) {
+      form.requestSubmit()
+    } else {
+      form.submit()
+    }
   }
 
   cancel() {

@@ -11,6 +11,13 @@ class Accounts::UsersController < ApplicationController
     user.display_name = user.name if user.display_name.blank?
 
     if user.save
+      OutputEvents::Recorder.record(
+        event_type: "user_activated",
+        event_id: user.id,
+        actor: Current.user,
+        target_type: "User",
+        data: { "created" => true }
+      )
       if company_settings_modal_request?
         render "users/companies/add_user_success", layout: false
       else
@@ -41,11 +48,13 @@ class Accounts::UsersController < ApplicationController
 
   def destroy
     @user.deactivate
+    record_user_status_event("user_deactivated")
     redirect_after_member_change
   end
 
   def activate
     @user.update!(status: :active)
+    record_user_status_event("user_activated")
     redirect_after_member_change
   end
 
@@ -72,5 +81,15 @@ class Accounts::UsersController < ApplicationController
 
     def create_user_params
       params.require(:user).permit(:name, :email_address, :password)
+    end
+
+    def record_user_status_event(event_type)
+      OutputEvents::Recorder.record(
+        event_type: event_type,
+        event_id: @user.id,
+        actor: Current.user,
+        target_type: "User",
+        data: {}
+      )
     end
 end

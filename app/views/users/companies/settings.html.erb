@@ -196,9 +196,11 @@
           </div>
         <% end %>
 
-        <div class="settings-row-actions">
-          <%= link_to "+ Register Custom Agent Webhook", account_bots_path(return_to: "company_settings"), class: "action-btn action-btn--dashed" %>
-        </div>
+        <% if Current.user.can_administer? %>
+          <div class="settings-row-actions">
+            <%= link_to "+ Register Custom Agent Webhook", account_bots_path(return_to: "company_settings"), class: "action-btn action-btn--dashed" %>
+          </div>
+        <% end %>
       </section>
 
       <div class="settings-footer-actions">

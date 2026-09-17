@@ -4,6 +4,13 @@ class Users::Projects::TodosController < ApplicationController
 
   def toggle
     @todo.toggle_completed!
+    OutputEvents::Recorder.record(
+      event_type: @todo.completed? ? "project_todo_completed" : "project_todo_reopened",
+      event_id: @todo.id,
+      actor: Current.user,
+      target_type: "ProjectTodo",
+      data: { "project_id" => @project.id }
+    )
 
     respond_to do |format|
       format.turbo_stream do

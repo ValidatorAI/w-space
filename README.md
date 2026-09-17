@@ -138,6 +138,29 @@ bin/rails test
 
 ### Key Directories
 
+## Output Event Delivery
+
+Bonfire records selected business mutations in the `output_events` table and delivers each record asynchronously to an external HTTP endpoint. Set `OUTPUT_EVENTS_URL` to enable delivery and optionally set `OUTPUT_EVENTS_TOKEN` for Bearer-token authentication.
+
+Each request is a JSON `POST` with this shape:
+
+```json
+{
+  "id": 123,
+  "event_type": "message_created",
+  "event_id": 456,
+  "group_id": "ed5f2fa4-fbcb-46cf-9411-14f7a72e9f65",
+  "event_data": {
+    "actor": { "type": "User", "id": 1 },
+    "target_type": "Message",
+    "occurred_at": "2026-09-02T12:00:00Z"
+  },
+  "created_at": "2026-09-02T12:00:00Z"
+}
+```
+
+`id` is the idempotency key for the receiving service. `group_id` is a UUID shared by every event created by one compound action, such as a room creation and its member additions; single-event actions have `group_id: null`. Events begin with `synced: false` and become synced only after a successful HTTP `2xx` response. Timeouts, connection failures, and `5xx` responses retry up to five times; terminal failures remain unsynced for operational follow-up.
+
 ```
 app/
 ├── controllers/mcp/     # MCP JSON-RPC endpoint

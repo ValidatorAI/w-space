@@ -57,9 +57,13 @@
   </div>
 
   <div class="home-ask-input-area">
-    <div class="home-input-pill">
-      <span>✨</span>
-      <input type="text" placeholder="Ask W about the company..." aria-label="Ask W about the company">
-    </div>
+    <%= form_with url: rooms_directs_path, method: :post, class: "home-ask-form" do %>
+      <%= hidden_field_tag "user_ids[]", @company_bot.id %>
+      <div class="home-input-pill">
+        <span aria-hidden="true">✨</span>
+        <%= text_field_tag "message[body]", nil, placeholder: "Ask W about the company...", aria: { label: "Ask W about the company" }, autocomplete: "off", class: "home-ask-input" %>
+        <%= submit_tag "📨", class: "home-ask-send", aria: { label: "Send" } %>
+      </div>
+    <% end %>
   </div>
 </div>

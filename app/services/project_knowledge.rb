@@ -33,7 +33,7 @@ class ProjectKnowledge
     end
 
     def directory_tree(project)
-      items = project.directory_items.ordered.to_a
+      items = project.directory_items.active.ordered.to_a
       return [] if items.empty?
 
       items_by_parent_id = items.group_by(&:parent_id)

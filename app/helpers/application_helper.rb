@@ -1,6 +1,6 @@
 module ApplicationHelper
   def page_title_tag
-    tag.title @page_title || "Bonfire"
+    tag.title @page_title || "W space"
   end
 
   def current_user_meta_tags

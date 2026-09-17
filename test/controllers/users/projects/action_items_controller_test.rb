@@ -9,13 +9,7 @@ class Users::Projects::ActionItemsControllerTest < ActionDispatch::IntegrationTe
       description: "Platform specs"
     )
     @project.project_users.create!(user: users(:david))
-    @meeting = @project.all_hands_meetings.create!(
-      title: "Sprint Review & Security Review",
-      held_at: Time.zone.parse("2026-08-17 10:00:00"),
-      duration_minutes: 45,
-      leader_name: "Sarah"
-    )
-    @action_item = @meeting.action_items.create!(
+    @action_item = @project.project_all_hands_action_items.create!(
       title: "Finalize Multi-sig threshold logic",
       assignee_name: "Alex",
       due_date: "Aug 25",

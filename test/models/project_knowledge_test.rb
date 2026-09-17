@@ -19,6 +19,7 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     )
 
     assert_equal 1, @project.obsidian_notes.count
+    assert note.active
     assert_equal ["#solidity", "#vault"], note.tag_list
     assert note.internal_source?
     assert_not note.external_source?
@@ -35,6 +36,7 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     )
 
     assert_equal 1, @project.external_assets.count
+    assert asset.active
     assert asset.external_source?
   end
 
@@ -48,6 +50,7 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     )
 
     assert_equal 1, @project.adrs.count
+    assert adr.active
     assert_equal "2026-08-01", adr.formatted_date
     assert_equal "accepted", adr.status
   end
@@ -61,6 +64,7 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     )
 
     assert_equal 1, @project.knowledge_activities.count
+    assert activity.active
     assert_equal "S", activity.actor_initial
     assert_includes activity.formatted_action_html, "data-knowledge-file-viewer-path-param=\"01_Architecture/Design.md\""
     assert_includes activity.formatted_action_html, "[[Architecture]]"

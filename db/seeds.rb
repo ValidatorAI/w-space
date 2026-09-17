@@ -9,6 +9,7 @@ puts "Setting up MCP Agent Chat..."
 # - "All Talk" main room
 # - "Meta Events" room for system events
 overseer = FirstRun.setup!
+FirstRun.ensure_company_bot!
 
 if overseer
   puts "  Created Human Overseer: #{overseer.name}"
@@ -425,84 +426,63 @@ if b2b_project.knowledge_items.empty?
   ])
 end
 
-if b2b_project.all_hands_meetings.empty?
-  latest_meeting = b2b_project.all_hands_meetings.create!(
-    title: "Latest: Q3 Kickoff & Security Review",
-    held_at: Time.zone.parse("2026-08-17 10:00:00"),
-    duration_minutes: 45,
-    leader_name: "Sarah",
-    notes: "Q3 alignment kickoff covering the core vault security audit results, target mainnet release schedule on September 15th, and liquidity provider outreach strategy.",
-    position: 1
-  )
-
-  latest_meeting.takeaways.create!([
+if b2b_project.project_all_hands_takeaways.empty? && b2b_project.project_all_hands_action_items.empty? && b2b_project.project_all_hands_decisions.empty?
+  b2b_project.project_all_hands_takeaways.create!([
     {
       category: "Security",
       content: "The core vault logic passed the external audit with zero critical vulnerabilities.",
-      position: 1
+      position: 1,
+      active: true
     },
     {
       category: "Timeline",
       content: "Leadership confirmed the Q3 launch target is locked in for September 15th.",
-      position: 2
+      position: 2,
+      active: true
     },
     {
       category: "Marketing",
       content: "The go-to-market strategy is shifting slightly to focus on enterprise liquidity providers first.",
-      position: 3
+      position: 3,
+      active: true
     }
   ])
 
-  latest_meeting.action_items.create!([
+  b2b_project.project_all_hands_action_items.create!([
     {
       title: "Finalize Multi-sig threshold logic",
       assignee_name: "Alex",
       due_date: "Aug 25",
       completed: false,
-      position: 1
+      position: 1,
+      active: true
     },
     {
       title: "Draft release notes for V1",
       assignee_name: "Sarah",
       due_date: "Aug 28",
       completed: false,
-      position: 2
+      position: 2,
+      active: true
     },
     {
       title: "Send Vault contract to auditors",
       assignee_name: "Siavash",
       completed: true,
       completed_at: Time.zone.parse("2026-08-18 14:00:00"),
-      position: 3
+      position: 3,
+      active: true
     }
   ])
 
-  latest_meeting.decisions.create!([
+  b2b_project.project_all_hands_decisions.create!([
     {
       title: "We will use 3-of-5 multisig for mainnet deployment.",
       basis: "Decided in consensus",
       impact: "#smart-contracts",
       badge: "Logged in System",
-      position: 1
-    }
-  ])
-
-  b2b_project.all_hands_meetings.create!([
-    {
-      title: "Weekly Sync: Testing Phase 1",
-      held_at: Time.zone.parse("2026-08-10 10:00:00"),
-      duration_minutes: 30,
-      leader_name: "Sarah",
-      notes: "Discussed test coverage for vault smart contracts on testnet nodes and resolved state synchronization race conditions across multi-sig participants.",
-      position: 2
-    },
-    {
-      title: "Monthly Review: July Growth Metrics",
-      held_at: Time.zone.parse("2026-08-03 10:00:00"),
-      duration_minutes: 60,
-      leader_name: "Alex",
-      notes: "July retro and metric evaluation. Liquidity volumes grew by 24% month-over-month. Identified bottlenecks in client onboarding flow and API key generation.",
-      position: 3
+      position: 1,
+      active: true
     }
   ])
 end

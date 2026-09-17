@@ -4,6 +4,7 @@ class ProjectKnowledgeActivity < ApplicationRecord
   validates :actor_name, presence: true
   validates :action_text, presence: true
 
+  scope :active, -> { where(active: true) }
   scope :ordered, -> { order(position: :asc, created_at: :desc) }
 
   def actor_initial

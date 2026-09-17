@@ -14,109 +14,48 @@
 
 <div id="message-area" class="message-area project-all-hands-area" data-controller="all-hands-notes">
   <div class="project-all-hands-content">
-    <% if @latest_meeting.present? %>
-      <div class="all-hands-meeting-header">
-        <div>
-          <h2 class="all-hands-meeting-title"><%= @latest_meeting.title %></h2>
-          <% if @latest_meeting.metadata_line.present? %>
-            <span class="all-hands-meeting-meta"><%= @latest_meeting.metadata_line %></span>
-          <% end %>
-        </div>
+    <div class="all-hands-grid">
+      <div class="all-hands-card">
+        <h3 class="all-hands-card-title">✨ AI Summary &amp; Key Takeaways</h3>
+        <% if @takeaways.any? %>
+          <ul class="all-hands-bullet-list">
+            <% @takeaways.each do |takeaway| %>
+              <li><strong><%= takeaway.category %>:</strong> <%= takeaway.content %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">No active takeaways recorded for this project.</p>
+        <% end %>
       </div>
 
-      <div class="all-hands-grid">
-        <div class="all-hands-card">
-          <h3 class="all-hands-card-title">✨ AI Summary &amp; Key Takeaways</h3>
-          <% if @takeaways.any? %>
-            <ul class="all-hands-bullet-list">
-              <% @takeaways.each do |takeaway| %>
-                <li><strong><%= takeaway.category %>:</strong> <%= takeaway.content %></li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">No takeaways recorded for this meeting.</p>
-          <% end %>
-        </div>
+      <%= render "users/projects/all_hands/action_items_card", action_items: @action_items, project: @project %>
+    </div>
 
-        <%= render "users/projects/all_hands/action_items_card", action_items: @action_items, project: @project %>
+    <% if @decisions.any? %>
+      <div class="all-hands-card">
+        <h3 class="all-hands-card-title">Decisions Logged</h3>
+        <% @decisions.each do |decision| %>
+          <div class="all-hands-list-item all-hands-list-item--row">
+            <div>
+              <div class="all-hands-item-title"><%= decision.title %></div>
+              <% dec_parts = [] %>
+              <% dec_parts << decision.basis if decision.basis.present? %>
+              <% dec_parts << "Impact: #{decision.impact}" if decision.impact.present? %>
+              <% if dec_parts.any? %>
+                <div class="all-hands-item-meta"><%= dec_parts.join(" • ") %></div>
+              <% end %>
+            </div>
+            <% if decision.badge.present? %>
+              <span class="all-hands-badge all-hands-badge--blue"><%= decision.badge %></span>
+            <% end %>
+          </div>
+        <% end %>
       </div>
-
-      <% if @decisions.any? %>
-        <div class="all-hands-card">
-          <h3 class="all-hands-card-title">Decisions Logged</h3>
-          <% @decisions.each do |decision| %>
-            <div class="all-hands-list-item all-hands-list-item--row">
-              <div>
-                <div class="all-hands-item-title"><%= decision.title %></div>
-                <% dec_parts = [] %>
-                <% dec_parts << decision.basis if decision.basis.present? %>
-                <% dec_parts << "Impact: #{decision.impact}" if decision.impact.present? %>
-                <% if dec_parts.any? %>
-                  <div class="all-hands-item-meta"><%= dec_parts.join(" • ") %></div>
-                <% end %>
-              </div>
-              <% if decision.badge.present? %>
-                <span class="all-hands-badge all-hands-badge--blue"><%= decision.badge %></span>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-
-      <% if @previous_meetings.any? %>
-        <div class="all-hands-card">
-          <h3 class="all-hands-card-title">Previous Meetings</h3>
-          <% @previous_meetings.each do |meeting| %>
-            <div class="all-hands-list-item all-hands-list-item--row">
-              <div>
-                <div class="all-hands-item-title"><%= meeting.title %></div>
-                <% prev_meta = [] %>
-                <% prev_meta << meeting.formatted_held_date if meeting.formatted_held_date.present? %>
-                <% prev_meta << "#{meeting.duration_minutes} mins" if meeting.duration_minutes.present? %>
-                <% prev_meta << "Led by @#{meeting.leader_name}" if meeting.leader_name.present? %>
-                <% if prev_meta.any? %>
-                  <div class="all-hands-item-meta"><%= prev_meta.join(" • ") %></div>
-                <% end %>
-              </div>
-              <button class="all-hands-secondary-btn"
-                      type="button"
-                      data-action="click->all-hands-notes#open"
-                      data-all-hands-notes-title-param="<%= meeting.title %>"
-                      data-all-hands-notes-meta-param="<%= meeting.metadata_line.presence || prev_meta.join(' • ') %>"
-                      data-all-hands-notes-notes-param="<%= meeting.notes %>">
-                View Notes
-              </button>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
     <% else %>
       <div class="all-hands-card" style="text-align: center; padding: 48px 24px;">
-        <h3 class="all-hands-card-title" style="justify-content: center; margin-bottom: 8px;">No All-Hands Meetings Recorded</h3>
-        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">This project does not have any recorded All-Hands meetings or sync summaries yet.</p>
+        <h3 class="all-hands-card-title" style="justify-content: center; margin-bottom: 8px;">No Active All-Hands Items</h3>
+        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">This project does not currently have any active takeaways, action items, or decisions.</p>
       </div>
     <% end %>
-
-    <dialog class="all-hands-notes-dialog"
-            aria-label="Meeting Notes"
-            data-all-hands-notes-target="dialog"
-            data-action="click->all-hands-notes#closeOnBackdrop">
-      <div class="all-hands-notes-panel">
-        <header class="all-hands-notes-header">
-          <div class="all-hands-notes-header-text">
-            <span class="all-hands-badge all-hands-badge--blue" style="align-self: flex-start;">Meeting Notes</span>
-            <h3 class="all-hands-notes-title" data-all-hands-notes-target="title">Meeting Title</h3>
-            <span class="all-hands-notes-meta" data-all-hands-notes-target="meta">Meeting Meta</span>
-          </div>
-          <button class="all-hands-notes-close-btn" type="button" aria-label="Close notes" data-action="click->all-hands-notes#close">&times;</button>
-        </header>
-        <div class="all-hands-notes-body">
-          <div data-all-hands-notes-target="notes"></div>
-        </div>
-        <footer class="all-hands-notes-footer">
-          <button class="all-hands-secondary-btn" type="button" data-action="click->all-hands-notes#close">Close</button>
-        </footer>
-      </div>
-    </dialog>
   </div>
 </div>

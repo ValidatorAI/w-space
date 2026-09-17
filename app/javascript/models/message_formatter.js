@@ -34,7 +34,7 @@ export default class MessageFormatter {
   }
 
   #setMeClass(message) {
-    const isMe = message.dataset.userId == this.#userId
+    const isMe = message.dataset.creatorType === "User" && message.dataset.userId == this.#userId
     message.classList.toggle(this.#classes.me, isMe)
   }
 

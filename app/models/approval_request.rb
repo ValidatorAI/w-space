@@ -52,6 +52,7 @@ class ApprovalRequest < ApplicationRecord
   private
 
   def record_transition!(new_status:, action:, actor:, note:)
+    decision_adr = nil
     transaction do
       update!(
         status: new_status,
@@ -64,9 +65,10 @@ class ApprovalRequest < ApplicationRecord
         note: note
       )
       resolve_linked_attention_items!(actor)
-      record_decision_if_applicable! if new_status == :approved
+      decision_adr = record_decision_if_applicable! if new_status == :approved
     end
     broadcast_replacement
+    record_output_event(action, actor, decision_adr)
   end
 
   def resolve_linked_attention_items!(actor)
@@ -97,6 +99,34 @@ class ApprovalRequest < ApplicationRecord
     )
   rescue StandardError => e
     Rails.logger.error("Failed to auto-record decision from approval request #{id}: #{e.message}")
+  end
+
+  def record_output_event(action, actor, decision_adr)
+    event_type = if decision_adr.present?
+      "decision_approved"
+    else
+      {
+        "approve" => "approval_request_approved",
+        "confirm" => "approval_request_confirmed",
+        "deny" => "approval_request_denied",
+        "cancel" => "approval_request_canceled"
+      }.fetch(action)
+    end
+
+    OutputEvents::Recorder.record(
+      event_type: event_type,
+      event_id: id,
+      actor: actor,
+      target_type: "ApprovalRequest",
+      data: {
+        "request_type" => request_type,
+        "room_id" => room_id,
+        "message_id" => message_id,
+        "status" => status,
+        "approval_request_action" => action,
+        "adr_id" => decision_adr&.id
+      }.compact
+    )
   end
 
   def payload_must_be_object

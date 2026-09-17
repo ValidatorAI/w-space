@@ -25,6 +25,143 @@
   }
 }
 
+.sidebar__tool--contacts,
+.sidebar__tool--settings {
+  aspect-ratio: 1;
+  block-size: var(--btn-size);
+  inline-size: var(--btn-size);
+  justify-content: center;
+}
+
+.direct-contacts {
+  --width: 28rem;
+
+  border: 0;
+  border-radius: 0.5rem;
+  inset: 0;
+  margin: auto;
+  max-block-size: min(38rem, calc(100dvh - var(--block-space) * 2));
+  overflow: hidden;
+  padding: 0;
+  position: fixed;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+}
+
+.direct-contacts__header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  padding: calc(var(--block-space) * 1.5) calc(var(--inline-space) * 1.5) var(--block-space);
+}
+
+.direct-contacts__title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.direct-contacts__subtitle {
+  color: color-mix(in oklab, var(--color-text), transparent 45%);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+.direct-contacts .dialog__close {
+  inset: auto;
+  position: static;
+}
+
+.direct-contacts__search-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding-inline: calc(var(--inline-space) * 1.5);
+}
+
+.direct-contacts__search {
+  inline-size: calc(100% - var(--inline-space) * 3);
+  margin: 0.4rem calc(var(--inline-space) * 1.5) var(--block-space);
+}
+
+.direct-contacts__sections {
+  border-block-start: 1px solid var(--color-border-dark);
+  max-block-size: min(27rem, calc(100dvh - 13rem));
+  overflow-y: auto;
+  padding: var(--block-space) calc(var(--inline-space) * 1.5) calc(var(--block-space) * 1.5);
+}
+
+.direct-contacts__section + .direct-contacts__section {
+  margin-block-start: calc(var(--block-space) * 1.25);
+}
+
+.direct-contacts__section-title {
+  color: color-mix(in oklab, var(--color-text), transparent 45%);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.direct-contacts__list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.direct-contacts__form {
+  margin: 0;
+}
+
+.direct-contacts__contact {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-padding: 0.45rem;
+
+  align-items: center;
+  display: flex;
+  gap: 0.7rem;
+  inline-size: 100%;
+  justify-content: flex-start;
+  min-inline-size: 0;
+  text-align: start;
+}
+
+.direct-contacts__contact[hidden] {
+  display: none;
+}
+
+.direct-contacts__contact:where(:hover, :focus-visible) {
+  --btn-background: color-mix(in oklab, var(--color-text), transparent 92%);
+}
+
+.direct-contacts__contact-copy {
+  display: grid;
+}
+
+.direct-contacts__contact-name {
+  font-weight: 650;
+  max-inline-size: 100%;
+}
+
+.direct-contacts__contact-type {
+  color: color-mix(in oklab, var(--color-text), transparent 50%);
+  font-size: 0.75rem;
+}
+
+.direct-contacts__empty {
+  color: color-mix(in oklab, var(--color-text), transparent 45%);
+  margin: var(--block-space) 0;
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .direct-contacts {
+    inline-size: calc(100dvw - var(--inline-space) * 2);
+    max-block-size: calc(100dvh - var(--block-space) * 2);
+  }
+}
+
 .sidebar__toggle {
   inset-block-start: var(--block-space-half);
   inset-inline-start: calc((var(--btn-size) + max(var(--inline-space), 1vw)) * -1);

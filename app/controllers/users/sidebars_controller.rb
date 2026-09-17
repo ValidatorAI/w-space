@@ -1,6 +1,4 @@
 class Users::SidebarsController < ApplicationController
-  DIRECT_PLACEHOLDERS = 20
-
   def show
     all_memberships     = Current.user.memberships.visible.with_ordered_room.merge(Room.active)
     project_memberships, non_project_memberships = all_memberships.partition { |membership| membership.room.project_room? }
@@ -48,7 +46,8 @@ class Users::SidebarsController < ApplicationController
     end
     @projects = Current.user.projects.includes(:rooms).sort_by { |project| project.display_name.to_s.downcase }
 
-    @direct_placeholder_users = find_direct_placeholder_users
+    @direct_contacts = User.active.where.not(id: Current.user.id).without_bots.ordered
+    @direct_bot_contacts = User.active_bots.where.not(id: Current.user.id).ordered
   end
 
   private
@@ -82,15 +81,7 @@ class Users::SidebarsController < ApplicationController
     end
 
     def room_without_parent_or_project?(room)
-      room.parent_id.blank? && room.project_id.blank?
-    end
-
-    def find_direct_placeholder_users
-      exclude_user_ids = user_ids_already_in_direct_rooms_with_current_user.including(Current.user.id)
-      User.active.where.not(id: exclude_user_ids).order(:created_at).limit(DIRECT_PLACEHOLDERS - exclude_user_ids.count)
-    end
-
-    def user_ids_already_in_direct_rooms_with_current_user
-      Membership.where(room_id: Current.user.rooms.directs.pluck(:id), participant_type: "User").pluck(:participant_id).uniq
+      # a direct-message parent can never be displayed, so it doesn't count as a usable parent
+      (room.parent_id.blank? || room.parent&.direct?) && room.project_id.blank?
     end
 end

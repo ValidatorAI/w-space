@@ -4,6 +4,7 @@ class ProjectObsidianNote < ApplicationRecord
   validates :title, presence: true
   validates :html_source_type, inclusion: { in: %w[internal_file external_url] }
 
+  scope :active, -> { where(active: true) }
   scope :ordered, -> { order(position: :asc, created_at: :asc) }
 
   def tag_list

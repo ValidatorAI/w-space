@@ -1,0 +1,52 @@
+<div class="direct-contacts__sections">
+  <section class="direct-contacts__section" aria-labelledby="direct-contacts-humans" data-direct-contacts-modal-target="section">
+    <h3 id="direct-contacts-humans" class="direct-contacts__section-title">Humans</h3>
+
+    <div class="direct-contacts__list">
+      <% direct_contacts.each do |contact| %>
+        <%= button_to rooms_directs_path(user_ids: [ contact.id ]),
+              class: "btn direct-contacts__contact",
+              form_class: "direct-contacts__form",
+              form: { data: { action: "turbo:submit-end->direct-contacts-modal#close" } },
+              aria: { label: "Start a Ping with #{contact.effective_display_name}" },
+              data: {
+                direct_contacts_modal_target: "contact",
+                direct_contacts_modal_search_value: contact.effective_display_name.downcase
+              } do %>
+          <span class="avatar flex-item-no-shrink">
+            <%= image_tag fresh_user_avatar_path(contact), size: 40, aria: { hidden: "true" } %>
+          </span>
+          <span class="direct-contacts__contact-name overflow-ellipsis"><%= contact.effective_display_name %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="direct-contacts__section" aria-labelledby="direct-contacts-bots" data-direct-contacts-modal-target="section">
+    <h3 id="direct-contacts-bots" class="direct-contacts__section-title">Bots</h3>
+
+    <div class="direct-contacts__list">
+      <% direct_bot_contacts.each do |contact| %>
+        <%= button_to rooms_directs_path(user_ids: [ contact.id ]),
+              class: "btn direct-contacts__contact",
+              form_class: "direct-contacts__form",
+              form: { data: { action: "turbo:submit-end->direct-contacts-modal#close" } },
+              aria: { label: "Start a Ping with workspace bot #{contact.effective_display_name}" },
+              data: {
+                direct_contacts_modal_target: "contact",
+                direct_contacts_modal_search_value: contact.effective_display_name.downcase
+              } do %>
+          <span class="avatar flex-item-no-shrink">
+            <%= image_tag fresh_user_avatar_path(contact), size: 40, aria: { hidden: "true" } %>
+          </span>
+          <span class="direct-contacts__contact-copy min-width">
+            <span class="direct-contacts__contact-name overflow-ellipsis"><%= contact.effective_display_name %></span>
+            <span class="direct-contacts__contact-type">Workspace bot</span>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <p class="direct-contacts__empty" data-direct-contacts-modal-target="empty" hidden>No contacts match your search.</p>
+</div>

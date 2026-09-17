@@ -44,7 +44,7 @@ module RoomsHelper
   end
 
   def submit_room_button_tag
-    button_tag class: "btn btn--reversed txt-large center", type: "submit" do
+    button_tag class: "btn btn--reversed bg-white txt-large center", type: "submit" do
       tag.span("✅", aria: { hidden: "true" }, class: "btn__icon-emoji") +
       tag.span("Save", class: "for-screen-reader")
     end

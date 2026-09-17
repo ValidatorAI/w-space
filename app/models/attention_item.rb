@@ -19,6 +19,16 @@ class AttentionItem < ApplicationRecord
     "knowledge_proposals" => { title: "Knowledge Proposals Awaiting Approval", badge_class: "green", default_action: "Approve Knowledge" }
   }.freeze
 
+  RESOLVED_EVENT_TYPES = {
+    "decisions_waiting" => "decision_waiting_resolved",
+    "blockers" => "blocker_resolved",
+    "outcomes_review" => "outcome_review_resolved",
+    "mentions" => "mention_resolved",
+    "material_changes" => "material_change_resolved",
+    "ai_confirm" => "ai_confirm_resolved",
+    "knowledge_proposals" => "knowledge_proposal_resolved"
+  }.freeze
+
   belongs_to :user, optional: true
   belongs_to :project, optional: true
   belongs_to :room, optional: true
@@ -49,6 +59,10 @@ class AttentionItem < ApplicationRecord
 
   def effective_action_label
     action_label.presence || CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
+  end
+
+  def resolved_event_type
+    RESOLVED_EVENT_TYPES[category.to_s] || "attention_item_resolved"
   end
 
   def resolve!(user = Current.user)

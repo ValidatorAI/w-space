@@ -5,6 +5,7 @@ class ProjectAdr < ApplicationRecord
   validates :title, presence: true
   validates :status, inclusion: { in: %w[accepted proposed deprecated superseded] }
 
+  scope :active, -> { where(active: true) }
   scope :ordered, -> { order(position: :asc, decision_date: :desc, created_at: :desc) }
 
   def formatted_date

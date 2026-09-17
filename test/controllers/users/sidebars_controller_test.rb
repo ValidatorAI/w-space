@@ -13,6 +13,22 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "contact picker lists active humans and workspace bots except the current user" do
+    deactivated_user = User.create!(name: "Former User", display_name: "Former User", status: :deactivated)
+
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select "dialog.direct-contacts" do
+      assert_select "#direct-contacts-humans", text: "Humans"
+      assert_select "#direct-contacts-bots", text: "Bots"
+      assert_select "form[action='#{rooms_directs_path(user_ids: [ users(:jason).id ])}']", count: 1
+      assert_select "form[action='#{rooms_directs_path(user_ids: [ users(:bender).id ])}']", count: 1
+      assert_select "[data-direct-contacts-modal-search-value='david']", count: 0
+      assert_select "[data-direct-contacts-modal-search-value='#{deactivated_user.effective_display_name.downcase}']", count: 0
+    end
+  end
+
   test "unread directs" do
     rooms(:david_and_jason).messages.create! client_message_id: 999, body: "Hello", creator: users(:jason)
 

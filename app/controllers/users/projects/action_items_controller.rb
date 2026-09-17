@@ -4,7 +4,14 @@ class Users::Projects::ActionItemsController < ApplicationController
 
   def toggle
     @action_item.toggle_completed!
-    @action_items = @meeting.action_items.ordered
+    @action_items = @project.project_all_hands_action_items.active.ordered
+    OutputEvents::Recorder.record(
+      event_type: @action_item.completed? ? "all_hands_action_item_completed" : "all_hands_action_item_reopened",
+      event_id: @action_item.id,
+      actor: Current.user,
+      target_type: "ProjectAllHandsActionItem",
+      data: { "project_id" => @project.id }
+    )
 
     broadcast_action_items_update
 
@@ -36,12 +43,6 @@ class Users::Projects::ActionItemsController < ApplicationController
     end
 
     def set_action_item
-      @action_item = ProjectAllHandsActionItem.joins(:meeting).where(
-        project_all_hands_meetings: { project_id: @project.id },
-        id: params[:id]
-      ).first
-      raise ActiveRecord::RecordNotFound if @action_item.blank?
-
-      @meeting = @action_item.meeting
+      @action_item = @project.project_all_hands_action_items.find_by!(id: params[:id])
     end
 end

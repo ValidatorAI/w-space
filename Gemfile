@@ -47,6 +47,7 @@ gem "thruster"
 gem "redcarpet"
 
 group :development, :test do
+  gem "dotenv-rails"
   gem "debug"
   gem "rubocop-rails-omakase", require: false
   gem "faker", require: false

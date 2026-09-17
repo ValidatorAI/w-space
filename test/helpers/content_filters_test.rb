@@ -1,6 +1,13 @@
 require "test_helper"
 
 class ContentFiltersTest < ActionView::TestCase
+  test "spinning emoji token renders an animated emoji" do
+    message = Message.create! room: rooms(:pets), body: "Waiting :spin:", client_message_id: "0015", creator: users(:jason)
+
+    filtered = ContentFilters::TextMessagePresentationFilters.apply(message.body.body)
+    assert_match %r{<span class="spinning-emoji" role="img" aria-label="spinning emoji">🌀</span>}, filtered.to_html
+  end
+
   test "entire message contains an unfurled URL" do
     text = "https://basecamp.com/"
     message = Message.create! room: rooms(:pets), body: unfurled_message_body_for_basecamp(text), client_message_id: "0015", creator: users(:jason)

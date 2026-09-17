@@ -196,6 +196,10 @@
   width: 100%;
 }
 
+.home-ask-form {
+  margin: 0;
+}
+
 .home-input-pill {
   display: flex;
   align-items: center;
@@ -206,11 +210,48 @@
   border: 1px solid var(--border-color);
 }
 
-.home-input-pill input {
+.home-ask-input {
+  flex: 1 1 auto;
+  min-width: 0;
   border: none;
   background: transparent;
   width: 100%;
   outline: none;
   font-size: 14px;
   color: var(--text-primary);
+}
+
+.home-ask-send {
+  flex: 0 0 36px;
+  inline-size: 36px;
+  block-size: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--black, #111827);
+  color: var(--white, #ffffff);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.home-ask-send:hover,
+.home-ask-send:focus-visible {
+  opacity: 0.85;
+}
+
+@media (max-width: 560px) {
+  .home-ask-input-area {
+    padding: 12px 16px;
+  }
+
+  .home-input-pill {
+    padding: 8px 10px;
+  }
+
+  .home-ask-send {
+    flex-basis: 34px;
+    inline-size: 34px;
+    block-size: 34px;
+  }
 }

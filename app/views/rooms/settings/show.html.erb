@@ -85,10 +85,13 @@
       </ul>
 
       <% if Current.user.can_administer?(@room) %>
-        <%= form_with model: @room, url: room_settings_path(@room), method: :patch, data: { controller: "form" }, class: "room-settings-sheet__privacy" do |form| %>
+        <%= form_with model: @room, url: room_settings_path(@room), method: :patch, class: "room-settings-sheet__privacy", data: { turbo: false } do |form| %>
           <%= hidden_field_tag :intent, "toggle_private" %>
           <label class="room-settings-sheet__privacy-label">
-            <%= form.check_box :private, class: "room-settings-sheet__privacy-checkbox", data: { action: "change->form#submit" } %>
+            <%= hidden_field_tag "room[private]", "0" %>
+            <%= check_box_tag "room[private]", "1", @room.private,
+                  class: "room-settings-sheet__privacy-checkbox",
+                  onchange: "this.form.requestSubmit()" %>
             <span>Make channel private</span>
           </label>
         <% end %>

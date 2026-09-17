@@ -42,4 +42,30 @@ class Accounts::BotsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to account_bots_url
     end
   end
+
+  test "non admin cannot access bot registration pages" do
+    sign_in :kevin
+
+    get account_bots_url
+    assert_response :forbidden
+
+    get new_account_bot_url
+    assert_response :forbidden
+
+    get edit_account_bot_url(users(:bender))
+    assert_response :forbidden
+  end
+
+  test "non admin cannot create update or destroy bots" do
+    sign_in :kevin
+
+    post account_bots_url, params: { user: { name: "Not Allowed" } }
+    assert_response :forbidden
+
+    put account_bot_url(users(:bender)), params: { user: { name: "Still Not Allowed" } }
+    assert_response :forbidden
+
+    delete account_bot_url(users(:bender))
+    assert_response :forbidden
+  end
 end

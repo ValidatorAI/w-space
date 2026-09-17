@@ -30,6 +30,7 @@ module MessagesHelper
       data: {
         controller: "reply",
         user_id: message.creator_id,
+        creator_type: message.creator_type,
         message_id: message.id,
         message_timestamp: message_timestamp_milliseconds,
         message_updated_at: message.updated_at.to_fs(:epoch),

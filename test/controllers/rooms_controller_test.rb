@@ -28,17 +28,22 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "show renders child topic stream blocks when parent room has children" do
+  test "show interleaves parent and child room messages chronologically" do
     parent_room = rooms(:designers)
-    child_room = Rooms::Open.create_for({ name: "UI Refactor", creator: users(:david), parent: parent_room }, users: [ users(:david) ])
-    child_room.messages.create!(body: "Refactoring the Zulip style stream", creator: users(:david))
+    first_child_room = Rooms::Open.create_for({ name: "UI Refactor", creator: users(:david), parent: parent_room }, users: [ users(:david) ])
+    second_child_room = Rooms::Open.create_for({ name: "Accessibility", creator: users(:david), parent: parent_room }, users: [ users(:david) ])
+
+    first_child_room.messages.create!(body: "First child message", creator: users(:david), created_at: 3.minutes.ago)
+    parent_room.messages.create!(body: "Parent message", creator: users(:david), created_at: 2.minutes.ago)
+    second_child_room.messages.create!(body: "Second child message", creator: users(:david), created_at: 1.minute.ago)
 
     get room_url(parent_room)
     assert_response :success
-    assert_select "##{ActionView::RecordIdentifier.dom_id(child_room, :topic_stream)}"
-    assert_select ".topic-header-title", text: "💬 Topic: UI Refactor"
-    assert_select ".topic-header-count", text: /1 message/
-    assert_includes response.body, "Refactoring the Zulip style stream"
+    assert_operator response.body.index("First child message"), :<, response.body.index("Parent message")
+    assert_operator response.body.index("Parent message"), :<, response.body.index("Second child message")
+    assert_select ".message__topic", text: "Topic: UI Refactor"
+    assert_select ".message__topic", text: "Topic: Accessibility"
+    assert_select ".message__topic", count: 2
   end
 
   test "destroy only allowed for creators or those who can administer" do

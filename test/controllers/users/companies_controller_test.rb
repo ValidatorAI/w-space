@@ -23,6 +23,19 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".list-item-title", text: "Approve smart contract audit"
   end
 
+  test "home renders ask company form for the company bot" do
+    company_bot = FirstRun.ensure_company_bot!
+
+    get user_company_home_url(user_id: "me")
+
+    assert_response :ok
+    assert_select "form.home-ask-form[action='#{rooms_directs_path}'][method='post']" do
+      assert_select "input[type='hidden'][name='user_ids[]'][value='#{company_bot.id}']"
+      assert_select "input[name='message[body]'][placeholder='Ask W about the company...']"
+      assert_select "input[type='submit'][value='📨'][aria-label='Send']"
+    end
+  end
+
   test "status renders company direction dashboard and month selector from database" do
     period = CompanyStatusPeriod.create!(slug: "september-2026", name: "September 2026 (Upcoming)", current: true)
     period.company_status_items.create!(
@@ -58,6 +71,7 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "section[aria-label='Global AI integrations']"
     assert_select "section[aria-label='Organization profile'] input[type='file'][name='account[logo]']"
+    assert_select "a", text: "+ Register Custom Agent Webhook"
   end
 
   test "admin can open add user modal" do
@@ -75,6 +89,7 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_select "section[aria-label='Organization profile'] input[type='file'][name='account[logo]']", count: 0
+    assert_select "a", text: "+ Register Custom Agent Webhook", count: 0
   end
 
   test "non admin cannot open add user modal" do

@@ -215,6 +215,18 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Core platform description", @response.body
   end
 
+  test "overview renders AI teammates from workspace bot users" do
+    project = create_project_for(users(:david))
+    project.project_users.create!(user: users(:bender))
+
+    get user_company_project_overview_url(id: project.id)
+
+    assert_response :success
+    assert_match "Attached AI Teammates (1)", @response.body
+    assert_match users(:bender).effective_display_name, @response.body
+    assert_match "(AI)", @response.body
+  end
+
   test "overview returns not found for non-member project" do
     assert_raises(ActiveRecord::RecordNotFound) do
       get user_company_project_overview_url(id: -1)
@@ -264,36 +276,22 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "turbo-cable-stream-source", @response.body
     assert_match project.display_name, @response.body
     assert_match "All-Hands Hub", @response.body
-    assert_match "No All-Hands Meetings Recorded", @response.body
+    assert_match "No Active All-Hands Items", @response.body
+    assert_match "This project does not currently have any active takeaways, action items, or decisions.", @response.body
     assert_no_match "Watch Recording", @response.body
   end
 
   test "all hands with dynamic project data" do
     project = create_project_for(users(:david))
-    meeting = project.all_hands_meetings.create!(
-      title: "Alpha Sprint Review & Architecture Sync",
-      held_at: Time.zone.parse("2026-08-20 11:00:00"),
-      duration_minutes: 50,
-      leader_name: "David",
-      position: 1
-    )
-    meeting.takeaways.create!(category: "Performance", content: "Query latency reduced by 40% across all channels.", position: 1)
-    meeting.action_items.create!(title: "Deploy Redis cluster update", assignee_name: "David", due_date: "Sep 1", completed: false, position: 1)
-    meeting.decisions.create!(title: "Adopt WebSocket compression by default.", basis: "Approved by infra team", impact: "#infra", badge: "Logged in System", position: 1)
-    prev_meeting = project.all_hands_meetings.create!(
-      title: "Sprint Planning: Kickoff",
-      held_at: Time.zone.parse("2026-08-13 11:00:00"),
-      duration_minutes: 30,
-      leader_name: "Sarah",
-      notes: "Sprint backlog grooming and team capacity planning.",
-      position: 2
-    )
+    project.project_all_hands_takeaways.create!(category: "Performance", content: "Query latency reduced by 40% across all channels.", position: 1)
+    project.project_all_hands_action_items.create!(title: "Deploy Redis cluster update", assignee_name: "David", due_date: "Sep 1", completed: false, position: 1)
+    project.project_all_hands_decisions.create!(title: "Adopt WebSocket compression by default.", basis: "Approved by infra team", impact: "#infra", badge: "Logged in System", position: 1)
+    inactive_takeaway = project.project_all_hands_takeaways.create!(category: "Operations", content: "Old stale note.", active: false, position: 2)
 
     get user_company_project_all_hands_url(id: project.id)
 
     assert_response :success
     assert_match project.display_name, @response.body
-    assert_match "Alpha Sprint Review &amp; Architecture Sync", @response.body
     assert_match "Performance", @response.body
     assert_match "Query latency reduced by 40%", @response.body
     assert_match "Deploy Redis cluster update", @response.body
@@ -301,10 +299,7 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "1 Pending", @response.body
     assert_match "Adopt WebSocket compression by default.", @response.body
     assert_match "Impact: #infra", @response.body
-    assert_match "Sprint Planning: Kickoff", @response.body
-    assert_match "View Notes", @response.body
-    assert_match "Sprint backlog grooming and team capacity planning.", @response.body
-    assert_match "all-hands-notes-dialog", @response.body
+    assert_no_match inactive_takeaway.content, @response.body
     assert_no_match "Watch Recording", @response.body
   end
 
@@ -323,11 +318,26 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
       html_source_type: "internal_file",
       html_source_path: "obsidian/graph.html"
     )
+    project.obsidian_notes.create!(
+      title: "Archived Vault",
+      tags: "#archived",
+      content: "Old note.",
+      html_source_type: "internal_file",
+      html_source_path: "obsidian/archived.html",
+      active: false
+    )
     project.adrs.create!(
       identifier: "ADR-004",
       title: "Use ECDSA for State Channel Signatures",
       decision_date: Date.new(2024, 8, 10),
       status: "accepted"
+    )
+    project.adrs.create!(
+      identifier: "ADR-999",
+      title: "Deprecated idea",
+      decision_date: Date.new(2023, 1, 1),
+      status: "deprecated",
+      active: false
     )
     project.external_assets.create!(
       title: "Trail of Bits Audit",
@@ -343,9 +353,22 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
       icon: "📘",
       meta_text: "Runbook • Playbook"
     )
+    project.external_assets.create!(
+      title: "Old Template",
+      url: "https://example.com/old.pdf",
+      source_type: "external_url",
+      icon: "📄",
+      meta_text: "Legacy",
+      active: false
+    )
     project.knowledge_activities.create!(
       actor_name: "Sarah",
       action_text: "created new note [[Postgres Migration Plan]]"
+    )
+    project.knowledge_activities.create!(
+      actor_name: "Legacy",
+      action_text: "created old note [[Old Plan]]",
+      active: false
     )
     arch = project.directory_items.create!(
       name: "01_Architecture",
@@ -359,6 +382,20 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
       content: "# System Architecture",
       position: 1
     )
+    inactive_dir = project.directory_items.create!(
+      name: "02_Archived",
+      item_type: "directory",
+      position: 2,
+      active: false
+    )
+    inactive_dir.children.create!(
+      project: project,
+      name: "Old_Design.md",
+      item_type: "file",
+      content: "# Old Architecture",
+      position: 1,
+      active: false
+    )
 
     get user_company_project_knowledge_url(id: project.id)
 
@@ -369,17 +406,22 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "id=\"obsidian-container\"", @response.body
     assert_match "class=\"obsidian-iframe\"", @response.body
     assert_match "path=obsidian%2Fgraph.html", @response.body
+    assert_no_match "obsidian/archived.html", @response.body
     assert_match "External Assets &amp; Playbooks", @response.body
     assert_match "Trail of Bits Audit", @response.body
     assert_match "https://example.com/audit.pdf", @response.body
     assert_match "Multi-Sig Runbook", @response.body
-    assert_match "02_Smart_Contracts/Vault_V1.md", @response.body
+    assert_no_match "Old Template", @response.body
     assert_match "Decision Records", @response.body
     assert_match "Directory Explorer", @response.body
     assert_match "01_Architecture", @response.body
     assert_match "System_Design.md", @response.body
+    assert_no_match "02_Archived", @response.body
+    assert_no_match "Old_Design.md", @response.body
     assert_match "Recent Knowledge Activity", @response.body
     assert_match "ADR-004", @response.body
+    assert_no_match "ADR-999", @response.body
+    assert_no_match "Legacy", @response.body
   end
 
   test "knowledge_file serves markdown from database directory item" do

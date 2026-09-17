@@ -11,7 +11,8 @@ class Accounts::BotsController < ApplicationController
   end
 
   def create
-    User.create_bot! bot_params
+    bot = User.create_bot! bot_params
+    record_bot_event("bot_created", bot)
     redirect_to account_bots_url(return_to: return_to_param)
   end
 
@@ -20,11 +21,13 @@ class Accounts::BotsController < ApplicationController
 
   def update
     @bot.update_bot! bot_params
+    record_bot_event("bot_updated", @bot)
     redirect_to account_bots_url(return_to: return_to_param)
   end
 
   def destroy
     @bot.deactivate
+    record_bot_event("bot_deleted", @bot)
     redirect_to account_bots_url(return_to: return_to_param)
   end
 
@@ -39,5 +42,15 @@ class Accounts::BotsController < ApplicationController
 
     def bot_params
       params.require(:user).permit(:name, :avatar, :webhook_url)
+    end
+
+    def record_bot_event(event_type, bot)
+      OutputEvents::Recorder.record(
+        event_type: event_type,
+        event_id: bot.id,
+        actor: Current.user,
+        target_type: "User",
+        data: {}
+      )
     end
 end

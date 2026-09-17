@@ -137,6 +137,76 @@ Rails.application.routes.draw do
   get "webmanifest"    => "pwa#manifest"
   get "service-worker" => "pwa#service_worker"
 
+  namespace :api do
+    get "company_status_periods/by_slug/:slug", to: "company_status_periods#by_slug", as: :by_slug_api_company_status_periods
+    get "company_status_periods/by_name", to: "company_status_periods#by_name", as: :name_api_company_status_periods
+
+    resources :rooms, only: %i[ index show ] do
+      resources :messages, only: %i[ index show create update destroy ] do
+        get :attachment, on: :member
+      end
+      resources :actions, only: :create
+      resources :decisions, only: :create
+      resources :approval_requests, only: %i[ index show create update destroy ]
+      get :threads, on: :member
+      get :search, on: :collection
+    end
+
+    resources :projects, only: %i[ index show ] do
+      resources :rooms, only: %i[ index show ] do
+        resources :messages, only: %i[ index show create update destroy ] do
+          get :attachment, on: :member
+        end
+        resources :actions, only: :create
+        resources :decisions, only: :create
+        resources :approval_requests, only: %i[ index show create update destroy ]
+        get :threads, on: :member
+        get :search, on: :collection
+      end
+    end
+
+    resources :attention_items, only: %i[ index show create update destroy ]
+
+    # Flat routes since message ids are globally unique; no project/room scoping required.
+    resources :messages, only: %i[ show update destroy ] do
+      get :attachment, on: :member
+    end
+
+    resources :company_status_periods, only: %i[ index show create update destroy ] do
+      get :current, on: :collection
+    end
+
+    resources :company_status_items, only: %i[ index show create update destroy ] do
+      get :by_period, on: :collection
+      get :advanced_filter, on: :collection
+    end
+
+    resources :projects, only: [] do
+      resources :project_users, only: %i[ index show ], path: "users"
+      resources :project_all_hands_takeaways, only: %i[ index show create update destroy ]
+      resources :project_all_hands_decisions, only: %i[ index show create update destroy ]
+      resources :project_all_hands_action_items, only: %i[ index show create update destroy ]
+      resources :project_knowledge_items, only: %i[ index show create update destroy ]
+      resources :knowledge_items, only: %i[ index show create update destroy ], controller: "project_knowledge_items"
+      resources :project_external_assets, only: %i[ index show create update destroy ]
+      resources :external_assets, only: %i[ index show create update destroy ], controller: "project_external_assets"
+      resources :project_adrs, only: %i[ index show create update destroy ]
+      resources :adrs, only: %i[ index show create update destroy ], controller: "project_adrs"
+      resources :project_knowledge_activities, only: %i[ index show create update destroy ]
+      resources :knowledge_activities, only: %i[ index show create update destroy ], controller: "project_knowledge_activities"
+      resources :project_directory_items, only: %i[ index show create update destroy ]
+      resources :directory_items, only: %i[ index show create update destroy ], controller: "project_directory_items"
+      resources :project_obsidian_notes, only: %i[ index show create update destroy ]
+      resources :obsidian_notes, only: %i[ index show create update destroy ], controller: "project_obsidian_notes"
+      resources :project_bottlenecks, only: %i[ index show create update destroy ]
+      resources :bottlenecks, only: %i[ index show create update destroy ], controller: "project_bottlenecks"
+      resources :project_todos, only: %i[ index show create update destroy ]
+      resources :todos, only: %i[ index show create update destroy ], controller: "project_todos"
+      resources :project_milestones, only: %i[ index show create update destroy ]
+      resources :milestones, only: %i[ index show create update destroy ], controller: "project_milestones"
+    end
+  end
+
   # MCP Agent Chat API (Streamable HTTP transport)
   namespace :mcp do
     post "/", to: "endpoint#handle"

@@ -16,16 +16,10 @@ module Message::Broadcasts
 
       parent_room = room.parent
 
-      # Ensure feed container is visible on parent room
-      broadcast_update_to parent_room, :messages,
-        target: ActionView::RecordIdentifier.dom_id(room, :topic_header_count),
-        html: "#{ActionController::Base.helpers.pluralize(room.messages.count, 'message')} • Click to open thread"
-
-      # Append message to child topic block on parent room
       broadcast_append_to parent_room, :messages,
-        target: ActionView::RecordIdentifier.dom_id(room, :topic_messages),
+        target: [ parent_room, :messages ],
         partial: "messages/message",
-        locals: { message: self }
+        locals: { message: self, parent_room: parent_room }
 
       ActionCable.server.broadcast("unread_rooms", { roomId: parent_room.id })
     end
@@ -35,12 +29,6 @@ module Message::Broadcasts
 
       parent_room = room.parent
 
-      # Remove message from parent room stream
       broadcast_remove_to parent_room, :messages
-
-      # Update count
-      broadcast_update_to parent_room, :messages,
-        target: ActionView::RecordIdentifier.dom_id(room, :topic_header_count),
-        html: "#{ActionController::Base.helpers.pluralize(room.messages.count, 'message')} • Click to open thread"
     end
 end

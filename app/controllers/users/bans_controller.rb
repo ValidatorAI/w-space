@@ -4,11 +4,25 @@ class Users::BansController < ApplicationController
 
   def create
     @user.ban
+    OutputEvents::Recorder.record(
+      event_type: "user_banned",
+      event_id: @user.id,
+      actor: Current.user,
+      target_type: "User",
+      data: {}
+    )
     redirect_to @user
   end
 
   def destroy
     @user.unban
+    OutputEvents::Recorder.record(
+      event_type: "user_unbanned",
+      event_id: @user.id,
+      actor: Current.user,
+      target_type: "User",
+      data: {}
+    )
     redirect_to @user
   end
 

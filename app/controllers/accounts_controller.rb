@@ -10,6 +10,13 @@ class AccountsController < ApplicationController
 
   def update
     @account.update!(account_params)
+    OutputEvents::Recorder.record(
+      event_type: "account_settings_updated",
+      event_id: @account.id,
+      actor: Current.user,
+      target_type: "Account",
+      data: { "changed_fields" => @account.previous_changes.except("updated_at").keys }
+    )
     redirect_after_update
   end
 

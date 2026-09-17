@@ -66,6 +66,21 @@
   }
 }
 
+.spinning-emoji {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning-emoji {
+    animation: none;
+  }
+}
+
 .shake {
   animation: shake 400ms both;
 }

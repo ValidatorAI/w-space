@@ -82,29 +82,27 @@
             <h3 class="project-overview-card-title">Key Milestones &amp; Alignment</h3>
           </div>
           <div class="project-overview-milestones">
-            <div class="project-overview-milestone">
-              <div class="project-overview-milestone-icon">✅</div>
-              <div class="project-overview-milestone-content">
-                <span class="project-overview-milestone-title">Project Baseline &amp; Default Channels</span>
-                <span class="project-overview-milestone-desc">Workspace created with channels and team permissions configured.</span>
+            <% if @project_milestones.any? %>
+              <% @project_milestones.each do |milestone| %>
+                <div class="project-overview-milestone">
+                  <div class="project-overview-milestone-icon"><%= milestone.icon.presence || "✅" %></div>
+                  <div class="project-overview-milestone-content">
+                    <span class="project-overview-milestone-title"><%= milestone.title %></span>
+                    <% if milestone.description.present? %>
+                      <span class="project-overview-milestone-desc"><%= milestone.description %></span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="project-overview-milestone">
+                <div class="project-overview-milestone-icon">📝</div>
+                <div class="project-overview-milestone-content">
+                  <span class="project-overview-milestone-title">No milestones configured yet</span>
+                  <span class="project-overview-milestone-desc">Add project milestones to track the key phases, decisions, and alignment points for this initiative.</span>
+                </div>
               </div>
-            </div>
-
-            <div class="project-overview-milestone">
-              <div class="project-overview-milestone-icon">🔄</div>
-              <div class="project-overview-milestone-content">
-                <span class="project-overview-milestone-title">Agent Integration &amp; Collaboration</span>
-                <span class="project-overview-milestone-desc">Coordinating tasks, file reservations, and review workflows across teammates.</span>
-              </div>
-            </div>
-
-            <div class="project-overview-milestone">
-              <div class="project-overview-milestone-icon">⏳</div>
-              <div class="project-overview-milestone-content">
-                <span class="project-overview-milestone-title">Operational Alignment &amp; Deliverables</span>
-                <span class="project-overview-milestone-desc">Tracking open decisions, blockers, and knowledge capture in real-time.</span>
-              </div>
-            </div>
+            <% end %>
           </div>
         </div>
       </div>
@@ -133,23 +131,22 @@
           </div>
         </div>
 
-        <% if @agents.any? %>
+        <% if @ai_teammates.any? %>
           <div class="project-overview-card">
             <div class="project-overview-card-header">
-              <h3 class="project-overview-card-title">Attached AI Teammates (<%= @agents.count %>)</h3>
+              <h3 class="project-overview-card-title">Attached AI Teammates (<%= @ai_teammates.count %>)</h3>
             </div>
             <div class="project-overview-team-list">
-              <% @agents.each do |agent| %>
+              <% @ai_teammates.each do |bot_user| %>
                 <div class="project-overview-team-member">
                   <div class="project-overview-member-info">
                     <div class="project-overview-member-avatar" style="background: var(--accent-purple, #9333ea);">
                       🤖
                     </div>
-                    <span><%= agent.name %></span>
+                    <span><%= bot_user.effective_display_name %></span>
+                    <span style="font-size: 11px; color: var(--text-secondary);">(AI)</span>
                   </div>
-                  <span class="project-overview-metric-badge <%= agent.online? ? 'complete' : (agent.idle? ? 'pending' : 'active') %>">
-                    <%= agent.status.capitalize %>
-                  </span>
+                  <span class="project-overview-metric-badge complete">AI</span>
                 </div>
               <% end %>
             </div>

@@ -7,6 +7,7 @@ class ProjectDirectoryItem < ApplicationRecord
   validates :item_type, inclusion: { in: %w[directory file] }
   validate :parent_cannot_be_self
 
+  scope :active, -> { where(active: true) }
   scope :roots, -> { where(parent_id: nil) }
   scope :directories, -> { where(item_type: "directory") }
   scope :files, -> { where(item_type: "file") }

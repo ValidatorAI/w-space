@@ -38,7 +38,7 @@ class MessageTest < ActiveSupport::TestCase
     parent_room = rooms(:designers)
     child_room = Rooms::Open.create_for({ name: "Child Topic", creator: users(:david), parent: parent_room }, users: [ users(:david) ])
 
-    assert_turbo_stream_broadcasts [ parent_room, :messages ], count: 2 do
+    assert_turbo_stream_broadcasts [ parent_room, :messages ], count: 1 do
       message = child_room.messages.create!(creator: users(:david), body: "Syncing to parent", client_message_id: "test-sync")
       message.broadcast_create
     end

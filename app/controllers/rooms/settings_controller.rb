@@ -42,6 +42,7 @@ module Rooms
 
         @room.memberships.grant_to(user)
         broadcast_room_added_for(user)
+        record_room_membership_event("room_member_added", user)
       end
 
       def remove_user
@@ -51,6 +52,7 @@ module Rooms
 
         @room.memberships.revoke_from(user)
         broadcast_room_removed_for(user)
+        record_room_membership_event("room_member_removed", user)
       end
 
       def add_agent
@@ -58,6 +60,7 @@ module Rooms
         return if participant.blank?
 
         @room.memberships.grant_to(participant)
+        record_room_membership_event("room_member_added", participant)
       end
 
       def remove_agent
@@ -65,10 +68,24 @@ module Rooms
         return if agent.blank?
 
         @room.memberships.revoke_from(agent)
+        record_room_membership_event("room_member_removed", agent)
       end
 
       def toggle_private
-        @room.update!(private: params[:room].present? && params[:room][:private] == "1")
+        private_value = params.dig(:room, :private)
+        private_value = params.dig(@room.class.model_name.param_key.to_sym, :private) if private_value.nil?
+
+        private_value = private_value == "1"
+        return if @room.private? == private_value
+
+        @room.update!(private: private_value)
+        OutputEvents::Recorder.record(
+          event_type: "room_privacy_changed",
+          event_id: @room.id,
+          actor: Current.user,
+          target_type: "Room",
+          data: { "private" => @room.private? }
+        )
       end
 
       def available_agents_scope
@@ -126,6 +143,16 @@ module Rooms
 
       def broadcast_room_removed_for(user)
         broadcast_remove_to user, :rooms, target: [ @room, :list ]
+      end
+
+      def record_room_membership_event(event_type, participant)
+        OutputEvents::Recorder.record(
+          event_type: event_type,
+          event_id: @room.id,
+          actor: Current.user,
+          target_type: "Room",
+          data: { "member" => { "type" => participant.class.name, "id" => participant.id } }
+        )
       end
   end
 end

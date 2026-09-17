@@ -206,7 +206,14 @@
     </dialog>
   </div>
 
-  <div class="flex align-end sidebar__tools gap justify-end">
+  <div class="flex align-end sidebar__tools gap justify-end" data-controller="direct-contacts-modal">
+    <button type="button"
+            class="btn align-center sidebar__tool sidebar__tool--contacts"
+            aria-label="Start a Ping"
+            data-action="direct-contacts-modal#open">
+          <span aria-hidden="true">💬</span>
+    </button>
+
     <%= link_to user_settings_path, class: "btn avatar flex-item-no-shrink sidebar__tool" do %>
       <%= image_tag fresh_user_avatar_path(Current.user), size: 48, aria: { hidden: "true" }, style: "view-transition-name: avatar-#{Current.user.id}" %>
       <span class="for-screen-reader">My Settings</span>
@@ -216,5 +223,31 @@
       <span aria-hidden="true" style="view-transition-name: account-settings">⚙️</span>
       <span class="for-screen-reader">User Settings</span>
     <% end %>
+
+    <dialog class="dialog direct-contacts border shadow"
+            aria-labelledby="direct-contacts-title"
+            data-direct-contacts-modal-target="dialog"
+            data-action="click->direct-contacts-modal#closeOnBackdrop close->direct-contacts-modal#reset">
+      <header class="direct-contacts__header">
+        <div>
+          <h2 id="direct-contacts-title" class="direct-contacts__title">Start a Ping</h2>
+          <p class="direct-contacts__subtitle">Choose someone to message</p>
+        </div>
+        <button type="button" class="btn dialog__close" data-action="direct-contacts-modal#close" aria-label="Close contacts">✕</button>
+      </header>
+
+      <label class="direct-contacts__search-label" for="direct-contacts-search">Search contacts</label>
+      <input id="direct-contacts-search"
+             class="input direct-contacts__search"
+             type="search"
+             autocomplete="off"
+             placeholder="Search humans and bots"
+             data-direct-contacts-modal-target="search"
+             data-action="input->direct-contacts-modal#filter">
+
+      <%= render "users/sidebars/direct_contacts",
+            direct_contacts: @direct_contacts,
+            direct_bot_contacts: @direct_bot_contacts %>
+    </dialog>
   </div>
 <% end %>

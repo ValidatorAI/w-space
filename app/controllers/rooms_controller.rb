@@ -12,9 +12,18 @@ class RoomsController < ApplicationController
   end
 
   def destroy
+    room_id = @room.id
+    room_data = { "room_type" => @room.type, "project_id" => @room.project_id, "parent_id" => @room.parent_id }.compact
     @room.destroy
 
     broadcast_remove_room
+    OutputEvents::Recorder.record(
+      event_type: "room_deleted",
+      event_id: room_id,
+      actor: Current.user,
+      target_type: "Room",
+      data: room_data
+    )
     redirect_to root_url
   end
 
@@ -38,7 +47,9 @@ class RoomsController < ApplicationController
     end
 
     def find_messages
-      messages = @room.messages.with_creator.with_attachment_details.with_boosts
+      messages = Message.where(room: @room)
+        .or(Message.where(room_id: @room.child_topics.select(:id)))
+        .with_creator.with_attachment_details.with_boosts
 
       if show_first_message = messages.find_by(id: params[:message_id])
         @messages = messages.page_around(show_first_message)
@@ -53,5 +64,16 @@ class RoomsController < ApplicationController
 
     def broadcast_remove_room
       broadcast_remove_to :rooms, target: [ @room, :list ]
+    end
+
+    def record_room_event(event_type, room, group_id: nil)
+      OutputEvents::Recorder.record(
+        event_type: event_type,
+        event_id: room.id,
+        group_id: group_id,
+        actor: Current.user,
+        target_type: "Room",
+        data: { "room_type" => room.type, "project_id" => room.project_id, "parent_id" => room.parent_id }.compact
+      )
     end
 end

@@ -26,6 +26,24 @@ class SendingMessagesTest < ApplicationSystemTestCase
     assert_message_text "👍👍"
   end
 
+  test "aligns only my messages on the right" do
+    project = Project.create!(name: "Alignment test", slug: "alignment-test", path: "/tmp/alignment-test")
+    agent = Agent.create!(
+      id: users(:jz).id,
+      project: project,
+      name: "Alignment Agent",
+      program: "Test",
+      model: "test"
+    )
+    agent_message = Message.create!(room: rooms(:designers), creator: agent, body: "Agent message")
+
+    visit room_url(rooms(:designers))
+
+    assert_selector "##{dom_id(messages(:third))}.message--me"
+    assert_no_selector "##{dom_id(messages(:first))}.message--me"
+    assert_no_selector "##{dom_id(agent_message)}.message--me"
+  end
+
   test "editing messages" do
     using_session("Kevin") do
       sign_in "kevin@37signals.com"
