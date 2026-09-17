@@ -7,6 +7,7 @@ class Users::ProjectsController < ApplicationController
   before_action :set_company_context
   before_action :ensure_permission_to_create_projects, only: %i[ new create ]
   before_action :set_project, only: %i[ overview status all_hands knowledge knowledge_file ]
+  before_action :redirect_if_project_archived, only: %i[ overview status all_hands knowledge knowledge_file ]
 
   def new
     @project = Project.new(private: false)
@@ -194,6 +195,17 @@ class Users::ProjectsController < ApplicationController
   end
 
   private
+    def redirect_if_project_archived
+      return unless @project.archived?
+
+      message = "Project is archived. Sub-items are hidden until unarchived."
+
+      respond_to do |format|
+        format.html { redirect_to root_url, alert: message }
+        format.any { head :not_found }
+      end
+    end
+
     def ensure_permission_to_create_projects
       return if Current.user.administrator? || !Current.account.settings.restrict_room_creation_to_administrators?
 

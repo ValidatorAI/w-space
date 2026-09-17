@@ -41,6 +41,7 @@
           ] %>
 
           <% @projects.each do |project| %>
+            <% archived_project = project.archived? %>
             <div class="sidebar-projects__item">
               <% project_room = project.project_room %>
               <div class="sidebar-projects__row">
@@ -63,10 +64,12 @@
                 <% end %>
 
                 <div class="sidebar-projects__controls">
-                  <%= link_to new_rooms_open_path(project_id: project.id),
-                        class: "btn sidebar-projects__settings-link",
-                        aria: { label: "Create room in #{project.display_name}" } do %>
-                    <span class="sidebar-projects__plus" aria-hidden="true">➕</span>
+                  <% unless archived_project %>
+                    <%= link_to new_rooms_open_path(project_id: project.id),
+                          class: "btn sidebar-projects__settings-link",
+                          aria: { label: "Create room in #{project.display_name}" } do %>
+                      <span class="sidebar-projects__plus" aria-hidden="true">➕</span>
+                    <% end %>
                   <% end %>
 
                   <%= link_to edit_rooms_project_path(project.id, by: "project"),
@@ -78,39 +81,41 @@
                 </div>
               </div>
 
-              <div class="sidebar-projects__actions flex flex-column gap">
-                <% project_actions.each do |emoji, label| %>
-                  <% if label == "Overview" %>
-                    <%= link_to user_company_project_overview_path(user_id: "me", id: project.id),
-                          class: "room btn txt-nowrap sidebar-projects__action-btn",
-                          aria: { label: "#{project.display_name} #{label}" },
-                          data: { turbo: false, turbo_frame: "_top" } do %>
-                      <span aria-hidden="true"><%= emoji %></span>
-                      <span class="overflow-ellipsis"><%= label %></span>
+              <% unless archived_project %>
+                <div class="sidebar-projects__actions flex flex-column gap">
+                  <% project_actions.each do |emoji, label| %>
+                    <% if label == "Overview" %>
+                      <%= link_to user_company_project_overview_path(user_id: "me", id: project.id),
+                            class: "room btn txt-nowrap sidebar-projects__action-btn",
+                            aria: { label: "#{project.display_name} #{label}" },
+                            data: { turbo: false, turbo_frame: "_top" } do %>
+                        <span aria-hidden="true"><%= emoji %></span>
+                        <span class="overflow-ellipsis"><%= label %></span>
+                      <% end %>
+                    <% elsif label == "Status" %>
+                      <%= link_to user_company_project_status_path(user_id: "me", id: project.id),
+                            class: "room btn txt-nowrap sidebar-projects__action-btn",
+                            aria: { label: "#{project.display_name} #{label}" },
+                            data: { turbo: false, turbo_frame: "_top" } do %>
+                        <span aria-hidden="true"><%= emoji %></span>
+                        <span class="overflow-ellipsis"><%= label %></span>
+                      <% end %>
+                    <% elsif label == "All-Hands" %>
+                      <%= link_to user_company_project_all_hands_path(user_id: "me", id: project.id),
+                            class: "room btn txt-nowrap sidebar-projects__action-btn",
+                            aria: { label: "#{project.display_name} #{label}" },
+                            data: { turbo: false, turbo_frame: "_top" } do %>
+                        <span aria-hidden="true"><%= emoji %></span>
+                        <span class="overflow-ellipsis"><%= label %></span>
+                      <% end %>
+                    <% else %>
+                      <button type="button" class="room btn txt-nowrap sidebar-projects__action-btn" aria-label="<%= "#{project.display_name} #{label}" %>">
+                        <span aria-hidden="true"><%= emoji %></span>
+                        <span class="overflow-ellipsis"><%= label %></span>
+                      </button>
                     <% end %>
-                  <% elsif label == "Status" %>
-                    <%= link_to user_company_project_status_path(user_id: "me", id: project.id),
-                          class: "room btn txt-nowrap sidebar-projects__action-btn",
-                          aria: { label: "#{project.display_name} #{label}" },
-                          data: { turbo: false, turbo_frame: "_top" } do %>
-                      <span aria-hidden="true"><%= emoji %></span>
-                      <span class="overflow-ellipsis"><%= label %></span>
-                    <% end %>
-                  <% elsif label == "All-Hands" %>
-                    <%= link_to user_company_project_all_hands_path(user_id: "me", id: project.id),
-                          class: "room btn txt-nowrap sidebar-projects__action-btn",
-                          aria: { label: "#{project.display_name} #{label}" },
-                          data: { turbo: false, turbo_frame: "_top" } do %>
-                      <span aria-hidden="true"><%= emoji %></span>
-                      <span class="overflow-ellipsis"><%= label %></span>
-                    <% end %>
-                  <% else %>
-                    <button type="button" class="room btn txt-nowrap sidebar-projects__action-btn" aria-label="<%= "#{project.display_name} #{label}" %>">
-                      <span aria-hidden="true"><%= emoji %></span>
-                      <span class="overflow-ellipsis"><%= label %></span>
-                    </button>
                   <% end %>
-                <% end %>
+                </div>
 
                 <div class="sidebar-projects__knowledge">
                   <%= link_to user_company_project_knowledge_path(user_id: "me", id: project.id),
@@ -165,7 +170,7 @@
                     <span class="room btn txt-nowrap sidebar-projects__knowledge-empty">No rooms yet</span>
                   <% end %>
                 </div>
-              </div>
+              <% end %>
             </div>
           <% end %>
         </div>
