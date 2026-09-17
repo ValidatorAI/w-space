@@ -47,7 +47,7 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
   test "child rooms are listed under their parent" do
     parent_room = rooms(:pets)
     child_room = Rooms::Open.create!(name: "Thread A", creator: users(:david), parent: parent_room)
-    Membership.create!(room: child_room, participant: users(:david), involvement: "mentions")
+    child_room.memberships.grant_to(users(:david))
 
     get user_sidebar_url
 
@@ -57,10 +57,44 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
 
   test "rooms without parent or project are not shown in shared rooms" do
     orphan_room = Rooms::Open.create!(name: "No Parent No Project", creator: users(:jason))
-    Membership.create!(room: orphan_room, participant: users(:david), involvement: "mentions")
+    orphan_room.memberships.grant_to(users(:david))
 
     get user_sidebar_url
 
     assert_no_match(/#{Regexp.escape(orphan_room.name)}/, @response.body)
+  end
+
+  test "archived project keeps settings row but hides sub-items" do
+    project = Project.create!(
+      name: "Archive Visibility",
+      path: "/tmp/archive-visibility-#{SecureRandom.hex(4)}"
+    )
+    project.project_users.create!(user: users(:david))
+
+    project_room = project.ensure_project_room!
+    project_room.memberships.grant_to(users(:david))
+
+    room_name = "room-hidden-#{SecureRandom.hex(4)}"
+    channel = Rooms::Open.create!(
+      name: room_name,
+      creator: users(:david),
+      project: project,
+      parent: project_room
+    )
+    channel.memberships.grant_to(users(:david))
+
+    project_room.archive!
+
+    get user_sidebar_url
+
+    assert_response :success
+    assert_match project.display_name, @response.body
+    assert_select %(a[aria-label="#{project.display_name} settings"]), count: 1
+    assert_select %(a[aria-label="Create room in #{project.display_name}"]), count: 0
+    assert_select %(a[aria-label="#{project.display_name} Overview"]), count: 0
+    assert_select %(a[aria-label="#{project.display_name} Status"]), count: 0
+    assert_select %(a[aria-label="#{project.display_name} All-Hands"]), count: 0
+    assert_select %(a[aria-label="#{project.display_name} Knowledge"]), count: 0
+    assert_no_match channel.name, @response.body
   end
 end

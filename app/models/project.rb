@@ -39,7 +39,11 @@ class Project < ApplicationRecord
   end
 
   def project_room
-    rooms.find_by(type: "Rooms::Project")
+    if association(:rooms).loaded?
+      rooms.find(&:project_room?)
+    else
+      rooms.find_by(type: "Rooms::Project")
+    end
   end
 
   def ensure_project_room!
@@ -49,6 +53,10 @@ class Project < ApplicationRecord
       private: private,
       creator: default_room_creator
     )
+  end
+
+  def archived?
+    project_room&.archived? || false
   end
 
   def display_name

@@ -233,6 +233,23 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "archived project pages redirect to root" do
+    project = create_project_for(users(:david))
+    project.project_room.archive!
+
+    [
+      user_company_project_overview_url(id: project.id),
+      user_company_project_status_url(id: project.id),
+      user_company_project_all_hands_url(id: project.id),
+      user_company_project_knowledge_url(id: project.id)
+    ].each do |path|
+      get path
+
+      assert_redirected_to root_url
+      assert_equal "Project is archived. Sub-items are hidden until unarchived.", flash[:alert]
+    end
+  end
+
   test "status" do
     project = create_project_for(users(:david))
     project.update!(
@@ -469,6 +486,35 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_includes json["rendered_html"], "<h1>System Architecture</h1>"
   ensure
     FileUtils.rm_rf(storage_dir) if storage_dir
+  end
+
+  test "knowledge_file redirects to root when project is archived" do
+    project = create_project_for(users(:david))
+    storage_dir = ProjectKnowledge.ensure_storage_dir(project)
+    file_path = storage_dir.join("System_Design.md")
+    File.write(file_path, "# System Architecture\n\nCore layout.")
+    project.project_room.archive!
+
+    get user_company_project_knowledge_file_url(id: project.id, path: "System_Design.md")
+
+    assert_redirected_to root_url
+    assert_equal "Project is archived. Sub-items are hidden until unarchived.", flash[:alert]
+  ensure
+    FileUtils.rm_rf(storage_dir) if storage_dir
+  end
+
+  test "knowledge_file returns not found for archived project json requests" do
+    project = create_project_for(users(:david))
+    item = project.directory_items.create!(
+      name: "Roadmap.md",
+      item_type: "file",
+      content: "# Q3 Roadmap"
+    )
+    project.project_room.archive!
+
+    get user_company_project_knowledge_file_url(id: project.id, item_id: item.id, format: :json)
+
+    assert_response :not_found
   end
 
   test "knowledge_file serves html file directly" do
