@@ -67,6 +67,7 @@ Rails.application.routes.draw do
         resource :settings, only: :show
         get "company/home", to: "companies#home", as: :company_home
         get "company/status", to: "companies#status", as: :company_status
+        get "company/ai-admin", to: "companies#ai_admin", as: :company_ai_admin
         get "company/settings", to: "companies#settings", as: :company_settings
         get "company/settings/add-user", to: "companies#add_user", as: :company_add_user
         patch "company/settings", to: "companies#update", as: :update_company_settings

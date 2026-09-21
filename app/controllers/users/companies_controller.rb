@@ -1,6 +1,6 @@
 class Users::CompaniesController < ApplicationController
   before_action :set_company_context
-  before_action :ensure_can_administer, only: %i[ update add_user ]
+  before_action :ensure_can_administer, only: %i[ update add_user ai_admin ]
 
   def home
     @company_bot = FirstRun.ensure_company_bot!
@@ -29,6 +29,9 @@ class Users::CompaniesController < ApplicationController
   end
 
   def settings
+  end
+
+  def ai_admin
   end
 
   def add_user
