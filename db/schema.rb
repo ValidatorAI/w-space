@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_21_000004) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_082319) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -112,6 +112,13 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_000004) do
     t.string "profile_name", null: false
     t.text "soul"
     t.boolean "tool_sets_editable", default: true, null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "ai_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "label"
+    t.integer "setting_value"
     t.datetime "updated_at", null: false
   end
 
