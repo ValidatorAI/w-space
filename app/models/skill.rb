@@ -7,4 +7,5 @@ class Skill < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
   validates :category, length: { maximum: 255 }, allow_blank: true
+  validates :description, length: { maximum: 10_000 }, allow_blank: true
 end

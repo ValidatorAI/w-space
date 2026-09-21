@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_21_100000) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_101500) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -590,6 +590,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_100000) do
     t.boolean "add_by_default", default: false, null: false
     t.string "category"
     t.datetime "created_at", null: false
+    t.text "description"
     t.string "name", null: false
     t.text "skill_text"
     t.datetime "updated_at", null: false
