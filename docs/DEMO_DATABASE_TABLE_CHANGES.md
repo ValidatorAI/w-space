@@ -200,6 +200,28 @@ Scope assumptions (minimal structure change):
 - Breaking change hint:
   - Non-breaking (new table).
 
+## 2.10 mcps
+- Purpose:
+  - Persist reusable MCP endpoint configuration for AI profile integration.
+- Suggested columns:
+  - `name`, `transport`, `url`, `authentication`, `bearer_token`, `status`.
+- Related features:
+  - MCP integration registry
+  - Reusable endpoint assignment across AI profiles
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.11 ai_profile_mcps
+- Purpose:
+  - Persist profile-level MCP assignment and activation state.
+- Suggested columns:
+  - `ai_profile_id`, `mcp_id`, `active`.
+- Related features:
+  - AI profile MCP assignment
+  - Per-profile MCP activation toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -216,6 +238,8 @@ Scope assumptions (minimal structure change):
 - `skills`
 - `ai_profile_skills`
 - `ai_profile_tools`
+- `mcps`
+- `ai_profile_mcps`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.

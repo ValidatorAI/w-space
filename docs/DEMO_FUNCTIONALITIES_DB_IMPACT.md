@@ -220,8 +220,10 @@ Legend:
 - Why: bots with role/skills/approval constraints are reusable entities across workspace/projects.
 - Suggested new tables:
   - `ai_profiles`
+  - `mcps`
   - `tools`
   - `skills`
+  - `ai_profile_mcps`
   - `ai_profile_tools`
   - `ai_profile_skills`
 

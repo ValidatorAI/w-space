@@ -99,7 +99,16 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Reusable AI profile catalog
 - Risk: Level A
 
-8. Create tools
+8. Create mcps
+- Migration name example: CreateMcps
+- Key columns:
+  - name, transport, url, authentication, bearer_token, status
+- Related features:
+  - MCP endpoint catalog
+  - Reusable profile integration targets
+- Risk: Level A
+
+9. Create tools
 - Migration name example: CreateTools
 - Key columns:
   - name, active
@@ -107,7 +116,7 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Tool catalog management
 - Risk: Level A
 
-9. Create skills
+10. Create skills
 - Migration name example: CreateSkills
 - Key columns:
   - name, category, skill_text, add_by_default
@@ -116,7 +125,7 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Default skill presets
 - Risk: Level A
 
-10. Create ai_profile_skills
+11. Create ai_profile_skills
 - Migration name example: CreateAiProfileSkills
 - Key columns:
   - ai_profile_id, skill_id, enabled
@@ -124,7 +133,7 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Profile skill assignment and toggles
 - Risk: Level A
 
-11. Create ai_profile_tools
+12. Create ai_profile_tools
 - Migration name example: CreateAiProfileTools
 - Key columns:
   - ai_profile_id, tool_id, enabled
@@ -132,7 +141,18 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Profile tool assignment and toggles
 - Risk: Level A
 
-12. Optional: create room_ai_activity_states
+13. Create ai_profile_mcps
+- Migration name example: CreateAiProfileMcps
+- Key columns:
+  - ai_profile_id, mcp_id, active
+- Related features:
+  - Profile MCP assignment and toggles
+- Risk: Level A
+- Notes:
+  - Add unique index on ai_profile_id + mcp_id.
+  - Add foreign keys to ai_profiles and mcps.
+
+14. Optional: create room_ai_activity_states
 - Migration name example: CreateRoomAiActivityStates
 - Key columns:
   - room_id, agent_id, state, started_at, updated_at
@@ -146,7 +166,7 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
 
 Goal: Improve performance and consistency while staying mostly safe.
 
-13. Add indexes for new query paths
+15. Add indexes for new query paths
 - Migration name example: AddIndexesForDemoWorkflows
 - Examples:
   - attention_items on status, due_at, project_id
@@ -154,7 +174,7 @@ Goal: Improve performance and consistency while staying mostly safe.
   - room_ai_activity_states on room_id and updated_at
 - Risk: Level B
 
-14. Add foreign keys where missing
+16. Add foreign keys where missing
 - Migration name example: AddForeignKeysForDemoWorkflows
 - Examples:
   - approval_requests.room_id -> rooms.id
@@ -168,14 +188,14 @@ Goal: Improve performance and consistency while staying mostly safe.
 
 Goal: Move reads and writes to new schema after data is ready.
 
-15. Backfill project name and user display fields
+17. Backfill project name and user display fields
 - Migration name example: BackfillDemoDisplayFields
 - Backfill examples:
   - projects.name from projects.slug
   - users.display_name from users.name where display_name is null
 - Risk: Level C
 
-16. App rollout step (code deploy)
+18. App rollout step (code deploy)
 - Switch UI and services to read from new columns and tables.
 - Keep fallback logic for one release window.
 - Risk: Level C
@@ -184,7 +204,7 @@ Goal: Move reads and writes to new schema after data is ready.
 
 Goal: Enforce strict rules only after production confirms no null gaps.
 
-17. Tighten null constraints and unique constraints
+19. Tighten null constraints and unique constraints
 - Migration name example: EnforceDemoConstraints
 - Possible changes:
   - set projects.name not null
@@ -192,7 +212,7 @@ Goal: Enforce strict rules only after production confirms no null gaps.
   - add unique indexes if business rules require
 - Risk: Level C or D depending on data quality
 
-18. Any renames or type replacements
+20. Any renames or type replacements
 - Example: replacing existing columns or enums
 - Risk: Level D
 - Recommendation:
@@ -207,15 +227,17 @@ Goal: Enforce strict rules only after production confirms no null gaps.
 5. CreateApprovalRequestActions
 6. CreateAttentionItems
 7. CreateAiProfiles
-8. CreateTools
-9. CreateSkills
-10. CreateAiProfileSkills
-11. CreateAiProfileTools
-12. CreateRoomAiActivityStates (optional)
-13. AddIndexesForDemoWorkflows
-14. AddForeignKeysForDemoWorkflows
-15. BackfillDemoDisplayFields
-16. EnforceDemoConstraints (later)
+8. CreateMcps
+9. CreateTools
+10. CreateSkills
+11. CreateAiProfileSkills
+12. CreateAiProfileTools
+13. CreateAiProfileMcps
+14. CreateRoomAiActivityStates (optional)
+15. AddIndexesForDemoWorkflows
+16. AddForeignKeysForDemoWorkflows
+17. BackfillDemoDisplayFields
+18. EnforceDemoConstraints (later)
 
 ## Deployment Safety Checklist
 

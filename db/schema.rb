@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_21_082319) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_090001) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -77,6 +77,17 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_082319) do
     t.index ["project_id", "name"], name: "index_agents_on_project_id_and_name", unique: true
     t.index ["project_id"], name: "index_agents_on_project_id"
     t.index ["status"], name: "index_agents_on_status"
+  end
+
+  create_table "ai_profile_mcps", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "mcp_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "mcp_id"], name: "index_ai_profile_mcps_on_ai_profile_id_and_mcp_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_mcps_on_ai_profile_id"
+    t.index ["mcp_id"], name: "index_ai_profile_mcps_on_mcp_id"
   end
 
   create_table "ai_profile_skills", force: :cascade do |t|
@@ -254,6 +265,18 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_082319) do
     t.index ["expires_at"], name: "index_file_reservations_on_expires_at"
     t.index ["project_id", "expires_at"], name: "index_file_reservations_on_project_id_and_expires_at"
     t.index ["project_id"], name: "index_file_reservations_on_project_id"
+  end
+
+  create_table "mcps", force: :cascade do |t|
+    t.string "authentication", null: false
+    t.string "bearer_token"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "status", null: false
+    t.string "transport", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["name"], name: "index_mcps_on_name"
   end
 
   create_table "memberships", force: :cascade do |t|
@@ -608,6 +631,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_082319) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agents", "projects"
+  add_foreign_key "ai_profile_mcps", "ai_profiles"
+  add_foreign_key "ai_profile_mcps", "mcps"
   add_foreign_key "ai_profile_skills", "ai_profiles"
   add_foreign_key "ai_profile_skills", "skills"
   add_foreign_key "ai_profile_tools", "ai_profiles"
