@@ -88,7 +88,18 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Home attention dashboard
 - Risk: Level A
 
-7. Optional: create room_ai_activity_states
+7. Create ai_profiles
+- Migration name example: CreateAiProfiles
+- Key columns:
+  - profile_name, soul, bot, bot_name
+  - main_model, fallback_model, cloned_from
+  - editable, tool_sets_editable
+- Related features:
+  - AI profile modal
+  - Reusable AI profile catalog
+- Risk: Level A
+
+8. Optional: create room_ai_activity_states
 - Migration name example: CreateRoomAiActivityStates
 - Key columns:
   - room_id, agent_id, state, started_at, updated_at
@@ -162,11 +173,12 @@ Goal: Enforce strict rules only after production confirms no null gaps.
 4. CreateApprovalRequests
 5. CreateApprovalRequestActions
 6. CreateAttentionItems
-7. CreateRoomAiActivityStates (optional)
-8. AddIndexesForDemoWorkflows
-9. AddForeignKeysForDemoWorkflows
-10. BackfillDemoDisplayFields
-11. EnforceDemoConstraints (later)
+7. CreateAiProfiles
+8. CreateRoomAiActivityStates (optional)
+9. AddIndexesForDemoWorkflows
+10. AddForeignKeysForDemoWorkflows
+11. BackfillDemoDisplayFields
+12. EnforceDemoConstraints (later)
 
 ## Deployment Safety Checklist
 

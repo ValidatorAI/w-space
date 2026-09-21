@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -77,6 +77,20 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
     t.index ["project_id", "name"], name: "index_agents_on_project_id_and_name", unique: true
     t.index ["project_id"], name: "index_agents_on_project_id"
     t.index ["status"], name: "index_agents_on_status"
+  end
+
+  create_table "ai_profiles", force: :cascade do |t|
+    t.boolean "bot", default: false, null: false
+    t.string "bot_name"
+    t.string "cloned_from"
+    t.datetime "created_at", null: false
+    t.boolean "editable", default: true, null: false
+    t.string "fallback_model"
+    t.string "main_model"
+    t.string "profile_name", null: false
+    t.text "soul"
+    t.boolean "tool_sets_editable", default: true, null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "approval_request_actions", force: :cascade do |t|

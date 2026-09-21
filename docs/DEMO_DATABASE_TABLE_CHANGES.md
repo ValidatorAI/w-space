@@ -145,6 +145,17 @@ Scope assumptions (minimal structure change):
   - Non-breaking (new table).
   - Can be skipped if state is ephemeral over ActionCable/presence only.
 
+## 2.5 ai_profiles
+- Purpose:
+  - Persist reusable AI profile metadata for profile modals and bot configuration.
+- Suggested columns:
+  - `profile_name`, `soul`, `bot`, `bot_name`, `profile_icon` (ActiveStorage attachment), `editable`, `main_model`, `fallback_model`, `cloned_from`, `tool_sets_editable`.
+- Related features:
+  - AI profile modal
+  - Reusable bot profile catalog
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -156,6 +167,7 @@ Scope assumptions (minimal structure change):
 - `approval_requests`
 - `approval_request_actions`
 - `attention_items`
+- `ai_profiles`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.
