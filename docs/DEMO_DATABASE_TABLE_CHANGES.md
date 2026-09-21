@@ -156,6 +156,17 @@ Scope assumptions (minimal structure change):
 - Breaking change hint:
   - Non-breaking (new table).
 
+## 2.6 tools
+- Purpose:
+  - Persist reusable tool entities that can be activated/deactivated independently of code-defined MCP tools.
+- Suggested columns:
+  - `name`, `active`.
+- Related features:
+  - Tool catalog management
+  - AI profile tool assignment readiness
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -168,6 +179,7 @@ Scope assumptions (minimal structure change):
 - `approval_request_actions`
 - `attention_items`
 - `ai_profiles`
+- `tools`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.

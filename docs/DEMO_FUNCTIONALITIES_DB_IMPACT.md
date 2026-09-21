@@ -220,6 +220,7 @@ Legend:
 - Why: bots with role/skills/approval constraints are reusable entities across workspace/projects.
 - Suggested new tables:
   - `ai_profiles`
+  - `tools`
 
 5. Approval workflow for AI-requested actions
 - Why: approvals/denials in thread and home views require persistent decision records and auditability.

@@ -99,7 +99,15 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - Reusable AI profile catalog
 - Risk: Level A
 
-8. Optional: create room_ai_activity_states
+8. Create tools
+- Migration name example: CreateTools
+- Key columns:
+  - name, active
+- Related features:
+  - Tool catalog management
+- Risk: Level A
+
+9. Optional: create room_ai_activity_states
 - Migration name example: CreateRoomAiActivityStates
 - Key columns:
   - room_id, agent_id, state, started_at, updated_at
@@ -113,7 +121,7 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
 
 Goal: Improve performance and consistency while staying mostly safe.
 
-8. Add indexes for new query paths
+10. Add indexes for new query paths
 - Migration name example: AddIndexesForDemoWorkflows
 - Examples:
   - attention_items on status, due_at, project_id
@@ -121,7 +129,7 @@ Goal: Improve performance and consistency while staying mostly safe.
   - room_ai_activity_states on room_id and updated_at
 - Risk: Level B
 
-9. Add foreign keys where missing
+11. Add foreign keys where missing
 - Migration name example: AddForeignKeysForDemoWorkflows
 - Examples:
   - approval_requests.room_id -> rooms.id
@@ -135,14 +143,14 @@ Goal: Improve performance and consistency while staying mostly safe.
 
 Goal: Move reads and writes to new schema after data is ready.
 
-10. Backfill project name and user display fields
+12. Backfill project name and user display fields
 - Migration name example: BackfillDemoDisplayFields
 - Backfill examples:
   - projects.name from projects.slug
   - users.display_name from users.name where display_name is null
 - Risk: Level C
 
-11. App rollout step (code deploy)
+13. App rollout step (code deploy)
 - Switch UI and services to read from new columns and tables.
 - Keep fallback logic for one release window.
 - Risk: Level C
@@ -151,7 +159,7 @@ Goal: Move reads and writes to new schema after data is ready.
 
 Goal: Enforce strict rules only after production confirms no null gaps.
 
-12. Tighten null constraints and unique constraints
+14. Tighten null constraints and unique constraints
 - Migration name example: EnforceDemoConstraints
 - Possible changes:
   - set projects.name not null
@@ -159,7 +167,7 @@ Goal: Enforce strict rules only after production confirms no null gaps.
   - add unique indexes if business rules require
 - Risk: Level C or D depending on data quality
 
-13. Any renames or type replacements
+15. Any renames or type replacements
 - Example: replacing existing columns or enums
 - Risk: Level D
 - Recommendation:
@@ -174,11 +182,12 @@ Goal: Enforce strict rules only after production confirms no null gaps.
 5. CreateApprovalRequestActions
 6. CreateAttentionItems
 7. CreateAiProfiles
-8. CreateRoomAiActivityStates (optional)
-9. AddIndexesForDemoWorkflows
-10. AddForeignKeysForDemoWorkflows
-11. BackfillDemoDisplayFields
-12. EnforceDemoConstraints (later)
+8. CreateTools
+9. CreateRoomAiActivityStates (optional)
+10. AddIndexesForDemoWorkflows
+11. AddForeignKeysForDemoWorkflows
+12. BackfillDemoDisplayFields
+13. EnforceDemoConstraints (later)
 
 ## Deployment Safety Checklist
 
