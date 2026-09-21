@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_21_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_000002) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -532,6 +532,15 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_000001) do
     t.integer "user_id", null: false
     t.index ["token"], name: "index_sessions_on_token", unique: true
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "skills", force: :cascade do |t|
+    t.boolean "add_by_default", default: false, null: false
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "skill_text"
+    t.datetime "updated_at", null: false
   end
 
   create_table "tools", force: :cascade do |t|

@@ -167,6 +167,17 @@ Scope assumptions (minimal structure change):
 - Breaking change hint:
   - Non-breaking (new table).
 
+## 2.7 skills
+- Purpose:
+  - Persist reusable skill records for AI profile and tool configuration workflows.
+- Suggested columns:
+  - `name`, `category`, `skill_text`, `add_by_default`.
+- Related features:
+  - AI profile capability and skills catalog
+  - Default skill presets
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -180,6 +191,7 @@ Scope assumptions (minimal structure change):
 - `attention_items`
 - `ai_profiles`
 - `tools`
+- `skills`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.

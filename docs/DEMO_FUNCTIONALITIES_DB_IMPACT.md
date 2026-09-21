@@ -221,6 +221,7 @@ Legend:
 - Suggested new tables:
   - `ai_profiles`
   - `tools`
+  - `skills`
 
 5. Approval workflow for AI-requested actions
 - Why: approvals/denials in thread and home views require persistent decision records and auditability.
