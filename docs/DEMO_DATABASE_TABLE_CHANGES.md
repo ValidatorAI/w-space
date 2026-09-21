@@ -178,6 +178,28 @@ Scope assumptions (minimal structure change):
 - Breaking change hint:
   - Non-breaking (new table).
 
+## 2.8 ai_profile_skills
+- Purpose:
+  - Persist profile-level skill activation and defaults independently from the skill catalog.
+- Suggested columns:
+  - `ai_profile_id`, `skill_id`, `enabled`.
+- Related features:
+  - AI profile skill assignment
+  - Per-profile skill toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.9 ai_profile_tools
+- Purpose:
+  - Persist profile-level tool activation independently from the tool catalog.
+- Suggested columns:
+  - `ai_profile_id`, `tool_id`, `enabled`.
+- Related features:
+  - AI profile tool assignment
+  - Per-profile tool toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -192,6 +214,8 @@ Scope assumptions (minimal structure change):
 - `ai_profiles`
 - `tools`
 - `skills`
+- `ai_profile_skills`
+- `ai_profile_tools`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.

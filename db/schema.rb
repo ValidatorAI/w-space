@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_21_000002) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_21_000004) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -77,6 +77,28 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_000002) do
     t.index ["project_id", "name"], name: "index_agents_on_project_id_and_name", unique: true
     t.index ["project_id"], name: "index_agents_on_project_id"
     t.index ["status"], name: "index_agents_on_status"
+  end
+
+  create_table "ai_profile_skills", force: :cascade do |t|
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.integer "skill_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "skill_id"], name: "index_ai_profile_skills_on_ai_profile_id_and_skill_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_skills_on_ai_profile_id"
+    t.index ["skill_id"], name: "index_ai_profile_skills_on_skill_id"
+  end
+
+  create_table "ai_profile_tools", force: :cascade do |t|
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.integer "tool_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "tool_id"], name: "index_ai_profile_tools_on_ai_profile_id_and_tool_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_tools_on_ai_profile_id"
+    t.index ["tool_id"], name: "index_ai_profile_tools_on_tool_id"
   end
 
   create_table "ai_profiles", force: :cascade do |t|
@@ -579,6 +601,10 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_21_000002) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agents", "projects"
+  add_foreign_key "ai_profile_skills", "ai_profiles"
+  add_foreign_key "ai_profile_skills", "skills"
+  add_foreign_key "ai_profile_tools", "ai_profiles"
+  add_foreign_key "ai_profile_tools", "tools"
   add_foreign_key "approval_request_actions", "approval_requests"
   add_foreign_key "approval_requests", "agents"
   add_foreign_key "approval_requests", "messages"

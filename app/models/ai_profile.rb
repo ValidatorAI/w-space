@@ -1,5 +1,9 @@
 class AiProfile < ApplicationRecord
   has_one_attached :profile_icon
+  has_many :ai_profile_skills, dependent: :destroy
+  has_many :skills, through: :ai_profile_skills
+  has_many :ai_profile_tools, dependent: :destroy
+  has_many :tools, through: :ai_profile_tools
 
   validates :profile_name, presence: true, length: { maximum: 255 }
   validates :bot_name, length: { maximum: 255 }, allow_blank: true
