@@ -187,6 +187,24 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-mcp-card-name='#{mcp.name}'] a[href='#{user_company_ai_admin_edit_mcp_path(user_id: "me", id: mcp.id)}']", text: "Edit"
   end
 
+  test "mcp forms hide bearer token when authentication is none" do
+    mcp = Mcp::Server.create!(
+      name: "mcp_none_auth_#{SecureRandom.hex(3)}",
+      transport: "http",
+      url: "http://localhost:9300/mcp",
+      authentication: "none",
+      status: "active"
+    )
+
+    get user_company_ai_admin_new_mcp_url(user_id: "me")
+    assert_response :ok
+    assert_select "[data-mcp-form-target='bearerField'][hidden]"
+
+    get user_company_ai_admin_edit_mcp_url(user_id: "me", id: mcp.id)
+    assert_response :ok
+    assert_select "[data-mcp-form-target='bearerField'][hidden]"
+  end
+
   test "toggles tool" do
     tool = Tool.create!(name: "toggle-tool-#{SecureRandom.hex(4)}", active: true)
 

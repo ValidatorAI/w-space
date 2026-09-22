@@ -1,3 +1,5 @@
+<% http_transport = mcp.transport == Mcp::Server::TRANSPORT_HTTP %>
+<% bearer_authentication = http_transport && mcp.authentication == Mcp::Server::AUTHENTICATION_BEARER %>
 <%= form_with model: mcp, url: form_url, method: form_method, class: "company-settings-form", data: { controller: "mcp-form" } do |form| %>
   <div class="form-row form-row--two">
     <div class="form-group">
@@ -15,7 +17,7 @@
     </div>
   </div>
 
-  <div data-mcp-form-target="httpFields">
+  <div data-mcp-form-target="httpFields" <%= "hidden" unless http_transport %>>
     <div class="form-row form-row--two">
       <div class="form-group">
         <label>URL</label>
@@ -34,7 +36,7 @@
       </div>
     </div>
 
-    <div class="form-group" data-mcp-form-target="bearerField">
+    <div class="form-group" data-mcp-form-target="bearerField" <%= "hidden" unless bearer_authentication %>>
       <label>Bearer token</label>
       <%= form.text_field :bearer_token,
           class: "input",
@@ -44,7 +46,7 @@
     </div>
   </div>
 
-  <div data-mcp-form-target="stdioFields">
+  <div data-mcp-form-target="stdioFields" <%= "hidden" if http_transport %>>
     <div class="form-row form-row--two">
       <div class="form-group">
         <label>Command</label>

@@ -1007,6 +1007,10 @@ body.sidebar .form-group label {
   font-weight: 600;
 }
 
+body.sidebar [data-controller~="mcp-form"] [hidden] {
+  display: none !important;
+}
+
 body.sidebar .private-toggle {
   align-items: center;
   cursor: pointer;
