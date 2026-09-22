@@ -85,6 +85,9 @@ Rails.application.routes.draw do
 
         patch "company/ai-admin/tools/:id/toggle", to: "ai_admin#toggle_tool", as: :company_ai_admin_tool_toggle
 
+        get "company/ai-admin/skills/new", to: "ai_admin#new_skill", as: :company_ai_admin_new_skill
+        get "company/ai-admin/skills/:id/edit", to: "ai_admin#edit_skill", as: :company_ai_admin_edit_skill
+        get "company/ai-admin/skills/learn", to: "ai_admin#learn_skill_page", as: :company_ai_admin_skill_learn_page
         post "company/ai-admin/skills", to: "ai_admin#create_skill", as: :company_ai_admin_skills
         patch "company/ai-admin/skills/:id", to: "ai_admin#update_skill", as: :company_ai_admin_skill
         delete "company/ai-admin/skills/:id", to: "ai_admin#destroy_skill", as: :company_ai_admin_skill_destroy

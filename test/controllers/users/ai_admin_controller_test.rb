@@ -50,6 +50,20 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h1", text: "Skills"
 
+    skill = Skill.create!(name: "skill_page_#{SecureRandom.hex(3)}")
+
+    get user_company_ai_admin_new_skill_url(user_id: "me")
+    assert_response :ok
+    assert_select "h1", text: "Add Skill"
+
+    get user_company_ai_admin_edit_skill_url(user_id: "me", id: skill.id)
+    assert_response :ok
+    assert_select "h1", text: "Edit Skill"
+
+    get user_company_ai_admin_skill_learn_page_url(user_id: "me")
+    assert_response :ok
+    assert_select "h1", text: "Learn Skill"
+
     get user_company_ai_admin_new_profile_url(user_id: "me", return_to: user_company_ai_admin_path(user_id: "me"))
     assert_response :ok
     assert_select "h1", text: "New AI Profile"

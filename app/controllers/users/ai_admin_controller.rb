@@ -11,6 +11,7 @@ class Users::AiAdminController < ApplicationController
     toggle_profile_mcp
   ]
   before_action :set_mcp, only: %i[edit_mcp update_mcp destroy_mcp]
+  before_action :set_skill, only: %i[edit_skill update_skill destroy_skill toggle_skill_default]
   before_action :ensure_profile_editable!, only: %i[update_profile destroy_profile]
   before_action :ensure_profile_toolset_editable!, only: %i[toggle_profile_tool toggle_profile_skill toggle_profile_mcp]
 
@@ -45,7 +46,16 @@ class Users::AiAdminController < ApplicationController
 
   def skills
     @skills = Skill.order(:name, :id)
-    @new_skill = build_new_skill
+  end
+
+  def new_skill
+    @skill = build_new_skill
+  end
+
+  def edit_skill
+  end
+
+  def learn_skill_page
   end
 
   def show_profile
@@ -123,34 +133,32 @@ class Users::AiAdminController < ApplicationController
     if skill.save
       redirect_to ai_admin_skills_page_path, notice: "Skill added"
     else
-      redirect_to ai_admin_skills_page_path, alert: skill.errors.full_messages.to_sentence.presence || "Unable to add skill"
+      @skill = skill
+      flash.now[:alert] = skill.errors.full_messages.to_sentence.presence || "Unable to add skill"
+      render :new_skill, status: :unprocessable_entity
     end
   end
 
   def update_skill
-    skill = Skill.find(params[:id])
-
-    if skill.update(skill_params)
+    if @skill.update(skill_params)
       redirect_to ai_admin_skills_page_path, notice: "Skill updated"
     else
-      redirect_to ai_admin_skills_page_path, alert: skill.errors.full_messages.to_sentence.presence || "Unable to update skill"
+      flash.now[:alert] = @skill.errors.full_messages.to_sentence.presence || "Unable to update skill"
+      render :edit_skill, status: :unprocessable_entity
     end
   end
 
   def destroy_skill
-    skill = Skill.find(params[:id])
-    skill.destroy
+    @skill.destroy
 
     redirect_to ai_admin_skills_page_path, notice: "Skill deleted"
   end
 
   def toggle_skill_default
-    skill = Skill.find(params[:id])
-
-    if skill.update(add_by_default: cast_boolean(params[:add_by_default]))
+    if @skill.update(add_by_default: cast_boolean(params[:add_by_default]))
       redirect_to ai_admin_skills_page_path, notice: "Skill default behavior updated"
     else
-      redirect_to ai_admin_skills_page_path, alert: skill.errors.full_messages.to_sentence.presence || "Unable to update skill default behavior"
+      redirect_to ai_admin_skills_page_path, alert: @skill.errors.full_messages.to_sentence.presence || "Unable to update skill default behavior"
     end
   end
 
@@ -159,7 +167,8 @@ class Users::AiAdminController < ApplicationController
     source_kind = payload[:source_kind].to_s
 
     unless source_kind.in?(LEARN_SOURCE_KINDS)
-      redirect_to ai_admin_skills_page_path, alert: "Invalid learn source"
+      flash.now[:alert] = "Invalid learn source"
+      render :learn_skill_page, status: :unprocessable_entity
       return
     end
 
@@ -185,7 +194,7 @@ class Users::AiAdminController < ApplicationController
       }
     )
 
-    redirect_to ai_admin_skills_page_path, notice: "Skill learning request queued"
+    redirect_to ai_admin_skill_learn_page_path, notice: "Skill learning request queued"
   end
 
   def create_profile
@@ -282,6 +291,10 @@ class Users::AiAdminController < ApplicationController
 
   def set_mcp
     @mcp = Mcp::Server.find(params[:id])
+  end
+
+  def set_skill
+    @skill = Skill.find(params[:id])
   end
 
   def ensure_profile_editable!
@@ -413,6 +426,10 @@ class Users::AiAdminController < ApplicationController
 
   def ai_admin_skills_page_path(anchor: nil)
     user_company_ai_admin_skills_page_path(user_id: "me", anchor: anchor)
+  end
+
+  def ai_admin_skill_learn_page_path(anchor: nil)
+    user_company_ai_admin_skill_learn_page_path(user_id: "me", anchor: anchor)
   end
 
   def ai_admin_profile_path(profile, anchor: nil)
