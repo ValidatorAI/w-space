@@ -53,7 +53,9 @@
               <%= form.number_field :setting_value, class: "input", required: true %>
             </div>
           </div>
-          <%= form.submit "Add AI setting", class: "action-btn primary" %>
+          <div class="settings-row-actions">
+            <%= form.submit "Add AI setting", class: "action-btn primary" %>
+          </div>
         <% end %>
       </section>
     </div>
