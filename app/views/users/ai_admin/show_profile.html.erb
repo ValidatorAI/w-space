@@ -1,9 +1,9 @@
-<% @page_title = "Edit Profile - #{@profile.profile_name}" %>
+<% @page_title = "Edit Profile" %>
 <% @body_class = "sidebar" %>
 
 <% content_for :nav do %>
   <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
-  <h1 class="user-settings-nav__title txt-large">Edit Profile: <%= @profile.profile_name %></h1>
+  <h1 class="user-settings-nav__title txt-large">Edit Profile</h1>
 <% end %>
 
 <% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>

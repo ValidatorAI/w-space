@@ -248,7 +248,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
 
     get user_company_ai_admin_profile_url(user_id: "me", id: profile.id)
     assert_response :ok
-    assert_select "h1", text: "Edit Profile: #{profile.profile_name}"
+    assert_select "h1", text: "Edit Profile"
     assert_no_match(/General AI Settings/i, @response.body)
     assert_no_match(/main_model/i, @response.body)
     assert_no_match(/fallback_model/i, @response.body)
