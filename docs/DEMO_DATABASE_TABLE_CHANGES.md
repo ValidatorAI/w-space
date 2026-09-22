@@ -150,6 +150,10 @@ Scope assumptions (minimal structure change):
   - Persist reusable AI profile metadata for profile modals and bot configuration.
 - Suggested columns:
   - `profile_name`, `soul`, `bot`, `bot_name`, `profile_icon` (ActiveStorage attachment), `editable`, `main_model`, `fallback_model`, `cloned_from`, `tool_sets_editable`.
+  - `max_line_sessions` (integer, default 2)
+  - `max_concurrent_sessions` (integer, default 2)
+  - `auto_decompose_per_tick` (integer, default 2)
+  - `max_in_progress_per_profile` (integer, default 2)
 - Related features:
   - AI profile modal
   - Reusable bot profile catalog

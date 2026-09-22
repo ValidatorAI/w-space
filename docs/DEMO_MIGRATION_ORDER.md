@@ -94,6 +94,10 @@ Goal: Introduce workflow persistence tables without touching existing behavior.
   - profile_name, soul, bot, bot_name
   - main_model, fallback_model, cloned_from
   - editable, tool_sets_editable
+  - max_line_sessions (integer, default 2)
+  - max_concurrent_sessions (integer, default 2)
+  - auto_decompose_per_tick (integer, default 2)
+  - max_in_progress_per_profile (integer, default 2)
 - Related features:
   - AI profile modal
   - Reusable AI profile catalog

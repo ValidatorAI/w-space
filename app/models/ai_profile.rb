@@ -1,4 +1,12 @@
 class AiProfile < ApplicationRecord
+  SESSION_LIMIT_DEFAULT = 2
+  SESSION_LIMIT_COLUMNS = %i[
+    max_line_sessions
+    max_concurrent_sessions
+    auto_decompose_per_tick
+    max_in_progress_per_profile
+  ].freeze
+
   has_one_attached :profile_icon
   has_many :ai_profile_skills, dependent: :destroy
   has_many :skills, through: :ai_profile_skills
