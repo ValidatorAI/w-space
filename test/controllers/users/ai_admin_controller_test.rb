@@ -156,6 +156,27 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to return_to
   end
 
+  test "create profile respects bot editable and tool assignment toggles" do
+    return_to = user_company_ai_admin_url(user_id: "me")
+
+    post user_company_ai_admin_profiles_url(user_id: "me"), params: {
+      return_to: return_to,
+      ai_profile: profile_attributes(
+        profile_name: "toggle_profile_#{SecureRandom.hex(3)}",
+        bot: "0",
+        editable: "0",
+        tool_sets_editable: "0"
+      )
+    }
+
+    assert_redirected_to return_to
+
+    profile = AiProfile.order(:id).last
+    assert_not profile.bot?
+    assert_not profile.editable?
+    assert_not profile.tool_sets_editable?
+  end
+
   test "disabling profile bot deactivates matching bot user without deletion" do
     bot_name = "Sync Agent #{SecureRandom.hex(3)}"
     profile = AiProfile.create!(profile_attributes(profile_name: "sync_agent_#{SecureRandom.hex(3)}", bot: true, bot_name: bot_name))

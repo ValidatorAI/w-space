@@ -1007,6 +1007,21 @@ body.sidebar .form-group label {
   font-weight: 600;
 }
 
+body.sidebar .private-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 8px;
+}
+
+body.sidebar .private-toggle input[type="checkbox"] {
+  appearance: auto;
+  block-size: 1rem;
+  inline-size: 1rem;
+  margin: 0;
+}
+
 body.sidebar .input--disabled {
   background: var(--msg-bg);
   color: var(--text-secondary);
