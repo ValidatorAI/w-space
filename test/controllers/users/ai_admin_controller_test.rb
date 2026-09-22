@@ -116,6 +116,61 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to user_company_ai_admin_mcps_page_url(user_id: "me")
   end
 
+  test "http mcp with bearer auth requires bearer token" do
+    assert_no_difference -> { Mcp::Server.count } do
+      post user_company_ai_admin_mcps_url(user_id: "me"), params: {
+        mcp: {
+          name: "Bearer MCP #{SecureRandom.hex(3)}",
+          transport: "http",
+          url: "http://localhost:9010/mcp",
+          authentication: "bearer",
+          status: "active",
+          bearer_token: ""
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "h1", text: "Add MCP"
+  end
+
+  test "stdio mcp requires command and args and can be created" do
+    assert_no_difference -> { Mcp::Server.count } do
+      post user_company_ai_admin_mcps_url(user_id: "me"), params: {
+        mcp: {
+          name: "Stdio MCP Invalid #{SecureRandom.hex(3)}",
+          transport: "stdio",
+          status: "active",
+          command: "",
+          args: "",
+          environment: "API_KEY=secret"
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "h1", text: "Add MCP"
+
+    assert_difference -> { Mcp::Server.count }, 1 do
+      post user_company_ai_admin_mcps_url(user_id: "me"), params: {
+        mcp: {
+          name: "Stdio MCP #{SecureRandom.hex(3)}",
+          transport: "stdio",
+          status: "active",
+          command: "npx",
+          args: "-y @modelcontextprotocol/server-foo",
+          environment: "DEBUG=1"
+        }
+      }
+    end
+
+    created = Mcp::Server.order(:id).last
+    assert_equal "stdio", created.transport
+    assert_equal "npx", created.command
+    assert_equal "-y @modelcontextprotocol/server-foo", created.args
+    assert_redirected_to user_company_ai_admin_mcps_page_url(user_id: "me")
+  end
+
   test "mcps page shows cards with edit links" do
     mcp = Mcp::Server.create!(
       name: "mcp_card_#{SecureRandom.hex(3)}",

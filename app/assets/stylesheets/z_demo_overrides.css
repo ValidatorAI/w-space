@@ -1022,6 +1022,12 @@ body.sidebar .private-toggle input[type="checkbox"] {
   margin: 0;
 }
 
+body.sidebar .mcp-form-help {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
 body.sidebar .input--disabled {
   background: var(--msg-bg);
   color: var(--text-secondary);

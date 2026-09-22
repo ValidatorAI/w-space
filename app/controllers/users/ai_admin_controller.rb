@@ -333,7 +333,11 @@ class Users::AiAdminController < ApplicationController
   end
 
   def build_new_mcp
-    Mcp::Server.new(status: "active", authentication: "none", transport: "http")
+    Mcp::Server.new(
+      status: Mcp::Server::STATUS_ACTIVE,
+      authentication: Mcp::Server::AUTHENTICATION_NONE,
+      transport: Mcp::Server::TRANSPORT_HTTP
+    )
   end
 
   def build_new_skill
@@ -435,7 +439,7 @@ class Users::AiAdminController < ApplicationController
   end
 
   def mcp_params
-    params.require(:mcp).permit(:name, :transport, :url, :authentication, :bearer_token, :status)
+    params.require(:mcp).permit(:name, :transport, :url, :authentication, :bearer_token, :status, :command, :args, :environment)
   end
 
   def skill_params

@@ -1,4 +1,4 @@
-<%= form_with model: mcp, url: form_url, method: form_method, class: "company-settings-form" do |form| %>
+<%= form_with model: mcp, url: form_url, method: form_method, class: "company-settings-form", data: { controller: "mcp-form" } do |form| %>
   <div class="form-row form-row--two">
     <div class="form-group">
       <label>Name</label>
@@ -6,29 +6,76 @@
     </div>
     <div class="form-group">
       <label>Transport</label>
-      <%= form.text_field :transport, class: "input", required: true %>
+      <%= form.select :transport,
+          options_for_select([["HTTP/SSE", Mcp::Server::TRANSPORT_HTTP], ["stdio", Mcp::Server::TRANSPORT_STDIO]], mcp.transport),
+          {},
+          class: "input",
+          required: true,
+          data: { mcp_form_target: "transport", action: "change->mcp-form#update" } %>
     </div>
   </div>
 
-  <div class="form-row form-row--two">
-    <div class="form-group">
-      <label>URL</label>
-      <%= form.text_field :url, class: "input", required: true %>
+  <div data-mcp-form-target="httpFields">
+    <div class="form-row form-row--two">
+      <div class="form-group">
+        <label>URL</label>
+        <%= form.text_field :url,
+            class: "input",
+            placeholder: "https://example.com/mcp",
+            data: { mcp_form_target: "urlInput" } %>
+      </div>
+      <div class="form-group">
+        <label>Authentication</label>
+        <%= form.select :authentication,
+            options_for_select([["None", Mcp::Server::AUTHENTICATION_NONE], ["Bearer token", Mcp::Server::AUTHENTICATION_BEARER]], mcp.authentication),
+            {},
+            class: "input",
+            data: { mcp_form_target: "authentication authenticationInput", action: "change->mcp-form#update" } %>
+      </div>
     </div>
+
+    <div class="form-group" data-mcp-form-target="bearerField">
+      <label>Bearer token</label>
+      <%= form.text_field :bearer_token,
+          class: "input",
+          placeholder: "Token or Bearer token",
+          data: { mcp_form_target: "bearerTokenInput" } %>
+      <p class="mcp-form-help">Stored in this profile's .env; config.yaml keeps only an environment-variable reference.</p>
+    </div>
+  </div>
+
+  <div data-mcp-form-target="stdioFields">
+    <div class="form-row form-row--two">
+      <div class="form-group">
+        <label>Command</label>
+        <%= form.text_field :command,
+            class: "input",
+            placeholder: "npx",
+            data: { mcp_form_target: "commandInput" } %>
+      </div>
+      <div class="form-group">
+        <label>Args</label>
+        <%= form.text_field :args,
+            class: "input",
+            placeholder: "-y @modelcontextprotocol/server-foo",
+            data: { mcp_form_target: "argsInput" } %>
+      </div>
+    </div>
+
     <div class="form-group">
-      <label>Authentication</label>
-      <%= form.text_field :authentication, class: "input", required: true %>
+      <label>Environment (key-value per line)</label>
+      <%= form.text_area :environment, rows: 4, class: "input" %>
     </div>
   </div>
 
   <div class="form-row form-row--two">
     <div class="form-group">
       <label>Status</label>
-      <%= form.text_field :status, class: "input", required: true %>
-    </div>
-    <div class="form-group">
-      <label>Bearer token</label>
-      <%= form.text_field :bearer_token, class: "input" %>
+      <%= form.select :status,
+          options_for_select([["Active", Mcp::Server::STATUS_ACTIVE], ["Inactive", Mcp::Server::STATUS_INACTIVE]], mcp.status),
+          {},
+          class: "input",
+          required: true %>
     </div>
   </div>
 

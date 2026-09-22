@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_22_121000) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_22_121001) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -272,9 +272,12 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_22_121000) do
   end
 
   create_table "mcps", force: :cascade do |t|
+    t.text "args"
     t.string "authentication", null: false
     t.string "bearer_token"
+    t.string "command"
     t.datetime "created_at", null: false
+    t.text "environment"
     t.string "name", null: false
     t.string "status", null: false
     t.string "transport", null: false

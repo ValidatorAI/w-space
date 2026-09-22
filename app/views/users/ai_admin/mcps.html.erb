@@ -28,15 +28,22 @@
                   <span class="bot-card-icon" aria-hidden="true">🔌</span>
                   <div class="bot-card-info">
                     <div class="bot-card-name"><%= mcp.name %></div>
-                    <div class="bot-card-role"><%= mcp.url %></div>
+                    <div class="bot-card-role">
+                      <%= mcp.transport == Mcp::Server::TRANSPORT_STDIO ? mcp.command.to_s.presence || "No command configured" : mcp.url %>
+                    </div>
                   </div>
                 </div>
 
                 <div class="profile-list-card__meta">
                   <span class="profile-list-card__chip">Transport: <%= mcp.transport %></span>
-                  <span class="profile-list-card__chip">Auth: <%= mcp.authentication %></span>
+                  <% if mcp.transport == Mcp::Server::TRANSPORT_STDIO %>
+                    <span class="profile-list-card__chip"><%= mcp.args.present? ? "Args set" : "Args missing" %></span>
+                    <span class="profile-list-card__chip"><%= mcp.environment.present? ? "Env set" : "No env" %></span>
+                  <% else %>
+                    <span class="profile-list-card__chip">Auth: <%= mcp.authentication %></span>
+                    <span class="profile-list-card__chip"><%= mcp.bearer_token.present? ? "Token set" : "No token" %></span>
+                  <% end %>
                   <span class="profile-list-card__chip">Status: <%= mcp.status %></span>
-                  <span class="profile-list-card__chip"><%= mcp.bearer_token.present? ? "Token set" : "No token" %></span>
                 </div>
 
                 <div class="mcp-list-card__actions">
