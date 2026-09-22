@@ -160,6 +160,51 @@ Receivers should parse the multipart payload and decode `event` as JSON.
 - ai_profile_updated
 - ai_profile_deleted
 
+## AI Admin CRUD Events
+
+The AI Admin area now emits output events for successful create, update, and delete operations on core AI configuration entities.
+
+### Coverage
+
+- AI settings
+  - `ai_setting_created`
+  - `ai_setting_updated`
+  - `ai_setting_deleted`
+- MCP servers
+  - `mcp_created`
+  - `mcp_updated`
+  - `mcp_deleted`
+- Skills
+  - `skill_created`
+  - `skill_updated`
+  - `skill_deleted`
+- AI profiles
+  - `ai_profile_created`
+  - `ai_profile_updated`
+  - `ai_profile_deleted`
+
+### Emission Rules
+
+- Events are emitted only on successful CRUD operations.
+- Invalid form submissions or validation failures do not emit CRUD events.
+- Update events include `event_data.changed_fields` (excluding timestamp-only changes).
+
+### Sensitive Field Handling
+
+AI Admin payloads avoid storing raw secret and large free-text values in `event_data`.
+
+- MCP credentials and command-like fields:
+  - No raw `bearer_token` value is stored.
+  - Metadata keys are used instead: `*_present`, `*_length`.
+- Skill content:
+  - No raw `description` or `skill_text` values are stored.
+  - Metadata keys are used instead: `description_present`, `description_length`, `skill_text_present`, `skill_text_length`.
+- Profile content:
+  - No raw `soul` value is stored.
+  - Metadata keys are used instead: `soul_present`, `soul_length`.
+
+This keeps output events useful for observability while reducing risk of sensitive content leakage.
+
 ## Operational Notes
 
 - If OUTPUT_EVENTS_URL is not set, delivery is skipped and a warning is logged.
