@@ -945,6 +945,7 @@ body.sidebar .company-settings-feed {
   min-block-size: calc(100dvh - 104px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  width: 90%;
 }
 
 body.sidebar .settings-container {
@@ -953,6 +954,7 @@ body.sidebar .settings-container {
   /*margin-inline: auto;*/
   max-inline-size: 84rem;
   padding: 24px;
+  width: 75%;
 }
 
 body.sidebar .settings-card {
