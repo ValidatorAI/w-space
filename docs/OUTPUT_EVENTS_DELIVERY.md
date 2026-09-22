@@ -146,6 +146,19 @@ Receivers should parse the multipart payload and decode `event` as JSON.
 - approval_request_denied
 - approval_request_canceled
 - decision_approved
+- ai_setting_created
+- ai_setting_updated
+- ai_setting_deleted
+- mcp_created
+- mcp_updated
+- mcp_deleted
+- skill_created
+- skill_updated
+- skill_deleted
+- skill_learning_requested
+- ai_profile_created
+- ai_profile_updated
+- ai_profile_deleted
 
 ## Operational Notes
 

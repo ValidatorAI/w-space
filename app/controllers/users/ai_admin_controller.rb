@@ -67,6 +67,11 @@ class Users::AiAdminController < ApplicationController
     ai_setting = AiSetting.new(ai_setting_params)
 
     if ai_setting.save
+      record_ai_admin_event(
+        event_type: "ai_setting_created",
+        record: ai_setting,
+        data: ai_setting_event_data(ai_setting)
+      )
       redirect_to ai_admin_general_settings_path, notice: "AI setting added"
     else
       redirect_to ai_admin_general_settings_path, alert: ai_setting.errors.full_messages.to_sentence.presence || "Unable to add AI setting"
@@ -77,6 +82,11 @@ class Users::AiAdminController < ApplicationController
     ai_setting = AiSetting.find(params[:id])
 
     if ai_setting.update(ai_setting_params)
+      record_ai_admin_event(
+        event_type: "ai_setting_updated",
+        record: ai_setting,
+        data: ai_setting_event_data(ai_setting).merge("changed_fields" => changed_fields_for(ai_setting))
+      )
       redirect_to ai_admin_general_settings_path, notice: "AI setting updated"
     else
       redirect_to ai_admin_general_settings_path, alert: ai_setting.errors.full_messages.to_sentence.presence || "Unable to update AI setting"
@@ -86,6 +96,13 @@ class Users::AiAdminController < ApplicationController
   def destroy_ai_setting
     ai_setting = AiSetting.find(params[:id])
     ai_setting.destroy
+    if ai_setting.destroyed?
+      record_ai_admin_event(
+        event_type: "ai_setting_deleted",
+        record: ai_setting,
+        data: ai_setting_event_data(ai_setting)
+      )
+    end
 
     redirect_to ai_admin_general_settings_path, notice: "AI setting deleted"
   end
@@ -94,6 +111,11 @@ class Users::AiAdminController < ApplicationController
     mcp = Mcp::Server.new(mcp_params)
 
     if mcp.save
+      record_ai_admin_event(
+        event_type: "mcp_created",
+        record: mcp,
+        data: mcp_event_data(mcp)
+      )
       redirect_to ai_admin_mcps_page_path, notice: "MCP added"
     else
       @mcp = mcp
@@ -104,6 +126,11 @@ class Users::AiAdminController < ApplicationController
 
   def update_mcp
     if @mcp.update(mcp_params)
+      record_ai_admin_event(
+        event_type: "mcp_updated",
+        record: @mcp,
+        data: mcp_event_data(@mcp).merge("changed_fields" => changed_fields_for(@mcp))
+      )
       redirect_to ai_admin_mcps_page_path, notice: "MCP updated"
     else
       flash.now[:alert] = @mcp.errors.full_messages.to_sentence.presence || "Unable to update MCP"
@@ -113,6 +140,13 @@ class Users::AiAdminController < ApplicationController
 
   def destroy_mcp
     @mcp.destroy
+    if @mcp.destroyed?
+      record_ai_admin_event(
+        event_type: "mcp_deleted",
+        record: @mcp,
+        data: mcp_event_data(@mcp)
+      )
+    end
 
     redirect_to ai_admin_mcps_page_path, notice: "MCP deleted"
   end
@@ -131,6 +165,11 @@ class Users::AiAdminController < ApplicationController
     skill = Skill.new(skill_params)
 
     if skill.save
+      record_ai_admin_event(
+        event_type: "skill_created",
+        record: skill,
+        data: skill_event_data(skill)
+      )
       redirect_to ai_admin_skills_page_path, notice: "Skill added"
     else
       @skill = skill
@@ -141,6 +180,11 @@ class Users::AiAdminController < ApplicationController
 
   def update_skill
     if @skill.update(skill_params)
+      record_ai_admin_event(
+        event_type: "skill_updated",
+        record: @skill,
+        data: skill_event_data(@skill).merge("changed_fields" => changed_fields_for(@skill))
+      )
       redirect_to ai_admin_skills_page_path, notice: "Skill updated"
     else
       flash.now[:alert] = @skill.errors.full_messages.to_sentence.presence || "Unable to update skill"
@@ -150,6 +194,13 @@ class Users::AiAdminController < ApplicationController
 
   def destroy_skill
     @skill.destroy
+    if @skill.destroyed?
+      record_ai_admin_event(
+        event_type: "skill_deleted",
+        record: @skill,
+        data: skill_event_data(@skill)
+      )
+    end
 
     redirect_to ai_admin_skills_page_path, notice: "Skill deleted"
   end
@@ -207,6 +258,12 @@ class Users::AiAdminController < ApplicationController
       AiProfiles::BotSync.call(profile: profile, previous_bot: false, previous_bot_name: nil)
     end
 
+    record_ai_admin_event(
+      event_type: "ai_profile_created",
+      record: profile,
+      data: ai_profile_event_data(profile)
+    )
+
     redirect_to @return_to, notice: "Profile created"
   rescue ActiveRecord::RecordInvalid => error
     @new_profile = profile
@@ -225,6 +282,12 @@ class Users::AiAdminController < ApplicationController
       AiProfiles::BotSync.call(profile: @profile, previous_bot: previous_bot, previous_bot_name: previous_bot_name)
     end
 
+    record_ai_admin_event(
+      event_type: "ai_profile_updated",
+      record: @profile,
+      data: ai_profile_event_data(@profile).merge("changed_fields" => changed_fields_for(@profile))
+    )
+
     redirect_to ai_admin_profile_path(@profile, anchor: "profile-edit"), notice: "Profile updated"
   rescue ActiveRecord::RecordInvalid => error
     render_profile_with_error(error.record.errors.full_messages.to_sentence.presence || "Unable to update profile")
@@ -239,6 +302,14 @@ class Users::AiAdminController < ApplicationController
         AiProfiles::BotSync.call(profile: @profile, previous_bot: true, previous_bot_name: previous_bot_name)
       end
       @profile.destroy!
+    end
+
+    if @profile.destroyed?
+      record_ai_admin_event(
+        event_type: "ai_profile_deleted",
+        record: @profile,
+        data: ai_profile_event_data(@profile)
+      )
     end
 
     redirect_to ai_admin_index_path, notice: "Profile deleted"
@@ -480,5 +551,74 @@ class Users::AiAdminController < ApplicationController
       :auto_decompose_per_tick,
       :max_in_progress_per_profile
     )
+  end
+
+  def record_ai_admin_event(event_type:, record:, data: {})
+    OutputEvents::Recorder.record(
+      event_type: event_type,
+      event_id: record.id,
+      actor: Current.user,
+      target_type: record.class.name,
+      data: data
+    )
+  end
+
+  def changed_fields_for(record)
+    record.previous_changes.except("created_at", "updated_at").keys
+  end
+
+  def ai_setting_event_data(ai_setting)
+    {
+      "label" => ai_setting.label,
+      "setting_value" => ai_setting.setting_value
+    }
+  end
+
+  def mcp_event_data(mcp)
+    {
+      "name" => mcp.name,
+      "transport" => mcp.transport,
+      "authentication" => mcp.authentication,
+      "status" => mcp.status,
+      "url_present" => mcp.url.present?
+    }
+      .merge(text_field_metadata(mcp.bearer_token, "bearer_token"))
+      .merge(text_field_metadata(mcp.command, "command"))
+      .merge(text_field_metadata(mcp.args, "args"))
+      .merge(text_field_metadata(mcp.environment, "environment"))
+  end
+
+  def skill_event_data(skill)
+    {
+      "name" => skill.name,
+      "category" => skill.category,
+      "add_by_default" => skill.add_by_default
+    }
+      .merge(text_field_metadata(skill.description, "description"))
+      .merge(text_field_metadata(skill.skill_text, "skill_text"))
+  end
+
+  def ai_profile_event_data(profile)
+    {
+      "profile_name" => profile.profile_name,
+      "bot" => profile.bot,
+      "bot_name" => profile.bot_name,
+      "editable" => profile.editable,
+      "tool_sets_editable" => profile.tool_sets_editable,
+      "max_line_sessions" => profile.max_line_sessions,
+      "max_concurrent_sessions" => profile.max_concurrent_sessions,
+      "auto_decompose_per_tick" => profile.auto_decompose_per_tick,
+      "max_in_progress_per_profile" => profile.max_in_progress_per_profile
+    }.merge(text_field_metadata(profile.soul, "soul"))
+  end
+
+  def text_field_metadata(value, key)
+    text = value.to_s
+    present = value.present?
+
+    {
+      "#{key}_present" => present,
+      "#{key}_length" => present ? text.length : 0
+    }
   end
 end
