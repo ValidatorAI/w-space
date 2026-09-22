@@ -71,3 +71,20 @@ Example migration direction:
 
 - Table and model follow Rails conventions (`AiSetting` -> `ai_settings`).
 - This entity is intentionally minimal and can be extended with validations and domain methods as requirements evolve.
+
+## 7. API Read Endpoints
+
+The AI settings entity is available through read-only API endpoints:
+
+- `GET /api/ai_settings`
+- `GET /api/ai_settings/:id`
+
+Authentication:
+
+- Requests must include `Authorization: Bearer <OUTPUT_EVENTS_TOKEN>`.
+- Token validation is enforced in `Api::BaseController`.
+
+Response shape:
+
+- Index returns `{ count, ai_settings: [...] }`.
+- Show returns a single AI setting object.

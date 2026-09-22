@@ -72,3 +72,25 @@ profile.mcps
 - Only one row per `ai_profile_id` + `mcp_id` is allowed by the unique index.
 - `active` defaults to true for newly-created assignments.
 - This table follows the same join-table pattern as `ai_profile_tools` and `ai_profile_skills`.
+
+## 6. API Read Endpoints
+
+The profile-to-MCP assignment entity is available through read-only API endpoints:
+
+- `GET /api/ai_profile_mcps`
+- `GET /api/ai_profile_mcps/:id`
+
+Optional index filters:
+
+- `ai_profile_id`
+- `mcp_id`
+
+Authentication:
+
+- Requests must include `Authorization: Bearer <OUTPUT_EVENTS_TOKEN>`.
+- Token validation is enforced in `Api::BaseController`.
+
+Response shape:
+
+- Index returns `{ count, ai_profile_mcps: [...] }`.
+- Show returns a single assignment object.

@@ -18,9 +18,12 @@ Columns:
 - `id` (bigint, primary key)
 - `name` (string, required)
 - `transport` (string, required)
-- `url` (string, required)
-- `authentication` (string, required)
+- `url` (string, required at DB level)
+- `authentication` (string, required at DB level)
 - `bearer_token` (string, optional)
+- `command` (string, optional)
+- `args` (text, optional)
+- `environment` (text, optional)
 - `status` (string, required)
 - `created_at` (datetime)
 - `updated_at` (datetime)
@@ -47,8 +50,19 @@ Scopes:
 - `active` -> MCP rows where `status = "active"`
 
 Validations:
-- Presence on `name`, `transport`, `url`, `authentication`, `status`
+- Presence on `name`, `transport`, `status`
+- Conditional validations:
+  - HTTP transport requires `url` and `authentication`
+  - Bearer authentication requires `bearer_token`
+  - stdio transport requires `command` and `args`
+- Transport/auth/status inclusion checks against allowed constants
 - Length max 255 on string columns
+
+Normalization:
+
+- `before_validation :normalize_transport_attributes` keeps fields consistent per transport:
+  - stdio transport clears HTTP-only fields and forces `authentication` to `none`
+  - HTTP transport clears stdio-only fields
 
 ## 4. Example Usage
 
@@ -74,5 +88,25 @@ Mcp::Server.active
 ## 5. Notes
 
 - `bearer_token` is optional and can be null.
-- `status` and `authentication` are intentionally strings in this version (no enum constraint).
+- `status`, `transport`, and `authentication` are string-based with model-level inclusion checks.
 - `Mcp::Server` naming avoids conflict with existing top-level `Mcp` runtime module usage.
+
+## 6. API Read Endpoints
+
+MCP entities are available through read-only API endpoints:
+
+- `GET /api/mcps`
+- `GET /api/mcps/:id`
+
+Authentication:
+
+- Requests must include `Authorization: Bearer <OUTPUT_EVENTS_TOKEN>`.
+- Token validation is enforced in `Api::BaseController`.
+
+Response safety:
+
+- Raw `bearer_token` is not returned.
+- Raw `environment` is not returned.
+- Metadata fields are returned instead:
+  - `bearer_token_present`, `bearer_token_length`
+  - `environment_present`, `environment_length`

@@ -201,6 +201,15 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :ai_profiles, only: %i[ index show ]
+    resources :ai_settings, only: %i[ index show ]
+    resources :mcps, only: %i[ index show ]
+    resources :tools, only: %i[ index show ]
+    resources :skills, only: %i[ index show ]
+    resources :ai_profile_tools, only: %i[ index show ]
+    resources :ai_profile_skills, only: %i[ index show ]
+    resources :ai_profile_mcps, only: %i[ index show ]
+
     resources :attention_items, only: %i[ index show create update destroy ]
 
     # Flat routes since message ids are globally unique; no project/room scoping required.
