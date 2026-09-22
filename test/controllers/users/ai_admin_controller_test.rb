@@ -26,6 +26,22 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h1", text: "MCPs"
 
+    mcp = Mcp::Server.create!(
+      name: "mcp_page_#{SecureRandom.hex(3)}",
+      transport: "http",
+      url: "http://localhost:9100/mcp",
+      authentication: "none",
+      status: "active"
+    )
+
+    get user_company_ai_admin_new_mcp_url(user_id: "me")
+    assert_response :ok
+    assert_select "h1", text: "Add MCP"
+
+    get user_company_ai_admin_edit_mcp_url(user_id: "me", id: mcp.id)
+    assert_response :ok
+    assert_select "h1", text: "Edit MCP"
+
     get user_company_ai_admin_tools_page_url(user_id: "me")
     assert_response :ok
     assert_select "h1", text: "Tools"
@@ -72,6 +88,8 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
+    assert_redirected_to user_company_ai_admin_mcps_page_url(user_id: "me")
+
     created = Mcp::Server.order(:id).last
     assert_not_nil created
 
@@ -86,12 +104,32 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
+    assert_redirected_to user_company_ai_admin_mcps_page_url(user_id: "me")
+
     assert_equal "http://localhost:9001/mcp", created.reload.url
     assert_equal "bearer", created.authentication
 
     assert_difference -> { Mcp::Server.count }, -1 do
       delete user_company_ai_admin_mcp_destroy_url(user_id: "me", id: created.id)
     end
+
+    assert_redirected_to user_company_ai_admin_mcps_page_url(user_id: "me")
+  end
+
+  test "mcps page shows cards with edit links" do
+    mcp = Mcp::Server.create!(
+      name: "mcp_card_#{SecureRandom.hex(3)}",
+      transport: "http",
+      url: "http://localhost:9200/mcp",
+      authentication: "none",
+      status: "active"
+    )
+
+    get user_company_ai_admin_mcps_page_url(user_id: "me")
+
+    assert_response :ok
+    assert_select "[data-mcp-card-name='#{mcp.name}']"
+    assert_select "[data-mcp-card-name='#{mcp.name}'] a[href='#{user_company_ai_admin_edit_mcp_path(user_id: "me", id: mcp.id)}']", text: "Edit"
   end
 
   test "toggles tool" do

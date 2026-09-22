@@ -1265,6 +1265,20 @@ body.sidebar .profile-list-card__chip {
   padding: 2px 9px;
 }
 
+body.sidebar .mcp-list-card {
+  cursor: default;
+}
+
+body.sidebar .mcp-list-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.sidebar .mcp-list-card__actions form {
+  margin: 0;
+}
+
 @media (max-width: 700px) {
   body.sidebar .profile-list-grid {
     grid-template-columns: 1fr;

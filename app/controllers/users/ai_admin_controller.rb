@@ -10,6 +10,7 @@ class Users::AiAdminController < ApplicationController
     toggle_profile_skill
     toggle_profile_mcp
   ]
+  before_action :set_mcp, only: %i[edit_mcp update_mcp destroy_mcp]
   before_action :ensure_profile_editable!, only: %i[update_profile destroy_profile]
   before_action :ensure_profile_toolset_editable!, only: %i[toggle_profile_tool toggle_profile_skill toggle_profile_mcp]
 
@@ -29,7 +30,13 @@ class Users::AiAdminController < ApplicationController
 
   def mcps
     @mcps = Mcp::Server.order(:name, :id)
-    @new_mcp = build_new_mcp
+  end
+
+  def new_mcp
+    @mcp = build_new_mcp
+  end
+
+  def edit_mcp
   end
 
   def tools
@@ -79,23 +86,23 @@ class Users::AiAdminController < ApplicationController
     if mcp.save
       redirect_to ai_admin_mcps_page_path, notice: "MCP added"
     else
-      redirect_to ai_admin_mcps_page_path, alert: mcp.errors.full_messages.to_sentence.presence || "Unable to add MCP"
+      @mcp = mcp
+      flash.now[:alert] = mcp.errors.full_messages.to_sentence.presence || "Unable to add MCP"
+      render :new_mcp, status: :unprocessable_entity
     end
   end
 
   def update_mcp
-    mcp = Mcp::Server.find(params[:id])
-
-    if mcp.update(mcp_params)
+    if @mcp.update(mcp_params)
       redirect_to ai_admin_mcps_page_path, notice: "MCP updated"
     else
-      redirect_to ai_admin_mcps_page_path, alert: mcp.errors.full_messages.to_sentence.presence || "Unable to update MCP"
+      flash.now[:alert] = @mcp.errors.full_messages.to_sentence.presence || "Unable to update MCP"
+      render :edit_mcp, status: :unprocessable_entity
     end
   end
 
   def destroy_mcp
-    mcp = Mcp::Server.find(params[:id])
-    mcp.destroy
+    @mcp.destroy
 
     redirect_to ai_admin_mcps_page_path, notice: "MCP deleted"
   end
@@ -271,6 +278,10 @@ class Users::AiAdminController < ApplicationController
 
   def set_profile
     @profile = AiProfile.find(params[:id] || params[:profile_id])
+  end
+
+  def set_mcp
+    @mcp = Mcp::Server.find(params[:id])
   end
 
   def ensure_profile_editable!

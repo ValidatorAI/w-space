@@ -1,0 +1,38 @@
+<%= form_with model: mcp, url: form_url, method: form_method, class: "company-settings-form" do |form| %>
+  <div class="form-row form-row--two">
+    <div class="form-group">
+      <label>Name</label>
+      <%= form.text_field :name, class: "input", required: true %>
+    </div>
+    <div class="form-group">
+      <label>Transport</label>
+      <%= form.text_field :transport, class: "input", required: true %>
+    </div>
+  </div>
+
+  <div class="form-row form-row--two">
+    <div class="form-group">
+      <label>URL</label>
+      <%= form.text_field :url, class: "input", required: true %>
+    </div>
+    <div class="form-group">
+      <label>Authentication</label>
+      <%= form.text_field :authentication, class: "input", required: true %>
+    </div>
+  </div>
+
+  <div class="form-row form-row--two">
+    <div class="form-group">
+      <label>Status</label>
+      <%= form.text_field :status, class: "input", required: true %>
+    </div>
+    <div class="form-group">
+      <label>Bearer token</label>
+      <%= form.text_field :bearer_token, class: "input" %>
+    </div>
+  </div>
+
+  <div class="settings-row-actions">
+    <%= form.submit submit_label, class: "action-btn primary" %>
+  </div>
+<% end %>

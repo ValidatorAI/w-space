@@ -14,77 +14,40 @@
       <%= render "users/ai_admin/top_links", active_tab: :mcps %>
 
       <section class="settings-card" aria-label="MCP settings">
-        <div class="settings-section-title">MCP</div>
+        <div class="settings-section-title settings-section-title--spread">
+          <span>MCP List</span>
+          <%= link_to "Add MCP", user_company_ai_admin_new_mcp_path(user_id: "me"), class: "action-btn action-btn--small primary" %>
+        </div>
+        <p class="settings-section-copy">Manage MCP endpoints and credentials.</p>
 
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Transport</th>
-              <th>URL</th>
-              <th>Auth</th>
-              <th>Status</th>
-              <th>Token</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <% if @mcps.any? %>
+          <div class="bot-selection-grid profile-list-grid mcp-list-grid">
             <% @mcps.each do |mcp| %>
-              <tr>
-                <td colspan="6">
-                  <%= form_with model: mcp, url: user_company_ai_admin_mcp_path(user_id: "me", id: mcp.id), method: :patch, class: "flex gap align-center" do |form| %>
-                    <%= form.text_field :name, class: "input", required: true %>
-                    <%= form.text_field :transport, class: "input", required: true %>
-                    <%= form.text_field :url, class: "input", required: true %>
-                    <%= form.text_field :authentication, class: "input", required: true %>
-                    <%= form.text_field :status, class: "input", required: true %>
-                    <%= form.text_field :bearer_token, class: "input" %>
-                    <%= form.submit "Save", class: "action-btn action-btn--small" %>
-                  <% end %>
-                </td>
-                <td>
+              <article class="bot-card profile-list-card mcp-list-card" data-mcp-card-name="<%= mcp.name %>">
+                <div class="profile-list-card__identity">
+                  <span class="bot-card-icon" aria-hidden="true">🔌</span>
+                  <div class="bot-card-info">
+                    <div class="bot-card-name"><%= mcp.name %></div>
+                    <div class="bot-card-role"><%= mcp.url %></div>
+                  </div>
+                </div>
+
+                <div class="profile-list-card__meta">
+                  <span class="profile-list-card__chip">Transport: <%= mcp.transport %></span>
+                  <span class="profile-list-card__chip">Auth: <%= mcp.authentication %></span>
+                  <span class="profile-list-card__chip">Status: <%= mcp.status %></span>
+                  <span class="profile-list-card__chip"><%= mcp.bearer_token.present? ? "Token set" : "No token" %></span>
+                </div>
+
+                <div class="mcp-list-card__actions">
+                  <%= link_to "Edit", user_company_ai_admin_edit_mcp_path(user_id: "me", id: mcp.id), class: "action-btn action-btn--small" %>
                   <%= button_to "Delete", user_company_ai_admin_mcp_destroy_path(user_id: "me", id: mcp.id), method: :delete, class: "action-btn action-btn--small" %>
-                </td>
-              </tr>
+                </div>
+              </article>
             <% end %>
-          </tbody>
-        </table>
-
-        <%= form_with model: @new_mcp, url: user_company_ai_admin_mcps_path(user_id: "me"), class: "company-settings-form" do |form| %>
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label>Name</label>
-              <%= form.text_field :name, class: "input", required: true %>
-            </div>
-            <div class="form-group">
-              <label>Transport</label>
-              <%= form.text_field :transport, class: "input", required: true %>
-            </div>
           </div>
-
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label>URL</label>
-              <%= form.text_field :url, class: "input", required: true %>
-            </div>
-            <div class="form-group">
-              <label>Authentication</label>
-              <%= form.text_field :authentication, class: "input", required: true %>
-            </div>
-          </div>
-
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label>Status</label>
-              <%= form.text_field :status, class: "input", required: true %>
-            </div>
-            <div class="form-group">
-              <label>Bearer token</label>
-              <%= form.text_field :bearer_token, class: "input" %>
-            </div>
-          </div>
-
-          <%= form.submit "Add MCP", class: "action-btn primary" %>
+        <% else %>
+          <p class="company-cell-muted">No MCPs found yet.</p>
         <% end %>
       </section>
     </div>

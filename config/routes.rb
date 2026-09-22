@@ -77,6 +77,8 @@ Rails.application.routes.draw do
         patch "company/ai-admin/ai-settings/:id", to: "ai_admin#update_ai_setting", as: :company_ai_admin_ai_setting
         delete "company/ai-admin/ai-settings/:id", to: "ai_admin#destroy_ai_setting", as: :company_ai_admin_ai_setting_destroy
 
+        get "company/ai-admin/mcps/new", to: "ai_admin#new_mcp", as: :company_ai_admin_new_mcp
+        get "company/ai-admin/mcps/:id/edit", to: "ai_admin#edit_mcp", as: :company_ai_admin_edit_mcp
         post "company/ai-admin/mcps", to: "ai_admin#create_mcp", as: :company_ai_admin_mcps
         patch "company/ai-admin/mcps/:id", to: "ai_admin#update_mcp", as: :company_ai_admin_mcp
         delete "company/ai-admin/mcps/:id", to: "ai_admin#destroy_mcp", as: :company_ai_admin_mcp_destroy
