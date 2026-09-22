@@ -1,0 +1,146 @@
+<% @page_title = "AI Config - Skills" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">Skills</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :skills %>
+
+      <section class="settings-card" aria-label="Skills settings">
+        <div class="settings-section-title">Skills</div>
+        <p class="settings-section-copy">Global default means this skill is added by default when creating a new profile.</p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Default for New Profiles</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @skills.each do |skill| %>
+              <tr>
+                <td><%= skill.name %></td>
+                <td><%= skill.category.presence || "-" %></td>
+                <td>
+                  <%= form_with url: user_company_ai_admin_skill_toggle_default_path(user_id: "me", id: skill.id), method: :patch do %>
+                    <%= hidden_field_tag :add_by_default, "0" %>
+                    <%= check_box_tag :add_by_default, "1", skill.add_by_default, onchange: "this.form.requestSubmit()" %>
+                  <% end %>
+                </td>
+                <td class="flex gap">
+                  <details>
+                    <summary class="action-btn action-btn--small">Edit</summary>
+                    <%= form_with model: skill, url: user_company_ai_admin_skill_path(user_id: "me", id: skill.id), method: :patch, class: "company-settings-form" do |form| %>
+                      <div class="form-group">
+                        <label>Name</label>
+                        <%= form.text_field :name, class: "input", required: true %>
+                      </div>
+                      <div class="form-group">
+                        <label>Category</label>
+                        <%= form.text_field :category, class: "input" %>
+                      </div>
+                      <div class="form-group">
+                        <label>Description</label>
+                        <%= form.text_area :description, rows: 2, class: "input" %>
+                      </div>
+                      <div class="form-group">
+                        <label>Skill text</label>
+                        <%= form.text_area :skill_text, rows: 4, class: "input" %>
+                      </div>
+                      <%= form.submit "Save", class: "action-btn action-btn--small" %>
+                    <% end %>
+                  </details>
+                  <%= button_to "Delete", user_company_ai_admin_skill_destroy_path(user_id: "me", id: skill.id), method: :delete, class: "action-btn action-btn--small" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <%= form_with model: @new_skill, url: user_company_ai_admin_skills_path(user_id: "me"), class: "company-settings-form" do |form| %>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Skill name</label>
+              <%= form.text_field :name, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <%= form.text_field :category, class: "input" %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <%= form.text_area :description, rows: 2, class: "input" %>
+          </div>
+
+          <div class="form-group">
+            <label>Skill text</label>
+            <%= form.text_area :skill_text, rows: 4, class: "input" %>
+          </div>
+
+          <label class="private-toggle" style="border-top: none; padding-top: 0;">
+            <%= form.check_box :add_by_default %>
+            Add by default for new profiles
+          </label>
+
+          <%= form.submit "Add skill", class: "action-btn primary" %>
+        <% end %>
+
+        <hr class="status-divider">
+
+        <h3 class="txt-medium">Learn Skill (Event Only)</h3>
+        <p class="settings-section-copy">This sends a learning request event to OUTPUT_EVENTS_URL/W-bridge and does not change skills directly.</p>
+
+        <%= form_with scope: :learn, url: user_company_ai_admin_skill_learn_path(user_id: "me"), class: "company-settings-form" do |form| %>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Source kind</label>
+              <%= form.select :source_kind,
+                    options_for_select([
+                      ["Local File", "local_file"],
+                      ["Directory", "directory"],
+                      ["URL", "url"],
+                      ["Workflow Notes", "notes"]
+                    ]),
+                    {},
+                    class: "input" %>
+            </div>
+            <div class="form-group">
+              <label>Source reference</label>
+              <%= form.text_field :source_reference, class: "input", placeholder: "path, URL, or short reference" %>
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Skill name hint</label>
+              <%= form.text_field :skill_name, class: "input", placeholder: "Optional" %>
+            </div>
+            <div class="form-group">
+              <label>Skill category hint</label>
+              <%= form.text_field :skill_category, class: "input", placeholder: "Optional" %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Anything else</label>
+            <%= form.text_area :notes, rows: 5, class: "input", placeholder: "Describe the workflow, paste notes, or summarize what was done." %>
+          </div>
+
+          <%= form.submit "Send learn event", class: "action-btn primary" %>
+        <% end %>
+      </section>
+    </div>
+  </div>
+</div>

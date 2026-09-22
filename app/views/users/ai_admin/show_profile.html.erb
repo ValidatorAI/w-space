@@ -1,0 +1,168 @@
+<% @page_title = "AI Profile - #{@profile.profile_name}" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">AI Profile: <%= @profile.profile_name %></h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<% assignments_editable = @profile.editable? && @profile.tool_sets_editable? %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links" %>
+
+      <section id="profile-edit" class="settings-card" aria-label="Profile settings">
+        <div class="settings-section-title settings-section-title--spread">
+          <span>Profile Settings</span>
+          <%= link_to "Back to profile list", user_company_ai_admin_path(user_id: "me"), class: "action-btn action-btn--small" %>
+        </div>
+
+        <% if !@profile.editable? %>
+          <p class="settings-section-copy">This profile is read-only and cannot be updated or deleted.</p>
+        <% end %>
+
+        <%= form_with model: @profile, url: user_company_ai_admin_profile_update_path(user_id: "me", id: @profile.id), method: :patch, class: "company-settings-form" do |form| %>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Profile name</label>
+              <%= form.text_field :profile_name, class: "input", required: true, disabled: !@profile.editable? %>
+            </div>
+            <div class="form-group">
+              <label>Bot name</label>
+              <%= form.text_field :bot_name, class: "input", placeholder: "Optional if bot is enabled", disabled: !@profile.editable? %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Soul</label>
+            <%= form.text_area :soul, rows: 5, class: "input", disabled: !@profile.editable? %>
+          </div>
+
+          <div class="form-row form-row--two">
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :bot, disabled: !@profile.editable? %>
+              Is bot profile
+            </label>
+
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :editable, disabled: !@profile.editable? %>
+              Editable
+            </label>
+          </div>
+
+          <div class="form-row form-row--two">
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :tool_sets_editable, disabled: !@profile.editable? %>
+              Tool/Skill/MCP assignments editable
+            </label>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Max line sessions</label>
+              <%= form.number_field :max_line_sessions, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+            <div class="form-group">
+              <label>Max concurrent sessions</label>
+              <%= form.number_field :max_concurrent_sessions, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Auto decompose per tick</label>
+              <%= form.number_field :auto_decompose_per_tick, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+            <div class="form-group">
+              <label>Max in progress per profile</label>
+              <%= form.number_field :max_in_progress_per_profile, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+          </div>
+
+          <% if @profile.editable? %>
+            <%= form.submit "Save profile", class: "action-btn primary" %>
+          <% end %>
+        <% end %>
+
+        <% if @profile.editable? %>
+          <div class="settings-row-actions">
+            <%= button_to "Delete profile", user_company_ai_admin_profile_destroy_path(user_id: "me", id: @profile.id), method: :delete, class: "action-btn action-btn--small" %>
+          </div>
+        <% end %>
+      </section>
+
+      <section id="profile-tools" class="settings-card" aria-label="Profile tools">
+        <div class="settings-section-title">Tools</div>
+        <% unless assignments_editable %>
+          <p class="settings-section-copy">Tool assignments are read-only for this profile.</p>
+        <% end %>
+
+        <div class="bot-selection-grid">
+          <% @tools.each do |tool| %>
+            <% checked = @tool_enabled_map.fetch(tool.id, false) %>
+            <label class="bot-card <%= "selected" if checked %>">
+              <%= form_with url: user_company_ai_admin_profile_tool_toggle_path(user_id: "me", profile_id: @profile.id, tool_id: tool.id), method: :patch do %>
+                <%= hidden_field_tag :enabled, "0" %>
+                <%= check_box_tag :enabled, "1", checked, onchange: "this.form.requestSubmit()", disabled: !assignments_editable %>
+              <% end %>
+              <div class="bot-card-info">
+                <div class="bot-card-name"><%= tool.name %></div>
+                <div class="bot-card-role"><%= checked ? "Enabled" : "Disabled" %></div>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </section>
+
+      <section id="profile-skills" class="settings-card" aria-label="Profile skills">
+        <div class="settings-section-title">Skills</div>
+        <% unless assignments_editable %>
+          <p class="settings-section-copy">Skill assignments are read-only for this profile.</p>
+        <% end %>
+
+        <div class="bot-selection-grid">
+          <% @skills.each do |skill| %>
+            <% checked = @skill_enabled_map.fetch(skill.id, false) %>
+            <label class="bot-card <%= "selected" if checked %>">
+              <%= form_with url: user_company_ai_admin_profile_skill_toggle_path(user_id: "me", profile_id: @profile.id, skill_id: skill.id), method: :patch do %>
+                <%= hidden_field_tag :enabled, "0" %>
+                <%= check_box_tag :enabled, "1", checked, onchange: "this.form.requestSubmit()", disabled: !assignments_editable %>
+              <% end %>
+              <div class="bot-card-info">
+                <div class="bot-card-name"><%= skill.name %></div>
+                <div class="bot-card-role"><%= checked ? "Enabled" : "Disabled" %></div>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </section>
+
+      <section id="profile-mcps" class="settings-card" aria-label="Profile MCP assignments">
+        <div class="settings-section-title">MCPs</div>
+        <% unless assignments_editable %>
+          <p class="settings-section-copy">MCP assignments are read-only for this profile.</p>
+        <% end %>
+
+        <div class="bot-selection-grid">
+          <% @mcps.each do |mcp| %>
+            <% checked = @mcp_active_map.fetch(mcp.id, false) %>
+            <label class="bot-card <%= "selected" if checked %>">
+              <%= form_with url: user_company_ai_admin_profile_mcp_toggle_path(user_id: "me", profile_id: @profile.id, mcp_id: mcp.id), method: :patch do %>
+                <%= hidden_field_tag :active, "0" %>
+                <%= check_box_tag :active, "1", checked, onchange: "this.form.requestSubmit()", disabled: !assignments_editable %>
+              <% end %>
+              <div class="bot-card-info">
+                <div class="bot-card-name"><%= mcp.name %></div>
+                <div class="bot-card-role"><%= checked ? "Enabled" : "Disabled" %></div>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

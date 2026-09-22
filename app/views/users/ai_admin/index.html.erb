@@ -1,0 +1,56 @@
+<% @page_title = "AI Config" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">AI Config</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links" %>
+
+      <section id="profiles" class="settings-card" aria-label="Profile list">
+        <div class="settings-section-title settings-section-title--spread">
+          <span>Profile List</span>
+          <%= link_to "Add profile", user_company_ai_admin_new_profile_path(user_id: "me", return_to: request.fullpath), class: "action-btn action-btn--small primary" %>
+        </div>
+        <p class="settings-section-copy">Click any profile to open profile settings and assignment controls.</p>
+
+        <% if @profiles.any? %>
+          <div class="bot-selection-grid profile-list-grid">
+            <% @profiles.each do |profile| %>
+              <% related_bot = @related_bot_by_profile_id.fetch(profile.id, nil) %>
+              <%= link_to user_company_ai_admin_profile_path(user_id: "me", id: profile.id), class: "bot-card profile-list-card profile-list-card--link", data: { profile_card_name: profile.profile_name, profile_bot: profile.bot? } do %>
+                <div class="profile-list-card__identity">
+                  <% if profile.bot? && related_bot&.avatar&.attached? %>
+                    <%= image_tag fresh_user_avatar_path(related_bot), size: 44, class: "profile-list-card__avatar", alt: "#{profile.profile_name} robot avatar" %>
+                  <% elsif profile.bot? %>
+                    <span class="bot-card-icon profile-list-card__emoji profile-list-card__emoji--bot" aria-hidden="true">🤖</span>
+                  <% else %>
+                    <span class="bot-card-icon profile-list-card__emoji profile-list-card__emoji--default" aria-hidden="true">🧩</span>
+                  <% end %>
+
+                  <div class="bot-card-info">
+                    <div class="bot-card-name"><%= profile.profile_name %></div>
+                    <div class="bot-card-role"><%= profile.bot? ? "Bot profile" : "Standard profile" %></div>
+                  </div>
+                </div>
+
+                <div class="profile-list-card__meta">
+                  <span class="profile-list-card__chip"><%= profile.editable? ? "Editable" : "Read-only" %></span>
+                  <span class="profile-list-card__chip"><%= profile.tool_sets_editable? ? "Tool set editable" : "Tool set locked" %></span>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="company-cell-muted">No AI profiles found yet.</p>
+        <% end %>
+      </section>
+    </div>
+  </div>
+</div>

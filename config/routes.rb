@@ -67,7 +67,37 @@ Rails.application.routes.draw do
         resource :settings, only: :show
         get "company/home", to: "companies#home", as: :company_home
         get "company/status", to: "companies#status", as: :company_status
-        get "company/ai-admin", to: "companies#ai_admin", as: :company_ai_admin
+        get "company/ai-admin", to: "ai_admin#index", as: :company_ai_admin
+        get "company/ai-admin/general-ai-settings", to: "ai_admin#general_settings", as: :company_ai_admin_general_settings
+        get "company/ai-admin/mcps", to: "ai_admin#mcps", as: :company_ai_admin_mcps_page
+        get "company/ai-admin/tools", to: "ai_admin#tools", as: :company_ai_admin_tools_page
+        get "company/ai-admin/skills", to: "ai_admin#skills", as: :company_ai_admin_skills_page
+
+        post "company/ai-admin/ai-settings", to: "ai_admin#create_ai_setting", as: :company_ai_admin_ai_settings
+        patch "company/ai-admin/ai-settings/:id", to: "ai_admin#update_ai_setting", as: :company_ai_admin_ai_setting
+        delete "company/ai-admin/ai-settings/:id", to: "ai_admin#destroy_ai_setting", as: :company_ai_admin_ai_setting_destroy
+
+        post "company/ai-admin/mcps", to: "ai_admin#create_mcp", as: :company_ai_admin_mcps
+        patch "company/ai-admin/mcps/:id", to: "ai_admin#update_mcp", as: :company_ai_admin_mcp
+        delete "company/ai-admin/mcps/:id", to: "ai_admin#destroy_mcp", as: :company_ai_admin_mcp_destroy
+
+        patch "company/ai-admin/tools/:id/toggle", to: "ai_admin#toggle_tool", as: :company_ai_admin_tool_toggle
+
+        post "company/ai-admin/skills", to: "ai_admin#create_skill", as: :company_ai_admin_skills
+        patch "company/ai-admin/skills/:id", to: "ai_admin#update_skill", as: :company_ai_admin_skill
+        delete "company/ai-admin/skills/:id", to: "ai_admin#destroy_skill", as: :company_ai_admin_skill_destroy
+        patch "company/ai-admin/skills/:id/toggle-default", to: "ai_admin#toggle_skill_default", as: :company_ai_admin_skill_toggle_default
+        post "company/ai-admin/skills/learn", to: "ai_admin#learn_skill", as: :company_ai_admin_skill_learn
+
+        get "company/ai-admin/profiles/new", to: "ai_admin#new_profile", as: :company_ai_admin_new_profile
+        post "company/ai-admin/profiles", to: "ai_admin#create_profile", as: :company_ai_admin_profiles
+        get "company/ai-admin/profiles/:id", to: "ai_admin#show_profile", as: :company_ai_admin_profile
+        patch "company/ai-admin/profiles/:id", to: "ai_admin#update_profile", as: :company_ai_admin_profile_update
+        delete "company/ai-admin/profiles/:id", to: "ai_admin#destroy_profile", as: :company_ai_admin_profile_destroy
+
+        patch "company/ai-admin/profiles/:profile_id/tools/:tool_id/toggle", to: "ai_admin#toggle_profile_tool", as: :company_ai_admin_profile_tool_toggle
+        patch "company/ai-admin/profiles/:profile_id/skills/:skill_id/toggle", to: "ai_admin#toggle_profile_skill", as: :company_ai_admin_profile_skill_toggle
+        patch "company/ai-admin/profiles/:profile_id/mcps/:mcp_id/toggle", to: "ai_admin#toggle_profile_mcp", as: :company_ai_admin_profile_mcp_toggle
         get "company/settings", to: "companies#settings", as: :company_settings
         get "company/settings/add-user", to: "companies#add_user", as: :company_add_user
         patch "company/settings", to: "companies#update", as: :update_company_settings

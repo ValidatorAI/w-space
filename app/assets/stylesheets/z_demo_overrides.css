@@ -29,6 +29,11 @@ body.sidebar {
   padding: 0;
 }
 
+body.sidebar:has(.settings-container .ai-admin-nav-grid) {
+  --demo-shell-max-width: 1380px;
+  --sidebar-width: clamp(240px, 20vw, 300px);
+}
+
 body.sidebar #main-content,
 body.sidebar #sidebar {
   background: var(--surface);
@@ -945,8 +950,8 @@ body.sidebar .company-settings-feed {
 body.sidebar .settings-container {
   display: grid;
   gap: 16px;
-  margin-inline: auto;
-  max-inline-size: 72rem;
+  /*margin-inline: auto;*/
+  max-inline-size: 84rem;
   padding: 24px;
 }
 
@@ -1165,6 +1170,88 @@ body.sidebar .bot-card-name {
 body.sidebar .bot-card-role {
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+body.sidebar .ai-admin-nav-grid {
+  margin-top: 16px;
+}
+
+body.sidebar a.ai-admin-nav-card {
+  align-items: flex-start;
+  min-block-size: 90px;
+  text-decoration: none;
+}
+
+body.sidebar a.ai-admin-nav-card:hover {
+  border-color: color-mix(in oklab, #000000, var(--border-color) 50%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+body.sidebar a.ai-admin-nav-card.ai-admin-nav-card--active {
+  border-color: color-mix(in oklab, #000000, var(--border-color) 45%);
+}
+
+body.sidebar .ai-admin-nav-card .bot-card-role {
+  line-height: 1.35;
+}
+
+body.sidebar .profile-list-grid {
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.sidebar .profile-list-card {
+  align-items: stretch;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  min-block-size: 90px;
+}
+
+body.sidebar a.profile-list-card--link {
+  color: inherit;
+  text-decoration: none;
+}
+
+body.sidebar a.profile-list-card--link:hover {
+  border-color: color-mix(in oklab, #000000, var(--border-color) 50%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+body.sidebar .profile-list-card__identity {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+body.sidebar .profile-list-card__avatar {
+  block-size: 44px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  inline-size: 44px;
+  object-fit: cover;
+}
+
+body.sidebar .profile-list-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.sidebar .profile-list-card__chip {
+  background: var(--surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+}
+
+@media (max-width: 700px) {
+  body.sidebar .profile-list-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 body.sidebar .settings-row-actions {

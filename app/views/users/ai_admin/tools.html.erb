@@ -1,0 +1,37 @@
+<% @page_title = "AI Config - Tools" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">Tools</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :tools %>
+
+      <section class="settings-card" aria-label="Tools settings">
+        <div class="settings-section-title">Tools</div>
+        <p class="settings-section-copy">Enable or disable tools globally.</p>
+
+        <div class="bot-selection-grid">
+          <% @tools.each do |tool| %>
+            <label class="bot-card <%= "selected" if tool.active? %>">
+              <%= form_with url: user_company_ai_admin_tool_toggle_path(user_id: "me", id: tool.id), method: :patch do %>
+                <%= hidden_field_tag :active, "0" %>
+                <%= check_box_tag :active, "1", tool.active, onchange: "this.form.requestSubmit()" %>
+              <% end %>
+              <div class="bot-card-info">
+                <div class="bot-card-name"><%= tool.name %></div>
+                <div class="bot-card-role"><%= tool.active? ? "Enabled" : "Disabled" %></div>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

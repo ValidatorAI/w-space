@@ -1,0 +1,92 @@
+<% @page_title = "AI Config - MCPs" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">MCPs</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :mcps %>
+
+      <section class="settings-card" aria-label="MCP settings">
+        <div class="settings-section-title">MCP</div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Transport</th>
+              <th>URL</th>
+              <th>Auth</th>
+              <th>Status</th>
+              <th>Token</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @mcps.each do |mcp| %>
+              <tr>
+                <td colspan="6">
+                  <%= form_with model: mcp, url: user_company_ai_admin_mcp_path(user_id: "me", id: mcp.id), method: :patch, class: "flex gap align-center" do |form| %>
+                    <%= form.text_field :name, class: "input", required: true %>
+                    <%= form.text_field :transport, class: "input", required: true %>
+                    <%= form.text_field :url, class: "input", required: true %>
+                    <%= form.text_field :authentication, class: "input", required: true %>
+                    <%= form.text_field :status, class: "input", required: true %>
+                    <%= form.text_field :bearer_token, class: "input" %>
+                    <%= form.submit "Save", class: "action-btn action-btn--small" %>
+                  <% end %>
+                </td>
+                <td>
+                  <%= button_to "Delete", user_company_ai_admin_mcp_destroy_path(user_id: "me", id: mcp.id), method: :delete, class: "action-btn action-btn--small" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <%= form_with model: @new_mcp, url: user_company_ai_admin_mcps_path(user_id: "me"), class: "company-settings-form" do |form| %>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Name</label>
+              <%= form.text_field :name, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>Transport</label>
+              <%= form.text_field :transport, class: "input", required: true %>
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>URL</label>
+              <%= form.text_field :url, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>Authentication</label>
+              <%= form.text_field :authentication, class: "input", required: true %>
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Status</label>
+              <%= form.text_field :status, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>Bearer token</label>
+              <%= form.text_field :bearer_token, class: "input" %>
+            </div>
+          </div>
+
+          <%= form.submit "Add MCP", class: "action-btn primary" %>
+        <% end %>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+<% @page_title = "AI Config - General AI Settings" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">General AI Settings</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :general %>
+
+      <section class="settings-card" aria-label="General AI settings">
+        <div class="settings-section-title">AI Settings Table</div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Value</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @ai_settings.each do |setting| %>
+              <tr>
+                <td colspan="2">
+                  <%= form_with model: setting, url: user_company_ai_admin_ai_setting_path(user_id: "me", id: setting.id), method: :patch, class: "flex gap align-center" do |form| %>
+                    <%= form.text_field :label, class: "input", required: true %>
+                    <%= form.number_field :setting_value, class: "input", required: true %>
+                    <%= form.submit "Save", class: "action-btn action-btn--small" %>
+                  <% end %>
+                </td>
+                <td>
+                  <%= button_to "Delete", user_company_ai_admin_ai_setting_destroy_path(user_id: "me", id: setting.id), method: :delete, class: "action-btn action-btn--small" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <%= form_with model: @new_ai_setting, url: user_company_ai_admin_ai_settings_path(user_id: "me"), class: "company-settings-form" do |form| %>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>New setting label</label>
+              <%= form.text_field :label, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>New setting value</label>
+              <%= form.number_field :setting_value, class: "input", required: true %>
+            </div>
+          </div>
+          <%= form.submit "Add AI setting", class: "action-btn primary" %>
+        <% end %>
+      </section>
+    </div>
+  </div>
+</div>

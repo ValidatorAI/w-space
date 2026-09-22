@@ -1,0 +1,55 @@
+<% active_tab ||= nil %>
+<% nav_cards = [
+  {
+    key: :general,
+    title: "General AI Settings",
+    subtitle: "Manage ai_settings labels and values.",
+    icon: "⚙️",
+    path: user_company_ai_admin_general_settings_path(user_id: "me")
+  },
+  {
+    key: :mcps,
+    title: "MCPs",
+    subtitle: "Configure MCP endpoints and credentials.",
+    icon: "🔌",
+    path: user_company_ai_admin_mcps_page_path(user_id: "me")
+  },
+  {
+    key: :tools,
+    title: "Tools",
+    subtitle: "Enable or disable global tools.",
+    icon: "🧰",
+    path: user_company_ai_admin_tools_page_path(user_id: "me")
+  },
+  {
+    key: :skills,
+    title: "Skills",
+    subtitle: "Manage skill catalog and learning requests.",
+    icon: "🧠",
+    path: user_company_ai_admin_skills_page_path(user_id: "me")
+  }
+] %>
+
+<section class="settings-card" aria-label="AI config quick navigation">
+  <div class="settings-section-title settings-section-title--spread">
+    <span>AI Config</span>
+    <% unless current_page?(user_company_ai_admin_path(user_id: "me")) %>
+      <%= link_to "Profile List", user_company_ai_admin_path(user_id: "me"), class: "action-btn action-btn--small" %>
+    <% end %>
+  </div>
+
+  <div class="bot-selection-grid ai-admin-nav-grid">
+    <% nav_cards.each do |card| %>
+      <% card_classes = ["bot-card", "ai-admin-nav-card"] %>
+      <% card_classes << "selected ai-admin-nav-card--active" if active_tab == card[:key] %>
+
+      <%= link_to card[:path], class: card_classes.join(" ") do %>
+        <span class="bot-card-icon" aria-hidden="true"><%= card[:icon] %></span>
+        <div class="bot-card-info">
+          <div class="bot-card-name"><%= card[:title] %></div>
+          <div class="bot-card-role"><%= card[:subtitle] %></div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</section>
