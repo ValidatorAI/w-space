@@ -16,7 +16,13 @@
       <section id="profiles" class="settings-card" aria-label="Profile list">
         <div class="settings-section-title settings-section-title--spread">
           <span>Profile List</span>
-          <%= link_to "Add profile", user_company_ai_admin_new_profile_path(user_id: "me", return_to: request.fullpath), class: "action-btn action-btn--small primary" %>
+          <div class="settings-section-actions">
+            <%= button_to "Reset all AI Config", user_company_ai_admin_reset_ai_config_path(user_id: "me"),
+                          method: :post,
+                          class: "action-btn action-btn--small",
+                          data: { turbo_confirm: "This resets all profiles, tools, skills, MCPs, and profile MCP assignments from config/ai/ai_config.xml. Continue?" } %>
+            <%= link_to "Add profile", user_company_ai_admin_new_profile_path(user_id: "me", return_to: request.fullpath), class: "action-btn action-btn--small primary" %>
+          </div>
         </div>
         <p class="settings-section-copy">Click any profile to open profile settings and assignment controls.</p>
 

@@ -11,6 +11,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h1", text: "AI Config"
     assert_select "section[aria-label='Profile list']"
+    assert_select "form[action='#{user_company_ai_admin_reset_ai_config_path(user_id: "me")}'] button", text: "Reset all AI Config"
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "General AI Settings"
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "MCPs"
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "Tools"
@@ -501,6 +502,68 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
         delete user_company_ai_admin_profile_destroy_url(user_id: "me", id: profile.id)
       end
     end
+  end
+
+  test "profile page shows reset ai config button" do
+    profile = AiProfile.create!(profile_attributes(profile_name: "reset_button_#{SecureRandom.hex(3)}"))
+
+    get user_company_ai_admin_profile_url(user_id: "me", id: profile.id)
+
+    assert_response :ok
+    assert_select "form[action='#{user_company_ai_admin_profile_reset_ai_config_path(user_id: "me", id: profile.id)}'] button", text: "Reset AI Config"
+  end
+
+  test "reset ai config emits bulk output event" do
+    profile = AiProfile.create!(profile_attributes(profile_name: "reset_event_profile_#{SecureRandom.hex(3)}"))
+    summary = {
+      "tools" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "skills" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "mcps" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profiles" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_tools" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_skills" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_mcps" => { "created" => 1, "updated" => 0, "deleted" => 0 }
+    }
+
+    AiConfig::ResetFromXml.stubs(:call).returns(summary)
+
+    assert_difference -> { OutputEvent.count }, 1 do
+      post user_company_ai_admin_profile_reset_ai_config_url(user_id: "me", id: profile.id)
+    end
+
+    assert_redirected_to user_company_ai_admin_profile_url(user_id: "me", id: profile.id, anchor: "profile-edit")
+
+    event = OutputEvent.order(:id).last
+    assert_equal "ai_config_reset", event.event_type
+    assert_equal "AiConfig", event.event_data["target_type"]
+    assert_equal "config/ai/ai_config.xml", event.event_data["source_path"]
+    assert_equal summary, event.event_data["summary"]
+  end
+
+  test "reset all ai config from index emits bulk output event" do
+    summary = {
+      "tools" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "skills" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "mcps" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profiles" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_tools" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_skills" => { "created" => 1, "updated" => 0, "deleted" => 0 },
+      "ai_profile_mcps" => { "created" => 1, "updated" => 0, "deleted" => 0 }
+    }
+
+    AiConfig::ResetFromXml.stubs(:call).returns(summary)
+
+    assert_difference -> { OutputEvent.count }, 1 do
+      post user_company_ai_admin_reset_ai_config_url(user_id: "me")
+    end
+
+    assert_redirected_to user_company_ai_admin_url(user_id: "me")
+
+    event = OutputEvent.order(:id).last
+    assert_equal "ai_config_reset", event.event_type
+    assert_equal "AiConfig", event.event_data["target_type"]
+    assert_equal "config/ai/ai_config.xml", event.event_data["source_path"]
+    assert_equal summary, event.event_data["summary"]
   end
 
   test "tool skill and mcp assignment updates are blocked when tool_sets_editable is false" do

@@ -159,6 +159,7 @@ Receivers should parse the multipart payload and decode `event` as JSON.
 - ai_profile_created
 - ai_profile_updated
 - ai_profile_deleted
+- ai_config_reset
 
 ## AI Admin CRUD Events
 
@@ -204,6 +205,21 @@ AI Admin payloads avoid storing raw secret and large free-text values in `event_
   - Metadata keys are used instead: `soul_present`, `soul_length`.
 
 This keeps output events useful for observability while reducing risk of sensitive content leakage.
+
+## AI Config Reset Event
+
+- Event type: `ai_config_reset`
+- Emitted after a successful global reset from `config/ai/ai_config.xml`.
+- Payload includes:
+  - `source_path`
+  - `summary` object with created, updated, and deleted counters for:
+    - `tools`
+    - `skills`
+    - `mcps`
+    - `ai_profiles`
+    - `ai_profile_tools`
+    - `ai_profile_skills`
+    - `ai_profile_mcps`
 
 ## Operational Notes
 

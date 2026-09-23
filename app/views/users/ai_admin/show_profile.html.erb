@@ -86,11 +86,16 @@
           <% end %>
         <% end %>
 
-        <% if @profile.editable? %>
-          <div class="settings-row-actions">
+        <div class="settings-row-actions">
+          <%= button_to "Reset AI Config", user_company_ai_admin_profile_reset_ai_config_path(user_id: "me", id: @profile.id),
+                        method: :post,
+                        class: "action-btn action-btn--small",
+                        data: { turbo_confirm: "This resets all profiles, tools, skills, MCPs, and profile MCP assignments from config/ai/ai_config.xml. Continue?" } %>
+
+          <% if @profile.editable? %>
             <%= button_to "Delete profile", user_company_ai_admin_profile_destroy_path(user_id: "me", id: @profile.id), method: :delete, class: "action-btn action-btn--small" %>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </section>
 
       <section id="profile-tools" class="settings-card" aria-label="Profile tools">

@@ -6,6 +6,7 @@ class Users::AiAdminController < ApplicationController
     show_profile
     update_profile
     destroy_profile
+    reset_ai_config
     toggle_profile_tool
     toggle_profile_skill
     toggle_profile_mcp
@@ -317,6 +318,27 @@ class Users::AiAdminController < ApplicationController
     redirect_to ai_admin_profile_path(@profile, anchor: "profile-edit"), alert: error.record.errors.full_messages.to_sentence.presence || "Unable to delete profile"
   end
 
+  def reset_ai_config_all
+    perform_ai_config_reset!
+    redirect_to ai_admin_index_path, notice: "AI config reset completed"
+  rescue AiConfig::XmlLoader::ConfigError, ActiveRecord::RecordInvalid, KeyError => error
+    redirect_to ai_admin_index_path, alert: "Unable to reset AI config: #{error.message}"
+  end
+
+  def reset_ai_config
+    perform_ai_config_reset!
+
+    notice = "AI config reset completed"
+
+    if AiProfile.exists?(@profile.id)
+      redirect_to ai_admin_profile_path(@profile, anchor: "profile-edit"), notice: notice
+    else
+      redirect_to ai_admin_index_path, notice: "#{notice}. This profile was removed by reset."
+    end
+  rescue AiConfig::XmlLoader::ConfigError, ActiveRecord::RecordInvalid, KeyError => error
+    redirect_to ai_admin_profile_path(@profile, anchor: "profile-edit"), alert: "Unable to reset AI config: #{error.message}"
+  end
+
   def toggle_profile_tool
     relation = @profile.ai_profile_tools.find_or_initialize_by(tool_id: params[:tool_id])
     relation.enabled = cast_boolean(params[:enabled])
@@ -620,5 +642,21 @@ class Users::AiAdminController < ApplicationController
       "#{key}_present" => present,
       "#{key}_length" => present ? text.length : 0
     }
+  end
+
+  def perform_ai_config_reset!
+    summary = AiConfig::ResetFromXml.call
+
+    OutputEvents::Recorder.record(
+      event_type: "ai_config_reset",
+      actor: Current.user,
+      target_type: "AiConfig",
+      data: {
+        "source_path" => AiConfig::XmlLoader::SOURCE_PATH.relative_path_from(Rails.root).to_s,
+        "summary" => summary
+      }
+    )
+
+    summary
   end
 end

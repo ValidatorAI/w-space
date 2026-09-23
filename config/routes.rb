@@ -72,6 +72,7 @@ Rails.application.routes.draw do
         get "company/ai-admin/mcps", to: "ai_admin#mcps", as: :company_ai_admin_mcps_page
         get "company/ai-admin/tools", to: "ai_admin#tools", as: :company_ai_admin_tools_page
         get "company/ai-admin/skills", to: "ai_admin#skills", as: :company_ai_admin_skills_page
+        post "company/ai-admin/reset-ai-config", to: "ai_admin#reset_ai_config_all", as: :company_ai_admin_reset_ai_config
 
         post "company/ai-admin/ai-settings", to: "ai_admin#create_ai_setting", as: :company_ai_admin_ai_settings
         patch "company/ai-admin/ai-settings/:id", to: "ai_admin#update_ai_setting", as: :company_ai_admin_ai_setting
@@ -99,6 +100,7 @@ Rails.application.routes.draw do
         get "company/ai-admin/profiles/:id", to: "ai_admin#show_profile", as: :company_ai_admin_profile
         patch "company/ai-admin/profiles/:id", to: "ai_admin#update_profile", as: :company_ai_admin_profile_update
         delete "company/ai-admin/profiles/:id", to: "ai_admin#destroy_profile", as: :company_ai_admin_profile_destroy
+        post "company/ai-admin/profiles/:id/reset-ai-config", to: "ai_admin#reset_ai_config", as: :company_ai_admin_profile_reset_ai_config
 
         patch "company/ai-admin/profiles/:profile_id/tools/:tool_id/toggle", to: "ai_admin#toggle_profile_tool", as: :company_ai_admin_profile_tool_toggle
         patch "company/ai-admin/profiles/:profile_id/skills/:skill_id/toggle", to: "ai_admin#toggle_profile_skill", as: :company_ai_admin_profile_skill_toggle

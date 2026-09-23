@@ -978,6 +978,17 @@ body.sidebar .settings-section-title--spread {
   justify-content: space-between;
 }
 
+body.sidebar .settings-section-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+body.sidebar .settings-section-actions form {
+  margin: 0;
+}
+
 body.sidebar .settings-section-copy {
   color: var(--text-secondary);
   font-size: 13px;
@@ -1296,7 +1307,15 @@ body.sidebar .mcp-list-card__actions form {
 }
 
 body.sidebar .settings-row-actions {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 16px;
+}
+
+body.sidebar .settings-row-actions form {
+  margin: 0;
 }
 
 body.sidebar .settings-footer-actions {
