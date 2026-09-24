@@ -2,8 +2,7 @@ module Api
   class AiProfilesController < Api::BaseController
     AI_PROFILE_FIELDS = %i[
       id profile_name bot bot_name editable tool_sets_editable
-      max_line_sessions max_concurrent_sessions auto_decompose_per_tick
-      max_in_progress_per_profile main_model fallback_model cloned_from
+      main_model fallback_model cloned_from
       created_at updated_at
     ].freeze
 

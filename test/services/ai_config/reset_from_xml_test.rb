@@ -64,10 +64,6 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
             <bot>false</bot>
             <editable>true</editable>
             <tool_sets_editable>true</tool_sets_editable>
-            <max_line_sessions>2</max_line_sessions>
-            <max_concurrent_sessions>2</max_concurrent_sessions>
-            <auto_decompose_per_tick>2</auto_decompose_per_tick>
-            <max_in_progress_per_profile>2</max_in_progress_per_profile>
             <max_number_of_workers>5</max_number_of_workers>
             <max_spawn_depth>2</max_spawn_depth>
             <tools>
@@ -87,10 +83,6 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
             <bot_name>Assistant Bot</bot_name>
             <editable>true</editable>
             <tool_sets_editable>true</tool_sets_editable>
-            <max_line_sessions>2</max_line_sessions>
-            <max_concurrent_sessions>2</max_concurrent_sessions>
-            <auto_decompose_per_tick>2</auto_decompose_per_tick>
-            <max_in_progress_per_profile>2</max_in_progress_per_profile>
             <max_number_of_workers>3</max_number_of_workers>
             <max_spawn_depth>1</max_spawn_depth>
             <tools>

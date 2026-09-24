@@ -23246,10 +23246,6 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -23601,10 +23597,6 @@ Use when users ask for progress, blockers, next steps, or operational project st
       <bot_name>Ask From W</bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -23982,10 +23974,6 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <bot_name>Business Analyst</bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -24332,10 +24320,6 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <bot_name>Coder</bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -24622,10 +24606,6 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -25012,10 +24992,6 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -25334,10 +25310,6 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -25533,10 +25505,6 @@ Project knowledge paths must be rooted at:
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -25855,10 +25823,6 @@ Use when users need project scope context, team visibility, milestones, or navig
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -26167,10 +26131,6 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -26517,10 +26477,6 @@ Use when users need project scope context, team visibility, milestones, or navig
       <bot_name>Market Research</bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -26740,10 +26696,6 @@ Project knowledge paths must be rooted at:
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -27033,10 +26985,6 @@ Use when users need documentation lookup, ADR review, knowledge traceability, or
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -27361,10 +27309,6 @@ Use when users ask for progress, blockers, next steps, or operational project st
       <bot_name></bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
@@ -27742,10 +27686,6 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <bot_name>Project Manager</bot_name>
       <editable>true</editable>
       <tool_sets_editable>true</tool_sets_editable>
-      <max_line_sessions>2</max_line_sessions>
-      <max_concurrent_sessions>2</max_concurrent_sessions>
-      <auto_decompose_per_tick>2</auto_decompose_per_tick>
-      <max_in_progress_per_profile>2</max_in_progress_per_profile>
       <max_number_of_workers>3</max_number_of_workers>
       <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>

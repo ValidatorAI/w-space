@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_24_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_24_000002) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -113,7 +113,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_24_000001) do
   end
 
   create_table "ai_profiles", force: :cascade do |t|
-    t.integer "auto_decompose_per_tick", default: 2, null: false
     t.boolean "bot", default: false, null: false
     t.string "bot_name"
     t.string "cloned_from"
@@ -121,9 +120,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_24_000001) do
     t.boolean "editable", default: true, null: false
     t.string "fallback_model"
     t.string "main_model"
-    t.integer "max_concurrent_sessions", default: 2, null: false
-    t.integer "max_in_progress_per_profile", default: 2, null: false
-    t.integer "max_line_sessions", default: 2, null: false
     t.integer "max_number_of_workers", default: 3, null: false
     t.integer "max_spawn_depth", default: 1, null: false
     t.string "profile_name", null: false

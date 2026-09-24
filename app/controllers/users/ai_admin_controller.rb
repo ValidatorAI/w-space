@@ -455,10 +455,6 @@ class Users::AiAdminController < ApplicationController
       bot: false,
       editable: true,
       tool_sets_editable: true,
-      max_line_sessions: AiProfile::SESSION_LIMIT_DEFAULT,
-      max_concurrent_sessions: AiProfile::SESSION_LIMIT_DEFAULT,
-      auto_decompose_per_tick: AiProfile::SESSION_LIMIT_DEFAULT,
-      max_in_progress_per_profile: AiProfile::SESSION_LIMIT_DEFAULT,
       max_number_of_workers: AiProfile::WORKER_LIMIT_DEFAULT,
       max_spawn_depth: AiProfile::SPAWN_DEPTH_DEFAULT
     )
@@ -570,10 +566,6 @@ class Users::AiAdminController < ApplicationController
       :bot_name,
       :editable,
       :tool_sets_editable,
-      :max_line_sessions,
-      :max_concurrent_sessions,
-      :auto_decompose_per_tick,
-      :max_in_progress_per_profile,
       :max_number_of_workers,
       :max_spawn_depth
     )
@@ -631,10 +623,6 @@ class Users::AiAdminController < ApplicationController
       "bot_name" => profile.bot_name,
       "editable" => profile.editable,
       "tool_sets_editable" => profile.tool_sets_editable,
-      "max_line_sessions" => profile.max_line_sessions,
-      "max_concurrent_sessions" => profile.max_concurrent_sessions,
-      "auto_decompose_per_tick" => profile.auto_decompose_per_tick,
-      "max_in_progress_per_profile" => profile.max_in_progress_per_profile,
       "max_number_of_workers" => profile.max_number_of_workers,
       "max_spawn_depth" => profile.max_spawn_depth
     }.merge(text_field_metadata(profile.soul, "soul"))

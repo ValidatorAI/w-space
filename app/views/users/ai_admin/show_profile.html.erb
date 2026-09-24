@@ -61,28 +61,6 @@
 
           <div class="form-row form-row--two">
             <div class="form-group">
-              <label>Max line sessions</label>
-              <%= form.number_field :max_line_sessions, class: "input", min: 1, disabled: !@profile.editable? %>
-            </div>
-            <div class="form-group">
-              <label>Max concurrent sessions</label>
-              <%= form.number_field :max_concurrent_sessions, class: "input", min: 1, disabled: !@profile.editable? %>
-            </div>
-          </div>
-
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label>Auto decompose per tick</label>
-              <%= form.number_field :auto_decompose_per_tick, class: "input", min: 1, disabled: !@profile.editable? %>
-            </div>
-            <div class="form-group">
-              <label>Max in progress per profile</label>
-              <%= form.number_field :max_in_progress_per_profile, class: "input", min: 1, disabled: !@profile.editable? %>
-            </div>
-          </div>
-
-          <div class="form-row form-row--two">
-            <div class="form-group">
               <label>Max number of workers</label>
               <%= form.number_field :max_number_of_workers, class: "input", min: 1, disabled: !@profile.editable? %>
             </div>

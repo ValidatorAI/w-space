@@ -660,10 +660,6 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
       bot_name: "",
       editable: true,
       tool_sets_editable: true,
-      max_line_sessions: 2,
-      max_concurrent_sessions: 2,
-      auto_decompose_per_tick: 2,
-      max_in_progress_per_profile: 2,
       max_number_of_workers: 3,
       max_spawn_depth: 1
     }.merge(overrides)
