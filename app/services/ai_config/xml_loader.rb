@@ -146,6 +146,8 @@ module AiConfig
           max_concurrent_sessions: parse_integer(node.elements["max_concurrent_sessions"]&.text, default: AiProfile::SESSION_LIMIT_DEFAULT),
           auto_decompose_per_tick: parse_integer(node.elements["auto_decompose_per_tick"]&.text, default: AiProfile::SESSION_LIMIT_DEFAULT),
           max_in_progress_per_profile: parse_integer(node.elements["max_in_progress_per_profile"]&.text, default: AiProfile::SESSION_LIMIT_DEFAULT),
+          max_number_of_workers: parse_integer(node.elements["max_number_of_workers"]&.text, default: AiProfile::WORKER_LIMIT_DEFAULT),
+          max_spawn_depth: parse_integer(node.elements["max_spawn_depth"]&.text, default: AiProfile::SPAWN_DEPTH_DEFAULT),
           main_model: normalize(node.elements["main_model"]&.text),
           fallback_model: normalize(node.elements["fallback_model"]&.text),
           cloned_from: normalize(node.elements["cloned_from"]&.text),

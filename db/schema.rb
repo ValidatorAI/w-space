@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_23_104000) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_24_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -124,6 +124,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_23_104000) do
     t.integer "max_concurrent_sessions", default: 2, null: false
     t.integer "max_in_progress_per_profile", default: 2, null: false
     t.integer "max_line_sessions", default: 2, null: false
+    t.integer "max_number_of_workers", default: 3, null: false
+    t.integer "max_spawn_depth", default: 1, null: false
     t.string "profile_name", null: false
     t.text "soul"
     t.boolean "tool_sets_editable", default: true, null: false

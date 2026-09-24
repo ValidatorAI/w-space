@@ -81,6 +81,17 @@
             </div>
           </div>
 
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Max number of workers</label>
+              <%= form.number_field :max_number_of_workers, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+            <div class="form-group">
+              <label>Max spawn depth</label>
+              <%= form.number_field :max_spawn_depth, class: "input", min: 1, disabled: !@profile.editable? %>
+            </div>
+          </div>
+
           <% if @profile.editable? %>
             <%= form.submit "Save profile", class: "action-btn primary" %>
           <% end %>

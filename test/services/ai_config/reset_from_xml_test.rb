@@ -68,6 +68,8 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
             <max_concurrent_sessions>2</max_concurrent_sessions>
             <auto_decompose_per_tick>2</auto_decompose_per_tick>
             <max_in_progress_per_profile>2</max_in_progress_per_profile>
+            <max_number_of_workers>5</max_number_of_workers>
+            <max_spawn_depth>2</max_spawn_depth>
             <tools>
               <tool name="terminal" />
               <tool name="file" />
@@ -89,6 +91,8 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
             <max_concurrent_sessions>2</max_concurrent_sessions>
             <auto_decompose_per_tick>2</auto_decompose_per_tick>
             <max_in_progress_per_profile>2</max_in_progress_per_profile>
+            <max_number_of_workers>3</max_number_of_workers>
+            <max_spawn_depth>1</max_spawn_depth>
             <tools>
               <tool name="terminal" />
             </tools>
@@ -118,6 +122,8 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
       assistant_bot = AiProfile.find_by!(profile_name: "assistant_bot")
 
       assert_equal "Config soul text", config_profile.soul
+      assert_equal 5, config_profile.max_number_of_workers
+      assert_equal 2, config_profile.max_spawn_depth
       assert assistant_bot.bot?
       assert_equal "Assistant Bot", assistant_bot.bot_name
 

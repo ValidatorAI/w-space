@@ -413,6 +413,8 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ai_profile_created", event.event_type
     assert_equal "AiProfile", event.event_data["target_type"]
     assert_equal true, event.event_data["bot"]
+    assert_equal 3, event.event_data["max_number_of_workers"]
+    assert_equal 1, event.event_data["max_spawn_depth"]
     assert_equal true, event.event_data["soul_present"]
     assert_not event.event_data.key?("soul")
   end
@@ -464,6 +466,8 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ai_profile_updated", event.event_type
     assert_equal "AiProfile", event.event_data["target_type"]
     assert_includes event.event_data["changed_fields"], "bot"
+    assert_equal 3, event.event_data["max_number_of_workers"]
+    assert_equal 1, event.event_data["max_spawn_depth"]
     assert_not event.event_data.key?("soul")
   end
 
@@ -659,7 +663,9 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
       max_line_sessions: 2,
       max_concurrent_sessions: 2,
       auto_decompose_per_tick: 2,
-      max_in_progress_per_profile: 2
+      max_in_progress_per_profile: 2,
+      max_number_of_workers: 3,
+      max_spawn_depth: 1
     }.merge(overrides)
   end
 end

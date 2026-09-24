@@ -252,6 +252,8 @@ module AiConfig
         max_concurrent_sessions: attributes.fetch(:max_concurrent_sessions),
         auto_decompose_per_tick: attributes.fetch(:auto_decompose_per_tick),
         max_in_progress_per_profile: attributes.fetch(:max_in_progress_per_profile),
+        max_number_of_workers: attributes.fetch(:max_number_of_workers),
+        max_spawn_depth: attributes.fetch(:max_spawn_depth),
         main_model: attributes.fetch(:main_model),
         fallback_model: attributes.fetch(:fallback_model),
         cloned_from: attributes.fetch(:cloned_from)
