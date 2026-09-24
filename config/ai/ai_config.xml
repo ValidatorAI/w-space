@@ -23250,6 +23250,8 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -23603,6 +23605,8 @@ Use when users ask for progress, blockers, next steps, or operational project st
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -23982,6 +23986,8 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -24330,6 +24336,8 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -24618,6 +24626,8 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -25006,6 +25016,8 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -25326,6 +25338,8 @@ Use when users request meeting recap, action item follow-up, or decision rationa
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -25523,6 +25537,8 @@ Project knowledge paths must be rooted at:
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -25843,6 +25859,8 @@ Use when users need project scope context, team visibility, milestones, or navig
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -26153,6 +26171,8 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -26501,6 +26521,8 @@ Use when users need project scope context, team visibility, milestones, or navig
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -26722,6 +26744,8 @@ Project knowledge paths must be rooted at:
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -27013,6 +27037,8 @@ Use when users need documentation lookup, ADR review, knowledge traceability, or
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -27339,6 +27365,8 @@ Use when users ask for progress, blockers, next steps, or operational project st
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
@@ -27718,6 +27746,8 @@ Use when users request monthly/periodic company health, executive summary, or cr
       <max_concurrent_sessions>2</max_concurrent_sessions>
       <auto_decompose_per_tick>2</auto_decompose_per_tick>
       <max_in_progress_per_profile>2</max_in_progress_per_profile>
+      <max_number_of_workers>3</max_number_of_workers>
+      <max_spawn_depth>1</max_spawn_depth>
       <main_model></main_model>
       <fallback_model></fallback_model>
       <cloned_from></cloned_from>
