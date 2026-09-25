@@ -1,5 +1,6 @@
 require "test_helper"
 require "tempfile"
+require Rails.root.join("db/migrate/20260925130000_disable_terminal_and_file_tools_for_non_exempt_profiles").to_s
 
 class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
   test "exact mirror reset updates ai config entities and profile assignments" do
@@ -170,5 +171,32 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
         AiConfig::ResetFromXml.call(source_path: file.path)
       end
     end
+  end
+
+  test "terminal and file tools are disabled outside the approved profile allowlist" do
+    %w[config coder delegator default].each do |profile_name|
+      AiProfile.create!(profile_name: profile_name, soul: profile_name, bot: false, editable: true, tool_sets_editable: true)
+    end
+    AiProfile.create!(profile_name: "knowledge", soul: "knowledge", bot: false, editable: true, tool_sets_editable: true)
+
+    file_tool = Tool.create!(name: "file", active: true)
+    terminal_tool = Tool.create!(name: "terminal", active: true)
+
+    AiProfile.where(profile_name: %w[config coder delegator default]).each do |profile|
+      profile.ai_profile_tools.create!(tool: file_tool, enabled: true)
+      profile.ai_profile_tools.create!(tool: terminal_tool, enabled: true)
+    end
+
+    AiProfile.find_by!(profile_name: "knowledge").ai_profile_tools.create!(tool: file_tool, enabled: true)
+    AiProfile.find_by!(profile_name: "knowledge").ai_profile_tools.create!(tool: terminal_tool, enabled: true)
+
+    DisableTerminalAndFileToolsForNonExemptProfiles.new.up
+
+    assert_equal true, AiProfile.find_by!(profile_name: "config").ai_profile_tools.find_by(tool: file_tool).enabled
+    assert_equal true, AiProfile.find_by!(profile_name: "config").ai_profile_tools.find_by(tool: terminal_tool).enabled
+    assert_equal true, AiProfile.find_by!(profile_name: "default").ai_profile_tools.find_by(tool: file_tool).enabled
+    assert_equal true, AiProfile.find_by!(profile_name: "delegator").ai_profile_tools.find_by(tool: terminal_tool).enabled
+    assert_equal false, AiProfile.find_by!(profile_name: "knowledge").ai_profile_tools.find_by(tool: file_tool).enabled
+    assert_equal false, AiProfile.find_by!(profile_name: "knowledge").ai_profile_tools.find_by(tool: terminal_tool).enabled
   end
 end
