@@ -658,12 +658,10 @@ body.sidebar .room-item__actions-btn {
 }
 
 body.sidebar .rooms__new-btn {
-  --btn-background: transparent;
-  --btn-border-color: color-mix(in oklab, #000000, transparent 75%);
-  --btn-border-size: 1.5px;
-  --btn-color: color-mix(in oklab, #000000, transparent 35%);
+  --btn-background: color-mix(in oklab, #000000, transparent 92%);
+  --btn-border-color: transparent;
   --btn-border-radius: 999px;
-  border-style: dashed;
+  --btn-color: color-mix(in oklab, #000000, transparent 20%);
 }
 
 body.sidebar .messages {

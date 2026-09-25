@@ -627,22 +627,19 @@
 }
 
 .rooms__new-btn {
-  --btn-background: transparent;
-  --btn-border-color: color-mix(in oklab, var(--color-text), transparent 70%);
-  --btn-border-size: 1.5px;
+  --btn-background: color-mix(in oklab, var(--color-text), transparent 94%);
+  --btn-border-color: transparent;
   --btn-border-radius: 999px;
-  --btn-color: color-mix(in oklab, var(--color-text), transparent 45%);
-  --btn-padding: 0.45em 1em;
+  --btn-color: var(--color-text);
+  --btn-padding: 0.5em 0.9em;
 
-  border-style: dashed;
   margin: 0;
   position: relative;
   z-index: 4;
 
   @media (any-hover: hover) {
     &:hover {
-      --btn-background: color-mix(in oklab, var(--color-text), transparent 92%);
-      --btn-color: var(--color-text);
+      --btn-background: color-mix(in oklab, var(--color-text), transparent 88%);
     }
   }
 }
