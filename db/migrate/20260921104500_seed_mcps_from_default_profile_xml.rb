@@ -34,7 +34,7 @@ class SeedMcpsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
   private
 
   def parse_mcps_from_xml
-    xml_path = Rails.root.join("..", "W-ai", "default-profile-mcp.xml")
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
 
     unless File.exist?(xml_path)
       raise "Missing XML MCP source at #{xml_path}"
@@ -42,9 +42,9 @@ class SeedMcpsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
 
     document = REXML::Document.new(File.read(xml_path))
 
-    document.elements.to_a("mcp_servers/mcp_server").map do |node|
+    document.elements.to_a("ai_config/mcps/mcp").map do |node|
       {
-        name: normalize(node.elements["name"]&.text || node.attributes["name"]),
+        name: normalize(node.attributes["name"] || node.elements["name"]&.text),
         transport: normalize(node.elements["transport"]&.text),
         url: normalize(node.elements["url"]&.text),
         authentication: normalize(node.elements["authentication"]&.text),

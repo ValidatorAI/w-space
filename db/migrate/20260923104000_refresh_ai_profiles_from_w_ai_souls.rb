@@ -22,11 +22,12 @@ class RefreshAiProfilesFromWAiSouls < ActiveRecord::Migration[8.0]
     now = Time.current
 
     PROFILE_SOURCES.each do |source|
-      profile = ai_profiles_relation.find_or_initialize_by(profile_name: source.fetch(:profile_name))
+      profile_name = source.fetch(:profile_name)
+      profile = ai_profiles_relation.find_or_initialize_by(profile_name: profile_name)
 
-      profile.soul = soul_text_for(source.fetch(:dirs))
+      profile.soul = soul_text_for(profile_name)
       profile.bot = source.fetch(:bot)
-      profile.bot_name = profile.bot ? humanized_bot_name(profile.profile_name) : nil
+      profile.bot_name = profile.bot ? humanized_bot_name(profile_name) : nil
       profile.editable = true if profile.editable.nil?
       profile.tool_sets_editable = true if profile.tool_sets_editable.nil?
       profile.created_at ||= now
@@ -41,23 +42,15 @@ class RefreshAiProfilesFromWAiSouls < ActiveRecord::Migration[8.0]
 
   private
 
-  def soul_text_for(dir_candidates)
-    soul_path = resolve_soul_path(dir_candidates)
-    normalize(File.read(soul_path))
-  end
+  def soul_text_for(profile_name)
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
+    raise "Config AI file not found at #{xml_path}" unless File.exist?(xml_path)
 
-  def resolve_soul_path(dir_candidates)
-    attempted = []
+    document = REXML::Document.new(File.read(xml_path))
+    soul = document.elements["ai_config/profiles/profile[@name='#{profile_name}']/soul"]
+    raise "Soul for profile #{profile_name} not found in #{xml_path}" unless soul
 
-    dir_candidates.each do |segments|
-      ["SOUL.md", "SOUL.MD"].each do |filename|
-        candidate = Rails.root.join("..", "W-ai", "hermes", "profiles", *segments, filename)
-        attempted << candidate.to_s
-        return candidate if File.exist?(candidate)
-      end
-    end
-
-    raise "Profile soul file not found. Tried: #{attempted.join(', ')}"
+    normalize(soul.text)
   end
 
   def humanized_bot_name(profile_name)

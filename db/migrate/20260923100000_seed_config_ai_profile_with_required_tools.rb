@@ -54,18 +54,14 @@ class SeedConfigAiProfileWithRequiredTools < ActiveRecord::Migration[8.0]
   end
 
   def config_soul_text
-    primary_path = Rails.root.join("..", "W-ai", "hermes", "profiles", "main", "config", "SOUL.md")
-    secondary_path = Rails.root.join("..", "W-ai", "hermes", "profiles", "se", "config", "SOUL.md")
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
+    raise "Config AI file not found at #{xml_path}" unless File.exist?(xml_path)
 
-    soul_path = if File.exist?(primary_path)
-      primary_path
-    elsif File.exist?(secondary_path)
-      secondary_path
-    else
-      raise "Config soul file not found at #{primary_path} or #{secondary_path}"
-    end
+    document = REXML::Document.new(File.read(xml_path))
+    soul = document.elements["ai_config/profiles/profile[@name='config']/soul"]
+    raise "Config soul not found in #{xml_path}" unless soul
 
-    normalize(File.read(soul_path))
+    normalize(soul.text)
   end
 
   def seed_required_tools(ai_profile_id, now)

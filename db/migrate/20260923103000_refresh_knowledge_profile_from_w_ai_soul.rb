@@ -24,18 +24,14 @@ class RefreshKnowledgeProfileFromWAiSoul < ActiveRecord::Migration[8.0]
   private
 
   def knowledge_soul_text
-    soul_path = resolve_soul_path
-    normalize(File.read(soul_path))
-  end
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
+    raise "Config AI file not found at #{xml_path}" unless File.exist?(xml_path)
 
-  def resolve_soul_path
-    candidates = [
-      Rails.root.join("..", "W-ai", "hermes", "profiles", "main", "knowledge", "SOUL.md"),
-      Rails.root.join("..", "W-ai", "hermes", "profiles", "main", "knowledge", "SOUL.MD")
-    ]
+    document = REXML::Document.new(File.read(xml_path))
+    soul = document.elements["ai_config/profiles/profile[@name='knowledge']/soul"]
+    raise "Knowledge soul not found in #{xml_path}" unless soul
 
-    candidates.find { |path| File.exist?(path) } ||
-      raise("Knowledge soul file not found. Tried: #{candidates.map(&:to_s).join(', ')}")
+    normalize(soul.text)
   end
 
   def normalize(value)

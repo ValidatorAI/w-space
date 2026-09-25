@@ -104,7 +104,7 @@ class SeedSkillsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
   private
 
   def parse_skills_from_xml
-    xml_path = Rails.root.join("..", "W-ai", "default-profile-skills.xml")
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
 
     unless File.exist?(xml_path)
       raise "Missing XML skill source at #{xml_path}"
@@ -112,7 +112,7 @@ class SeedSkillsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
 
     document = REXML::Document.new(File.read(xml_path))
 
-    document.elements.to_a("skills/skill").map do |node|
+    document.elements.to_a("ai_config/skills/skill").map do |node|
       {
         name: normalize(node.elements["name"]&.text),
         category: normalize(node.elements["category"]&.text),
