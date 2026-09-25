@@ -43,11 +43,11 @@ class SeedAiProfilesFromHermesProfilesXml < ActiveRecord::Migration[8.0]
   private
 
   def parse_profile_attributes(document)
-    root = document.root
+    root = document
 
     {
       profile_name: normalize(root.attributes["name"] || root.elements["name"]&.text),
-      soul: normalize(root.elements["soul_md"]&.text)
+      soul: normalize(root.elements["soul"]&.text || root.elements["soul_md"]&.text)
     }
   end
 
@@ -64,19 +64,21 @@ class SeedAiProfilesFromHermesProfilesXml < ActiveRecord::Migration[8.0]
 
   def each_profile_document
     profile_xml_paths.each do |path|
-      yield REXML::Document.new(File.read(path))
+      document = REXML::Document.new(File.read(path))
+      document.elements.to_a("ai_config/profiles/profile").each do |profile_node|
+        yield profile_node
+      end
     end
   end
 
   def profile_xml_paths
-    pattern = Rails.root.join("..", "W-ai", "hermes-profiles-xml", "*.xml")
-    paths = Dir.glob(pattern.to_s).sort
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
 
-    if paths.empty?
-      raise "No profile XML files found at #{pattern}"
+    unless File.exist?(xml_path)
+      raise "No profile XML files found at #{xml_path}"
     end
 
-    paths
+    [xml_path]
   end
 
   def humanized_bot_name(profile_name)

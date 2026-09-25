@@ -117,44 +117,46 @@ class SeedAiProfileRelationsFromHermesProfilesXml < ActiveRecord::Migration[8.0]
   def each_profile_payload
     profile_xml_paths.each do |path|
       document = REXML::Document.new(File.read(path))
-      root = document.root
-
-      payload = {
-        profile_name: normalize(root.attributes["name"] || root.elements["name"]&.text),
-        skills: parse_skill_names(root),
-        tools: parse_tool_names(root),
-        mcps: parse_mcp_entries(root)
-      }
-
-      yield payload
+      document.elements.to_a("ai_config/profiles/profile").each do |profile_node|
+        yield payload_from_node(profile_node)
+      end
     end
   end
 
-  def parse_skill_names(root)
-    root.elements.to_a("active_skills/skill").map do |node|
-      normalize(node.attributes["name"] || node.elements["name"]&.text)
+  def payload_from_node(profile_node)
+    {
+      profile_name: normalize(profile_node.attributes["name"] || profile_node.elements["name"]&.text),
+      skills: parse_skill_names(profile_node),
+      tools: parse_tool_names(profile_node),
+      mcps: parse_mcp_entries(profile_node)
+    }
+  end
+
+  def parse_skill_names(node)
+    node.elements.to_a("skills/skill").map do |skill_node|
+      normalize(skill_node.attributes["name"] || skill_node.elements["name"]&.text)
     end.compact
   end
 
-  def parse_tool_names(root)
-    root.elements.to_a("active_tools/toolset").map do |node|
-      normalize(node.attributes["name"] || node.elements["name"]&.text)
+  def parse_tool_names(node)
+    node.elements.to_a("tools/tool").map do |tool_node|
+      normalize(tool_node.attributes["name"] || tool_node.elements["name"]&.text)
     end.compact
   end
 
-  def parse_mcp_entries(root)
-    root.elements.to_a("active_mcp_servers/mcp_server").map do |node|
-      transport_value = normalize(node.attributes["transport"] || node.elements["transport"]&.text)
-      url_value = normalize(node.attributes["url"] || node.elements["url"]&.text)
-      auth_value = normalize(node.attributes["authentication"] || node.elements["authentication"]&.text)
+  def parse_mcp_entries(node)
+    node.elements.to_a("mcps/mcp").map do |mcp_node|
+      transport_value = normalize(mcp_node.attributes["transport"] || mcp_node.elements["transport"]&.text)
+      url_value = normalize(mcp_node.attributes["url"] || mcp_node.elements["url"]&.text)
+      auth_value = normalize(mcp_node.attributes["authentication"] || mcp_node.elements["authentication"]&.text)
 
       {
-        name: normalize(node.attributes["name"] || node.elements["name"]&.text),
+        name: normalize(mcp_node.attributes["name"] || mcp_node.elements["name"]&.text),
         transport: transport_value,
         url: url_value,
         authentication: auth_value,
-        status: normalize(node.attributes["status"] || node.elements["status"]&.text),
-        bearer_token: normalize(node.attributes["bearer_token"] || node.elements["bearer_token"]&.text)
+        status: normalize(mcp_node.attributes["status"] || mcp_node.elements["status"]&.text),
+        bearer_token: normalize(mcp_node.attributes["bearer_token"] || mcp_node.elements["bearer_token"]&.text)
       }
     end
   end
@@ -171,14 +173,13 @@ class SeedAiProfileRelationsFromHermesProfilesXml < ActiveRecord::Migration[8.0]
   end
 
   def profile_xml_paths
-    pattern = Rails.root.join("..", "W-ai", "hermes-profiles-xml", "*.xml")
-    paths = Dir.glob(pattern.to_s).sort
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
 
-    if paths.empty?
-      raise "No profile XML files found at #{pattern}"
+    unless File.exist?(xml_path)
+      raise "No profile XML files found at #{xml_path}"
     end
 
-    paths
+    [xml_path]
   end
 
   def normalize_transport(transport, url)

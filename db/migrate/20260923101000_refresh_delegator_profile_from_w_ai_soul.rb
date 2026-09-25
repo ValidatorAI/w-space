@@ -24,10 +24,14 @@ class RefreshDelegatorProfileFromWAiSoul < ActiveRecord::Migration[8.0]
   private
 
   def delegator_soul_text
-    soul_path = Rails.root.join("..", "W-ai", "hermes", "profiles", "main", "delegator", "SOUL.md")
-    raise "Delegator soul file not found at #{soul_path}" unless File.exist?(soul_path)
+    xml_path = Rails.root.join("config", "ai", "ai_config.xml")
+    raise "Config AI file not found at #{xml_path}" unless File.exist?(xml_path)
 
-    normalize(File.read(soul_path))
+    document = REXML::Document.new(File.read(xml_path))
+    soul = document.elements["ai_config/profiles/profile[@name='delegator']/soul"]
+    raise "Delegator soul not found in #{xml_path}" unless soul
+
+    normalize(soul.text)
   end
 
   def normalize(value)
