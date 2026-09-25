@@ -124,6 +124,29 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert Membership.exists?(room: project.project_room, participant: selected_user)
   end
 
+  test "create adds selected workspace bots to project and project room" do
+    account = accounts(:signal)
+    selected_bot = users(:bender)
+    account.update!(settings: account.settings_with_allowed_bot_user_ids([ selected_bot.id ]))
+
+    assert_difference("Project.count", 1) do
+      post user_company_projects_url, params: {
+        project: {
+          name: "Project Atlas",
+          short_code: "ATLAS",
+          description: "AI-assisted planning"
+        },
+        ui_bot_ids: [ selected_bot.id.to_s ]
+      }
+    end
+
+    project = Project.order(:created_at).last
+
+    assert_redirected_to user_company_project_overview_url(id: project.id)
+    assert_includes project.users, selected_bot
+    assert Membership.exists?(room: project.project_room, participant: selected_bot)
+  end
+
   test "create broadcasts sidebar refresh for creator and selected members" do
     selected_user = users(:kevin)
 
