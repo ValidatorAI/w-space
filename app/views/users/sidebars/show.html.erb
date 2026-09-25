@@ -124,7 +124,7 @@
                   <% end %>
                 </div>
 
-                <div class="sidebar-projects__knowledge">
+                <div class="sidebar-projects__knowledge sidebar-projects__knowledge--offset">
                   <%= link_to user_company_project_knowledge_path(user_id: "me", id: project.id),
                         class: "room btn txt-nowrap sidebar-projects__action-btn sidebar-projects__knowledge-label",
                         aria: { label: "#{project.display_name} Knowledge" },

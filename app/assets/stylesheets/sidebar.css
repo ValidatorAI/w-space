@@ -514,6 +514,10 @@
   gap: 0.35em;
 }
 
+.sidebar-projects__knowledge--offset {
+  margin-inline-start: 1.9em;
+}
+
 .sidebar-projects__knowledge-label {
   pointer-events: auto;
 }
