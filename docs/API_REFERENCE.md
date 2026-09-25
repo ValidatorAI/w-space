@@ -26,6 +26,22 @@ update to connected web clients in that room, in addition to the JSON response.
 |---|---|---|---|
 | GET | `/api/projects` | List all projects | No |
 | GET | `/api/projects/:id` | Get a single project (by id or slug) | No |
+| GET | `/api/ai_profiles` | List AI profiles | No |
+| GET | `/api/ai_profiles/:id` | Get a single AI profile | No |
+| GET | `/api/ai_settings` | List AI settings | No |
+| GET | `/api/ai_settings/:id` | Get a single AI setting | No |
+| GET | `/api/mcps` | List MCP server definitions | No |
+| GET | `/api/mcps/:id` | Get a single MCP server definition | No |
+| GET | `/api/tools` | List tools | No |
+| GET | `/api/tools/:id` | Get a single tool | No |
+| GET | `/api/skills` | List skills | No |
+| GET | `/api/skills/:id` | Get a single skill | No |
+| GET | `/api/ai_profile_tools` | List AI profile-tool assignments (supports `ai_profile_id` and `tool_id` filters) | No |
+| GET | `/api/ai_profile_tools/:id` | Get a single AI profile-tool assignment | No |
+| GET | `/api/ai_profile_skills` | List AI profile-skill assignments (supports `ai_profile_id` and `skill_id` filters) | No |
+| GET | `/api/ai_profile_skills/:id` | Get a single AI profile-skill assignment | No |
+| GET | `/api/ai_profile_mcps` | List AI profile-MCP assignments (supports `ai_profile_id` and `mcp_id` filters) | No |
+| GET | `/api/ai_profile_mcps/:id` | Get a single AI profile-MCP assignment | No |
 | GET | `/api/rooms` | List all rooms | No |
 | GET | `/api/rooms/:id` | Get a single room by room id | No |
 | GET | `/api/rooms/:id/threads` | Get a room's threads (child rooms) | No |
@@ -141,6 +157,40 @@ update to connected web clients in that room, in addition to the JSON response.
 
 Note: message ids are globally unique (not scoped per room), so the flat
 `/api/messages/:id` routes work regardless of which room the message belongs to.
+
+---
+
+## AI Config Entities API
+
+The AI Config read API covers entities used by the AI Config page, subpages, and profile child sections.
+
+Core entities:
+- `AiProfile`
+- `AiSetting`
+- `Mcp::Server`
+- `Tool`
+- `Skill`
+
+Child assignment entities:
+- `AiProfileTool`
+- `AiProfileSkill`
+- `AiProfileMcp`
+
+### Response Safety
+
+Some entity fields are intentionally redacted in read responses.
+
+- `AiProfile`
+  - Raw `soul` is not returned.
+  - `soul_present` and `soul_length` are returned.
+- `Mcp::Server`
+  - Raw `bearer_token` is not returned.
+  - `bearer_token_present` and `bearer_token_length` are returned.
+  - Raw `environment` is not returned.
+  - `environment_present` and `environment_length` are returned.
+- `Skill`
+  - Raw `skill_text` is not returned.
+  - `skill_text_present` and `skill_text_length` are returned.
 
 ---
 

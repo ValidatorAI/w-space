@@ -219,9 +219,13 @@ Legend:
 4. AI profile catalog (if managed centrally)
 - Why: bots with role/skills/approval constraints are reusable entities across workspace/projects.
 - Suggested new tables:
-  - `ai_agents`
-  - `ai_agent_capabilities`
-  - `ai_agent_approval_policies`
+  - `ai_profiles`
+  - `mcps`
+  - `tools`
+  - `skills`
+  - `ai_profile_mcps`
+  - `ai_profile_tools`
+  - `ai_profile_skills`
 
 5. Approval workflow for AI-requested actions
 - Why: approvals/denials in thread and home views require persistent decision records and auditability.

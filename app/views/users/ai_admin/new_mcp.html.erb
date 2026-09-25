@@ -1,0 +1,30 @@
+<% @page_title = "AI Config - Add MCP" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">Add MCP</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :mcps %>
+
+      <section class="settings-card" aria-label="Add MCP form">
+        <div class="settings-section-title settings-section-title--spread">
+          <span>Add MCP</span>
+          <%= link_to "Back to MCP list", user_company_ai_admin_mcps_page_path(user_id: "me"), class: "action-btn action-btn--small" %>
+        </div>
+
+        <%= render "users/ai_admin/mcp_form",
+            mcp: @mcp,
+            form_url: user_company_ai_admin_mcps_path(user_id: "me"),
+            form_method: :post,
+            submit_label: "Add MCP" %>
+      </section>
+    </div>
+  </div>
+</div>

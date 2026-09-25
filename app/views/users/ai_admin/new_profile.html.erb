@@ -1,0 +1,74 @@
+<% @page_title = "AI Config - New Profile" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">New AI Profile</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <section id="profile-new" class="settings-card" aria-label="New profile form">
+        <div class="settings-section-title settings-section-title--spread">
+          <span>Create Profile</span>
+          <%= link_to "Back", @return_to, class: "action-btn action-btn--small" %>
+        </div>
+
+        <%= form_with model: @new_profile, url: user_company_ai_admin_profiles_path(user_id: "me"), class: "company-settings-form" do |form| %>
+          <%= hidden_field_tag :return_to, @return_to %>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Profile name</label>
+              <%= form.text_field :profile_name, class: "input", required: true %>
+            </div>
+            <div class="form-group">
+              <label>Bot name</label>
+              <%= form.text_field :bot_name, class: "input", placeholder: "Optional if bot is enabled" %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Soul</label>
+            <%= form.text_area :soul, rows: 4, class: "input" %>
+          </div>
+
+          <div class="form-row form-row--two">
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :bot %>
+              Is bot profile
+            </label>
+
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :editable %>
+              Editable
+            </label>
+          </div>
+
+          <div class="form-row form-row--two">
+            <label class="private-toggle" style="border-top: none; padding-top: 0;">
+              <%= form.check_box :tool_sets_editable %>
+              Tool/Skill/MCP assignments editable
+            </label>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label>Max number of workers</label>
+              <%= form.number_field :max_number_of_workers, class: "input", min: 1 %>
+            </div>
+            <div class="form-group">
+              <label>Max spawn depth</label>
+              <%= form.number_field :max_spawn_depth, class: "input", min: 1 %>
+            </div>
+          </div>
+
+          <%= form.submit "Create profile", class: "action-btn primary" %>
+        <% end %>
+      </section>
+    </div>
+  </div>
+</div>

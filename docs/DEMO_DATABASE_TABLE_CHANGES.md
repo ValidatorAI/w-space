@@ -145,6 +145,87 @@ Scope assumptions (minimal structure change):
   - Non-breaking (new table).
   - Can be skipped if state is ephemeral over ActionCable/presence only.
 
+## 2.5 ai_profiles
+- Purpose:
+  - Persist reusable AI profile metadata for profile modals and bot configuration.
+- Suggested columns:
+  - `profile_name`, `soul`, `bot`, `bot_name`, `profile_icon` (ActiveStorage attachment), `editable`, `main_model`, `fallback_model`, `cloned_from`, `tool_sets_editable`.
+  - `max_line_sessions` (integer, default 2)
+  - `max_concurrent_sessions` (integer, default 2)
+  - `auto_decompose_per_tick` (integer, default 2)
+  - `max_in_progress_per_profile` (integer, default 2)
+- Related features:
+  - AI profile modal
+  - Reusable bot profile catalog
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.6 tools
+- Purpose:
+  - Persist reusable tool entities that can be activated/deactivated independently of code-defined MCP tools.
+- Suggested columns:
+  - `name`, `active`.
+- Related features:
+  - Tool catalog management
+  - AI profile tool assignment readiness
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.7 skills
+- Purpose:
+  - Persist reusable skill records for AI profile and tool configuration workflows.
+- Suggested columns:
+  - `name`, `category`, `skill_text`, `add_by_default`.
+- Related features:
+  - AI profile capability and skills catalog
+  - Default skill presets
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.8 ai_profile_skills
+- Purpose:
+  - Persist profile-level skill activation and defaults independently from the skill catalog.
+- Suggested columns:
+  - `ai_profile_id`, `skill_id`, `enabled`.
+- Related features:
+  - AI profile skill assignment
+  - Per-profile skill toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.9 ai_profile_tools
+- Purpose:
+  - Persist profile-level tool activation independently from the tool catalog.
+- Suggested columns:
+  - `ai_profile_id`, `tool_id`, `enabled`.
+- Related features:
+  - AI profile tool assignment
+  - Per-profile tool toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.10 mcps
+- Purpose:
+  - Persist reusable MCP endpoint configuration for AI profile integration.
+- Suggested columns:
+  - `name`, `transport`, `url`, `authentication`, `bearer_token`, `status`.
+- Related features:
+  - MCP integration registry
+  - Reusable endpoint assignment across AI profiles
+- Breaking change hint:
+  - Non-breaking (new table).
+
+## 2.11 ai_profile_mcps
+- Purpose:
+  - Persist profile-level MCP assignment and activation state.
+- Suggested columns:
+  - `ai_profile_id`, `mcp_id`, `active`.
+- Related features:
+  - AI profile MCP assignment
+  - Per-profile MCP activation toggles
+- Breaking change hint:
+  - Non-breaking (new table).
+
 ## 3. Recommended Minimal Sequence
 
 1. Add only additive columns on existing tables:
@@ -156,6 +237,13 @@ Scope assumptions (minimal structure change):
 - `approval_requests`
 - `approval_request_actions`
 - `attention_items`
+- `ai_profiles`
+- `tools`
+- `skills`
+- `ai_profile_skills`
+- `ai_profile_tools`
+- `mcps`
+- `ai_profile_mcps`
 
 3. Add AI loading indicator persistence only if needed:
 - Use ephemeral ActionCable state first.

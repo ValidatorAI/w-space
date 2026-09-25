@@ -1,0 +1,87 @@
+<% http_transport = mcp.transport == Mcp::Server::TRANSPORT_HTTP %>
+<% bearer_authentication = http_transport && mcp.authentication == Mcp::Server::AUTHENTICATION_BEARER %>
+<%= form_with model: mcp, url: form_url, method: form_method, class: "company-settings-form", data: { controller: "mcp-form" } do |form| %>
+  <div class="form-row form-row--two">
+    <div class="form-group">
+      <label>Name</label>
+      <%= form.text_field :name, class: "input", required: true %>
+    </div>
+    <div class="form-group">
+      <label>Transport</label>
+      <%= form.select :transport,
+          options_for_select([["HTTP/SSE", Mcp::Server::TRANSPORT_HTTP], ["stdio", Mcp::Server::TRANSPORT_STDIO]], mcp.transport),
+          {},
+          class: "input",
+          required: true,
+          data: { mcp_form_target: "transport", action: "change->mcp-form#update" } %>
+    </div>
+  </div>
+
+  <div data-mcp-form-target="httpFields" <%= "hidden" unless http_transport %>>
+    <div class="form-row form-row--two">
+      <div class="form-group">
+        <label>URL</label>
+        <%= form.text_field :url,
+            class: "input",
+            placeholder: "https://example.com/mcp",
+            data: { mcp_form_target: "urlInput" } %>
+      </div>
+      <div class="form-group">
+        <label>Authentication</label>
+        <%= form.select :authentication,
+            options_for_select([["None", Mcp::Server::AUTHENTICATION_NONE], ["Bearer token", Mcp::Server::AUTHENTICATION_BEARER]], mcp.authentication),
+            {},
+            class: "input",
+            data: { mcp_form_target: "authentication authenticationInput", action: "change->mcp-form#update" } %>
+      </div>
+    </div>
+
+    <div class="form-group" data-mcp-form-target="bearerField" <%= "hidden" unless bearer_authentication %>>
+      <label>Bearer token</label>
+      <%= form.text_field :bearer_token,
+          class: "input",
+          placeholder: "Token or Bearer token",
+          data: { mcp_form_target: "bearerTokenInput" } %>
+      <p class="mcp-form-help">Stored in this profile's .env; config.yaml keeps only an environment-variable reference.</p>
+    </div>
+  </div>
+
+  <div data-mcp-form-target="stdioFields" <%= "hidden" if http_transport %>>
+    <div class="form-row form-row--two">
+      <div class="form-group">
+        <label>Command</label>
+        <%= form.text_field :command,
+            class: "input",
+            placeholder: "npx",
+            data: { mcp_form_target: "commandInput" } %>
+      </div>
+      <div class="form-group">
+        <label>Args</label>
+        <%= form.text_field :args,
+            class: "input",
+            placeholder: "-y @modelcontextprotocol/server-foo",
+            data: { mcp_form_target: "argsInput" } %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Environment (key-value per line)</label>
+      <%= form.text_area :environment, rows: 4, class: "input" %>
+    </div>
+  </div>
+
+  <div class="form-row form-row--two">
+    <div class="form-group">
+      <label>Status</label>
+      <%= form.select :status,
+          options_for_select([["Active", Mcp::Server::STATUS_ACTIVE], ["Inactive", Mcp::Server::STATUS_INACTIVE]], mcp.status),
+          {},
+          class: "input",
+          required: true %>
+    </div>
+  </div>
+
+  <div class="settings-row-actions">
+    <%= form.submit submit_label, class: "action-btn primary" %>
+  </div>
+<% end %>

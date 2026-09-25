@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -77,6 +77,62 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
     t.index ["project_id", "name"], name: "index_agents_on_project_id_and_name", unique: true
     t.index ["project_id"], name: "index_agents_on_project_id"
     t.index ["status"], name: "index_agents_on_status"
+  end
+
+  create_table "ai_profile_mcps", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "mcp_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "mcp_id"], name: "index_ai_profile_mcps_on_ai_profile_id_and_mcp_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_mcps_on_ai_profile_id"
+    t.index ["mcp_id"], name: "index_ai_profile_mcps_on_mcp_id"
+  end
+
+  create_table "ai_profile_skills", force: :cascade do |t|
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.integer "skill_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "skill_id"], name: "index_ai_profile_skills_on_ai_profile_id_and_skill_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_skills_on_ai_profile_id"
+    t.index ["skill_id"], name: "index_ai_profile_skills_on_skill_id"
+  end
+
+  create_table "ai_profile_tools", force: :cascade do |t|
+    t.integer "ai_profile_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.integer "tool_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_profile_id", "tool_id"], name: "index_ai_profile_tools_on_ai_profile_id_and_tool_id", unique: true
+    t.index ["ai_profile_id"], name: "index_ai_profile_tools_on_ai_profile_id"
+    t.index ["tool_id"], name: "index_ai_profile_tools_on_tool_id"
+  end
+
+  create_table "ai_profiles", force: :cascade do |t|
+    t.boolean "bot", default: false, null: false
+    t.string "bot_name"
+    t.string "cloned_from"
+    t.datetime "created_at", null: false
+    t.boolean "editable", default: true, null: false
+    t.string "fallback_model"
+    t.string "main_model"
+    t.integer "max_number_of_workers", default: 3, null: false
+    t.integer "max_spawn_depth", default: 1, null: false
+    t.string "profile_name", null: false
+    t.text "soul"
+    t.boolean "tool_sets_editable", default: true, null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "ai_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "label"
+    t.integer "setting_value"
+    t.datetime "updated_at", null: false
   end
 
   create_table "approval_request_actions", force: :cascade do |t|
@@ -211,6 +267,21 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
     t.index ["expires_at"], name: "index_file_reservations_on_expires_at"
     t.index ["project_id", "expires_at"], name: "index_file_reservations_on_project_id_and_expires_at"
     t.index ["project_id"], name: "index_file_reservations_on_project_id"
+  end
+
+  create_table "mcps", force: :cascade do |t|
+    t.text "args"
+    t.string "authentication", null: false
+    t.string "bearer_token"
+    t.string "command"
+    t.datetime "created_at", null: false
+    t.text "environment"
+    t.string "name", null: false
+    t.string "status", null: false
+    t.string "transport", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["name"], name: "index_mcps_on_name"
   end
 
   create_table "memberships", force: :cascade do |t|
@@ -520,6 +591,23 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "skills", force: :cascade do |t|
+    t.boolean "add_by_default", default: false, null: false
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.text "skill_text"
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tools", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "users", force: :cascade do |t|
     t.text "bio"
     t.string "bot_token"
@@ -549,6 +637,12 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_04_000001) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agents", "projects"
+  add_foreign_key "ai_profile_mcps", "ai_profiles"
+  add_foreign_key "ai_profile_mcps", "mcps"
+  add_foreign_key "ai_profile_skills", "ai_profiles"
+  add_foreign_key "ai_profile_skills", "skills"
+  add_foreign_key "ai_profile_tools", "ai_profiles"
+  add_foreign_key "ai_profile_tools", "tools"
   add_foreign_key "approval_request_actions", "approval_requests"
   add_foreign_key "approval_requests", "agents"
   add_foreign_key "approval_requests", "messages"

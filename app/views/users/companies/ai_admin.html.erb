@@ -1,0 +1,11 @@
+<% @page_title = "AI Config" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">AI Config</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area"></div>

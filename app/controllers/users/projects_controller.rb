@@ -16,6 +16,8 @@ class Users::ProjectsController < ApplicationController
   def create
     @project = Project.new(project_params)
     selected_member_users = selected_human_member_users
+    selected_bot_users = selected_bot_member_users
+    selected_project_users = (selected_member_users + selected_bot_users).uniq { |user| user.id }
     selected_channel_names = selected_default_channel_names
 
     if @project.name.blank?
@@ -37,7 +39,7 @@ class Users::ProjectsController < ApplicationController
       project_room.update!(private: @project.private?) if project_room.private != @project.private?
       Membership.find_or_create_by!(room: project_room, participant: Current.user)
 
-      selected_member_users.each do |user|
+      selected_project_users.each do |user|
         next if user == Current.user
 
         @project.project_users.find_or_create_by!(user: user)
@@ -47,7 +49,7 @@ class Users::ProjectsController < ApplicationController
       create_default_channels!(project_room, selected_channel_names)
     end
 
-    broadcast_sidebar_refresh_for(selected_member_users)
+    broadcast_sidebar_refresh_for(selected_project_users)
     group_id = SecureRandom.uuid
     OutputEvents::Recorder.record(
       event_type: "project_created",
@@ -282,14 +284,25 @@ class Users::ProjectsController < ApplicationController
     end
 
     def selected_human_member_users
-      selected_ids = params.fetch(:member_user_ids, [])
+      selected_ids = Array(params.fetch(:member_user_ids, [])).flatten
       ids = selected_ids.filter_map do |value|
-        value.to_i if value.to_i.positive?
+        integer = value.to_i
+        integer if integer.positive?
       end.uniq
 
       users = User.active.without_bots.where(id: ids).ordered.to_a
       users << Current.user unless users.any? { |user| user.id == Current.user.id }
       users.uniq { |user| user.id }
+    end
+
+    def selected_bot_member_users
+      selected_ids = Array(params[:ui_bot_ids]).flatten.filter_map do |value|
+        integer = value.to_i
+        integer if integer.positive?
+      end.uniq
+
+      allowed_ids = Current.account.allowed_bot_user_ids
+      User.active_bots.where(id: allowed_ids).where(id: selected_ids).ordered.to_a
     end
 
     def set_project

@@ -64,6 +64,37 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/#{Regexp.escape(orphan_room.name)}/, @response.body)
   end
 
+  test "project knowledge section uses the same indented sidebar pattern as other project nav links" do
+    project = Project.create!(
+      name: "Knowledge Pad",
+      path: "/tmp/knowledge-pad-#{SecureRandom.hex(4)}"
+    )
+    project.project_users.create!(user: users(:david))
+
+    project_room = project.ensure_project_room!
+    project_room.memberships.grant_to(users(:david))
+
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select ".sidebar-projects__knowledge--offset", count: 1
+    assert_select %(a[aria-label="#{project.display_name} Knowledge"]), count: 1
+  end
+
+  test "project sidebar rows expose project id hooks for active item centering" do
+    project = Project.create!(
+      name: "Project Scroll Target",
+      path: "/tmp/project-scroll-target-#{SecureRandom.hex(4)}"
+    )
+    project.project_users.create!(user: users(:david))
+    project.ensure_project_room!
+
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select ".sidebar-projects__item[data-project-id='#{project.id}']", count: 1
+  end
+
   test "archived project keeps settings row but hides sub-items" do
     project = Project.create!(
       name: "Archive Visibility",

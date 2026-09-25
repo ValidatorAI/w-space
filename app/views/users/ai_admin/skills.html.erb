@@ -1,0 +1,57 @@
+<% @page_title = "AI Config - Skills" %>
+<% @body_class = "sidebar" %>
+
+<% content_for :nav do %>
+  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
+  <h1 class="user-settings-nav__title txt-large">Skills</h1>
+<% end %>
+
+<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+
+<div id="message-area" class="message-area">
+  <div class="feed-container company-settings-feed">
+    <div class="settings-container">
+      <%= render "users/ai_admin/top_links", active_tab: :skills %>
+
+      <section class="settings-card" aria-label="Skills settings">
+        <div class="settings-section-title settings-section-title--spread">
+          <span>Skills</span>
+          <div class="flex gap">
+            <%= link_to "Learn skill", user_company_ai_admin_skill_learn_page_path(user_id: "me"), class: "action-btn action-btn--small" %>
+            <%= link_to "Add skill", user_company_ai_admin_new_skill_path(user_id: "me"), class: "action-btn action-btn--small primary" %>
+          </div>
+        </div>
+        <p class="settings-section-copy">Global default means this skill is added by default when creating a new profile.</p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Default for New Profiles</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @skills.each do |skill| %>
+              <tr>
+                <td><%= skill.name %></td>
+                <td><%= skill.category.presence || "-" %></td>
+                <td>
+                  <%= form_with url: user_company_ai_admin_skill_toggle_default_path(user_id: "me", id: skill.id), method: :patch do %>
+                    <%= hidden_field_tag :add_by_default, "0" %>
+                    <%= check_box_tag :add_by_default, "1", skill.add_by_default, onchange: "this.form.requestSubmit()" %>
+                  <% end %>
+                </td>
+                <td class="flex gap">
+                  <%= link_to "Edit", user_company_ai_admin_edit_skill_path(user_id: "me", id: skill.id), class: "action-btn action-btn--small" %>
+                  <%= button_to "Delete", user_company_ai_admin_skill_destroy_path(user_id: "me", id: skill.id), method: :delete, class: "action-btn action-btn--small" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>
