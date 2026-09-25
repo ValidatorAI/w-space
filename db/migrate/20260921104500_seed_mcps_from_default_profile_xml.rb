@@ -3,7 +3,7 @@ require "rexml/document"
 class SeedMcpsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
   DEFAULT_PROFILE_MCP_NAMES = [
     "w-bridge",
-    "memory",
+    "Workspace memory",
     "obisidian"
   ].freeze
 

@@ -23024,7 +23024,7 @@ After fetching the transcript, format it based on what the user asks for:
     </skill>
   </skills>
   <mcps>
-    <mcp name='memory'>
+    <mcp name='Workspace memory'>
       <transport>http</transport>
       <url>http://127.0.0.1:1933/mcp</url>
       <authentication>none</authentication>

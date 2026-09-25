@@ -51,7 +51,7 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
           </skill>
         </skills>
         <mcps>
-          <mcp name="memory">
+          <mcp name="Workspace memory">
             <transport>http</transport>
             <url>http://127.0.0.1:1933/mcp</url>
             <authentication>none</authentication>
@@ -74,7 +74,7 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
               <skill name="plan" />
             </skills>
             <mcps>
-              <mcp name="memory" />
+              <mcp name="Workspace memory" />
             </mcps>
           </profile>
           <profile name="assistant_bot">
@@ -92,7 +92,7 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
               <skill name="plan" />
             </skills>
             <mcps>
-              <mcp name="memory" />
+              <mcp name="Workspace memory" />
             </mcps>
           </profile>
         </profiles>
@@ -107,7 +107,7 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
 
       assert_equal ["file", "terminal"], Tool.order(:name).pluck(:name)
       assert_equal ["plan"], Skill.order(:name).pluck(:name)
-      assert_equal ["memory"], Mcp::Server.order(:name).pluck(:name)
+      assert_equal ["Workspace memory"], Mcp::Server.order(:name).pluck(:name)
       assert_equal ["assistant_bot", "config"], AiProfile.order(:profile_name).pluck(:profile_name)
 
       config_profile = AiProfile.find_by!(profile_name: "config")
@@ -121,7 +121,7 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
 
       assert_equal ["file", "terminal"], config_profile.tools.order(:name).pluck(:name)
       assert_equal ["plan"], config_profile.skills.order(:name).pluck(:name)
-      assert_equal ["memory"], config_profile.mcps.order(:name).pluck(:name)
+      assert_equal ["Workspace memory"], config_profile.mcps.order(:name).pluck(:name)
 
       assert_nil AiProfile.find_by(id: legacy_profile.id)
       assert_nil AiProfile.find_by(id: legacy_bot_profile.id)
@@ -150,13 +150,13 @@ class AiConfig::ResetFromXmlTest < ActiveSupport::TestCase
           <skill name="plan"><add_by_default>true</add_by_default></skill>
         </skills>
         <mcps>
-          <mcp name="memory"><transport>http</transport><url>http://127.0.0.1:1933/mcp</url><authentication>none</authentication><status>active</status></mcp>
+          <mcp name="Workspace memory"><transport>http</transport><url>http://127.0.0.1:1933/mcp</url><authentication>none</authentication><status>active</status></mcp>
         </mcps>
         <profiles>
           <profile name="config">
             <tools><tool name="missing_tool" /></tools>
             <skills><skill name="plan" /></skills>
-            <mcps><mcp name="memory" /></mcps>
+            <mcps><mcp name="Workspace memory" /></mcps>
           </profile>
         </profiles>
       </ai_config>
