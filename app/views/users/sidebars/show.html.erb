@@ -4,7 +4,7 @@
   <%= render "users/sidebars/refresh_signal", user: Current.user, trigger: false %>
 
     <div class="sidebar__container overflow-y overflow-hide-scrollbar"
-      data-controller="badge-dot room-settings-modal"
+      data-controller="badge-dot room-settings-modal sidebar-active-project"
       data-badge-dot-unread-class="unread"
       data-action="rooms-list:unread@window->badge-dot#update rooms-list:read@window->badge-dot#update turbo:submit-start->turbo-frame#unpermanize">
     <section class="sidebar-company" aria-label="Company">
@@ -49,13 +49,14 @@
 
           <% @projects.each do |project| %>
             <% archived_project = project.archived? %>
-            <div class="sidebar-projects__item">
+            <div class="sidebar-projects__item" data-project-id="<%= project.id %>">
               <% project_room = project.project_room %>
               <div class="sidebar-projects__row">
                 <% if project_room %>
                   <% membership = @project_memberships_by_room_id[project_room.id] %>
                   <%= link_to_room project_room,
-                        class: [ "room btn txt-nowrap sidebar-projects__button", "unread": membership&.unread? ] do %>
+                        class: [ "room btn txt-nowrap sidebar-projects__button", "unread": membership&.unread? ],
+                        data: { project_id: project.id } do %>
                     <span class="sidebar-projects__main">
                       <span aria-hidden="true">⚡</span>
                       <span class="overflow-ellipsis sidebar-projects__name"><%= project.display_name %></span>
