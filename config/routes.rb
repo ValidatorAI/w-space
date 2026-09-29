@@ -72,6 +72,7 @@ Rails.application.routes.draw do
         get "company/ai-admin/mcps", to: "ai_admin#mcps", as: :company_ai_admin_mcps_page
         get "company/ai-admin/tools", to: "ai_admin#tools", as: :company_ai_admin_tools_page
         get "company/ai-admin/skills", to: "ai_admin#skills", as: :company_ai_admin_skills_page
+        post "company/ai-admin/restart-w-bridge", to: "ai_admin#restart_w_bridge", as: :company_ai_admin_restart_w_bridge
         post "company/ai-admin/reset-ai-config", to: "ai_admin#reset_ai_config_all", as: :company_ai_admin_reset_ai_config
 
         post "company/ai-admin/ai-settings", to: "ai_admin#create_ai_setting", as: :company_ai_admin_ai_settings

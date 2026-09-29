@@ -318,6 +318,34 @@ class Users::AiAdminController < ApplicationController
     redirect_to ai_admin_profile_path(@profile, anchor: "profile-edit"), alert: error.record.errors.full_messages.to_sentence.presence || "Unable to delete profile"
   end
 
+  def restart_w_bridge
+    target_url = w_bridge_restart_url
+
+    if target_url.blank?
+      redirect_to ai_admin_index_path, alert: "OUTPUT_EVENTS_URL is not configured"
+      return
+    end
+
+    uri = URI.parse(target_url)
+    request = Net::HTTP::Post.new(uri.request_uri)
+    request["Content-Type"] = "application/json"
+    if ENV["OUTPUT_EVENTS_TOKEN"].present?
+      request["Authorization"] = "Bearer #{ENV["OUTPUT_EVENTS_TOKEN"]}"
+    end
+
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+      http.request(request)
+    end
+
+    if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted) || response.code.to_i.between?(200, 299)
+      redirect_to ai_admin_index_path, notice: "W-Bridge restart triggered"
+    else
+      redirect_to ai_admin_index_path, alert: "W-Bridge restart failed: #{response.code} #{response.message}"
+    end
+  rescue URI::InvalidURIError, SocketError, Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, Errno::ECONNRESET => error
+    redirect_to ai_admin_index_path, alert: "W-Bridge restart failed: #{error.message}"
+  end
+
   def reset_ai_config_all
     perform_ai_config_reset!
     redirect_to ai_admin_index_path, notice: "AI config reset completed"
@@ -497,6 +525,23 @@ class Users::AiAdminController < ApplicationController
 
   def cast_boolean(value)
     ActiveModel::Type::Boolean.new.cast(value)
+  end
+
+  def w_bridge_restart_url
+    raw_url = ENV["OUTPUT_EVENTS_URL"].to_s.strip
+    return if raw_url.blank?
+
+    uri = URI.parse(raw_url)
+    return if uri.host.blank?
+
+    base_path = uri.path.to_s.sub(%r{/space_events/?\z}, "").to_s
+    base_path = base_path.sub(%r{/*\z}, "")
+    port_fragment = uri.port && uri.port != uri.default_port ? ":#{uri.port}" : ""
+    base_url = "#{uri.scheme}://#{uri.host}#{port_fragment}#{base_path}"
+    base_url = base_url.sub(%r{/*\z}, "")
+    "#{base_url}/restart"
+  rescue URI::InvalidURIError
+    nil
   end
 
   def ai_admin_index_path(anchor: nil)

@@ -17,6 +17,10 @@
         <div class="settings-section-title settings-section-title--spread">
           <span>Profile List</span>
           <div class="settings-section-actions">
+            <%= button_to "Restart W-Bridge", user_company_ai_admin_restart_w_bridge_path(user_id: "me"),
+                          method: :post,
+                          class: "action-btn action-btn--small",
+                          data: { turbo_confirm: "This will trigger a W-Bridge restart via the configured OUTPUT_EVENTS_URL. Continue?" } %>
             <%= button_to "Reset all AI Config", user_company_ai_admin_reset_ai_config_path(user_id: "me"),
                           method: :post,
                           class: "action-btn action-btn--small",
