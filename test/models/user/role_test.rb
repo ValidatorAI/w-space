@@ -2,7 +2,7 @@ require "test_helper"
 
 class User::RoleTest < ActiveSupport::TestCase
   test "creating subsequent users makes them members" do
-    assert User.create!(name: "User", email_address: "user@example.com", password: "secret123456").member?
+    assert User.create!(name: "User", display_name: "User", email_address: "user@example.com", password: "secret123456").member?
   end
 
   test "can_administer?" do
