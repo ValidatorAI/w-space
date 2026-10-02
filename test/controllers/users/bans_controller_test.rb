@@ -3,6 +3,7 @@ require "test_helper"
 class Users::BansControllerTest < ActionDispatch::IntegrationTest
   setup do
     sign_in :david
+    WebMock.stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).to_return(status: 200, body: "", headers: {})
   end
 
   test "create bans user and creates ban records from sessions" do
