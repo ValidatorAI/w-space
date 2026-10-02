@@ -52,7 +52,7 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     get user_sidebar_url
 
     assert_operator @response.body.index(parent_room.name), :<, @response.body.index(child_room.name)
-    assert_select "#room_#{child_room.id}_list.room-item--child"
+    assert_select "#list_rooms_open_#{child_room.id}.room-item--child"
   end
 
   test "rooms without parent or project are not shown in shared rooms" do

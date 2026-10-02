@@ -35,7 +35,6 @@ class Users::SidebarsController < ApplicationController
     @direct_memberships = extract_direct_memberships(all_memberships)
     @other_memberships  = prioritize_company_memberships(
       non_project_memberships
-        .without(@direct_memberships)
         .reject { |membership| room_without_parent_or_project?(membership.room) }
         .reject { |membership| project_room_project_ids.key?(membership.room_id) }
         .to_a
@@ -81,7 +80,10 @@ class Users::SidebarsController < ApplicationController
     end
 
     def room_without_parent_or_project?(room)
-      # a direct-message parent can never be displayed, so it doesn't count as a usable parent
-      (room.parent_id.blank? || room.parent&.direct?) && room.project_id.blank?
+      return false if room.project_id.present?
+      return true if room.parent&.direct?
+      return false if room.parent_id.present?
+
+      room.creator_id != Current.user.id
     end
 end
