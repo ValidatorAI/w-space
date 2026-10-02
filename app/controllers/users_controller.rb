@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  allow_unauthenticated_access only: %i[ new create ]
+  require_unauthenticated_access only: %i[ new create ]
 
   before_action :set_user, only: :show
   before_action :verify_join_code, only: %i[ new create ]
@@ -29,6 +29,8 @@ class UsersController < ApplicationController
     end
 
     def user_params
-      params.require(:user).permit(:name, :avatar, :email_address, :password)
+      params.require(:user).permit(:name, :display_name, :avatar, :email_address, :password).tap do |permitted|
+        permitted[:display_name] = permitted[:display_name].presence || permitted[:name]
+      end
     end
 end

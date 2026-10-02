@@ -32,6 +32,6 @@ class UserTest < ActiveSupport::TestCase
 
   private
     def create_new_user
-      User.create!(name: "User", email_address: "user@example.com", password: "secret123456")
+      User.create!(name: "User", display_name: "User", email_address: "user@example.com", password: "secret123456")
     end
 end

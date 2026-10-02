@@ -30,7 +30,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "create" do
     assert_difference -> { User.count }, 1 do
-      post join_url(@join_code), params: { user: { name: "New Person", email_address: "new@37signals.com", password: "secret123456" } }
+      post join_url(@join_code), params: { user: { name: "New Person", display_name: "New Person", email_address: "new@37signals.com", password: "secret123456" } }
     end
 
     assert_redirected_to root_url
@@ -42,7 +42,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "creating a new user with an existing email address will redirect to login screen" do
     assert_no_difference -> { User.count } do
-      post join_url(@join_code), params: { user: { name: "Another David", email_address: users(:david).email_address, password: "secret123456" } }
+      post join_url(@join_code), params: { user: { name: "Another David", display_name: "Another David", email_address: users(:david).email_address, password: "secret123456" } }
     end
 
     assert_redirected_to new_session_url(email_address: users(:david).email_address)
