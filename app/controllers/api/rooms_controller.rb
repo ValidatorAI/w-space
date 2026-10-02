@@ -6,14 +6,18 @@ module Api
     ].freeze
 
     def index
-      project = find_project(params[:project_id])
+      project = find_project_or_render_not_found(params[:project_id])
+      return if params[:project_id].present? && project.nil?
+
       rooms = project.present? ? project.rooms : Room.all
 
       render json: rooms.as_json(only: ROOM_FIELDS)
     end
 
     def show
-      project = find_project(params[:project_id])
+      project = find_project_or_render_not_found(params[:project_id])
+      return if params[:project_id].present? && project.nil?
+
       room = project.present? ? find_room(project, params[:id]) : find_room(params[:id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
@@ -21,7 +25,9 @@ module Api
     end
 
     def threads
-      project = find_project(params[:project_id])
+      project = find_project_or_render_not_found(params[:project_id])
+      return if params[:project_id].present? && project.nil?
+
       room = project.present? ? find_room(project, params[:id]) : find_room(params[:id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
@@ -30,7 +36,9 @@ module Api
     end
 
     def search
-      project = find_project(params[:project_id])
+      project = find_project_or_render_not_found(params[:project_id])
+      return if params[:project_id].present? && project.nil?
+
       query = params[:q].to_s.strip
       return render json: { error: "Missing query param: q" }, status: :bad_request if query.blank?
 

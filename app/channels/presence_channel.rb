@@ -18,7 +18,7 @@ class PresenceChannel < RoomChannel
 
   private
     def membership
-      @room.memberships.find_by(user: current_user)
+      @room.memberships.find_by(participant_type: "User", participant_id: current_user.id)
     end
 
     def broadcast_read_room
