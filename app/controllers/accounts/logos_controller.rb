@@ -30,11 +30,15 @@ class Accounts::LogosController < ApplicationController
     end
 
     def send_stock_icon
-      if small_logo?
-        send_png_file logo_path("app-icon-192.png")
-      else
-        send_png_file logo_path("app-icon.png")
-      end
+      send_data stock_icon_bytes, content_type: "image/png", disposition: :inline
+    end
+
+    def stock_icon_bytes
+      path = small_logo? ? logo_path("app-icon-192.png") : logo_path("app-icon.png")
+      size = small_logo? ? 192 : 512
+
+      image = ::Vips::Image.thumbnail(path.to_s, size, height: size, crop: :centre)
+      image.write_to_buffer(".png")
     end
 
     def logo_variant
