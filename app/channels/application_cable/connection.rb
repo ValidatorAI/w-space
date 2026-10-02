@@ -3,8 +3,16 @@ module ApplicationCable
     identified_by :current_user
 
     def connect
-      # Auto-identify as Human Overseer (same as web authentication)
-      self.current_user = FirstRun.human_overseer
+      self.current_user = find_verified_user
     end
+
+    private
+      def find_verified_user
+        token = cookies.signed[:session_token]
+        session = Session.find_by(token: token)
+        return session.user if session&.user
+
+        reject_unauthorized_connection
+      end
   end
 end
