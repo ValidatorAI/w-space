@@ -20,7 +20,7 @@ body.room-shell {
 }
 
 body.room-shell #sidebar {
-  display: none;
+  display: block;
 }
 
 body.room-shell #nav {
