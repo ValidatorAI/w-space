@@ -116,9 +116,10 @@ export default class extends Controller {
     const roomLinks = Array.from(this.workspaceTarget.querySelectorAll("a.room"))
     roomLinks.forEach((link) => link.classList.remove("workspace-room__active"))
 
+    const currentPath = window.location.pathname
     const activeByPath = roomLinks.find((link) => {
       try {
-        return new URL(link.href).pathname === window.location.pathname
+        return new URL(link.href).pathname === currentPath
       } catch {
         return false
       }
@@ -128,6 +129,9 @@ export default class extends Controller {
       activeByPath.classList.add("workspace-room__active")
       return
     }
+
+    const isRoomPath = /\/rooms\//.test(currentPath)
+    if (!isRoomPath) return
 
     const roomId = window.Current?.room?.id
     if (!roomId) return
