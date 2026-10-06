@@ -410,7 +410,17 @@
 }
 
 .sidebar-direct-messages__list .direct .avatar {
+  --avatar-size: 20px;
+  border-radius: 4px;
   flex-shrink: 0;
+  height: 20px;
+  width: 20px;
+}
+
+.sidebar-direct-messages__list .direct .avatar img {
+  border-radius: 4px;
+  height: 20px;
+  width: 20px;
 }
 
 .sidebar-direct-messages__list .direct__author {
