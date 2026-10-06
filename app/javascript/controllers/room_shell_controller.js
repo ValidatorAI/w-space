@@ -11,17 +11,21 @@ export default class extends Controller {
     this.mobileMedia = window.matchMedia(MOBILE_QUERY)
     this.contextMedia = window.matchMedia(CONTEXT_COLLAPSE_QUERY)
     this.handleViewportChange = this.handleViewportChange.bind(this)
+    this.markActiveSidebarLink = this.markActiveSidebarLink.bind(this)
 
     this.mobileMedia.addEventListener("change", this.handleViewportChange)
     this.contextMedia.addEventListener("change", this.handleViewportChange)
+    this.workspaceTarget?.addEventListener("turbo:frame-load", this.markActiveSidebarLink)
 
     this.selectByName(this.defaultTabValue || "conversation")
     this.handleViewportChange()
+    this.markActiveSidebarLink()
   }
 
   disconnect() {
     this.mobileMedia?.removeEventListener("change", this.handleViewportChange)
     this.contextMedia?.removeEventListener("change", this.handleViewportChange)
+    this.workspaceTarget?.removeEventListener("turbo:frame-load", this.markActiveSidebarLink)
   }
 
   switchTab(event) {
@@ -91,5 +95,31 @@ export default class extends Controller {
 
     const expanded = !this.element.classList.contains("workspace-room--context-hidden")
     this.contextToggleTarget.setAttribute("aria-expanded", String(expanded))
+  }
+
+  markActiveSidebarLink() {
+    if (!this.hasWorkspaceTarget) return
+
+    const roomLinks = Array.from(this.workspaceTarget.querySelectorAll("a.room"))
+    roomLinks.forEach((link) => link.classList.remove("workspace-room__active"))
+
+    const activeByPath = roomLinks.find((link) => {
+      try {
+        return new URL(link.href).pathname === window.location.pathname
+      } catch {
+        return false
+      }
+    })
+
+    if (activeByPath) {
+      activeByPath.classList.add("workspace-room__active")
+      return
+    }
+
+    const roomId = window.Current?.room?.id
+    if (!roomId) return
+
+    const activeRoomLink = this.workspaceTarget.querySelector(`[data-room-id="${roomId}"]`)
+    activeRoomLink?.classList.add("workspace-room__active")
   }
 }

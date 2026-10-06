@@ -159,8 +159,8 @@ body.room-shell #footer .composer {
 }
 
 .workspace-room__workspace {
-  background: var(--color-bg);
-  border-inline-end: 1px solid var(--workspace-room-line);
+  background: #0f1f34;
+  border-inline-end: 1px solid #243950;
   min-height: 0;
   overflow: hidden;
 }
@@ -175,6 +175,166 @@ body.room-shell #footer .composer {
 
 .workspace-room__workspace .sidebar__bottom-row {
   margin-top: auto;
+}
+
+body.room-shell .workspace-room__workspace .sidebar__container,
+body.room-shell .workspace-room__workspace .rooms,
+body.room-shell .workspace-room__workspace .sidebar-projects,
+body.room-shell .workspace-room__workspace .sidebar-company {
+  background: #0f1f34;
+  color: #c7d5e4;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-company,
+body.room-shell .workspace-room__workspace .sidebar-projects,
+body.room-shell .workspace-room__workspace .rooms {
+  padding-inline: 0.85rem;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-company__title,
+body.room-shell .workspace-room__workspace .sidebar-projects__title {
+  color: #7f9bb7;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-company__settings,
+body.room-shell .workspace-room__workspace .sidebar-projects__settings-link {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: #9cb3c8;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-section-separator {
+  background: #2a3f59;
+}
+
+body.room-shell .workspace-room__workspace .room {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: #cedbea;
+  --btn-padding: 0.44em 0.68em;
+  --hover-size: 0;
+  --hover-filter: none;
+
+  border-radius: 0.5rem;
+  box-shadow: none;
+  margin-inline-end: 0;
+}
+
+body.room-shell .workspace-room__workspace .room:where(:not(:active):hover),
+body.room-shell .workspace-room__workspace .room:where(:not(:active)):focus-visible {
+  --btn-background: #1b324c;
+}
+
+body.room-shell .workspace-room__workspace .room.unread,
+body.room-shell .workspace-room__workspace .room.workspace-room__active,
+body.room-shell .workspace-room__workspace .room-item__link.workspace-room__active {
+  --btn-background: #26486d;
+  --btn-border-color: transparent;
+  --btn-color: #f4f8ff;
+
+  box-shadow: none;
+  font-weight: 700;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-company__button,
+body.room-shell .workspace-room__workspace .room-item__link,
+body.room-shell .workspace-room__workspace .sidebar-projects__action-btn,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-label,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-room,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-empty {
+  color: #b5c5d5 !important;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__button {
+  --btn-padding: 0.48em 0.62em;
+
+  color: #f1f6fc !important;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__name {
+  color: #f1f6fc !important;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__plus,
+body.room-shell .workspace-room__workspace .sidebar-projects__gear,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-plus,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-gear {
+  color: #96b0c6 !important;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__action-btn,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-label,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-room,
+body.room-shell .workspace-room__workspace .room-item__link {
+  --btn-border-color: transparent;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__action-btn,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-label,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-room,
+body.room-shell .workspace-room__workspace .room-item__link {
+  font-size: 0.83rem;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__actions,
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge--offset {
+  margin-inline-start: 1.35rem;
+}
+
+body.room-shell .workspace-room__workspace .sidebar-projects__knowledge-room--child,
+body.room-shell .workspace-room__workspace .room-item--child {
+  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+}
+
+body.room-shell .workspace-room__workspace .room-item__actions-btn {
+  opacity: 0.55;
+}
+
+body.room-shell .workspace-room__workspace .room-item__actions-btn img {
+  filter: invert(87%) sepia(8%) saturate(374%) hue-rotate(171deg) brightness(88%) contrast(86%);
+}
+
+body.room-shell .workspace-room__workspace .room-item__menu {
+  background: #12273e;
+  border-color: #2c4864;
+  box-shadow: 0 14px 26px rgb(0 0 0 / 0.45);
+}
+
+body.room-shell .workspace-room__workspace .room-item__menu-btn {
+  color: #c9d8e8;
+}
+
+body.room-shell .workspace-room__workspace .room-item__menu-btn:hover {
+  background: #1d3651;
+}
+
+body.room-shell .workspace-room__workspace .room-item__menu-btn--danger {
+  color: #ffb7bf;
+}
+
+body.room-shell .workspace-room__workspace .room-item__menu-btn--danger:hover {
+  background: #7d2230;
+  color: #ffffff;
+}
+
+body.room-shell .workspace-room__workspace .sidebar__bottom-row {
+  background: #0f1f34;
+  border-top: 1px solid #263d58;
+}
+
+body.room-shell .workspace-room__workspace .rooms__new-btn {
+  --btn-background: #1a344f;
+  --btn-border-color: #31506f;
+  --btn-color: #ecf5ff;
+}
+
+body.room-shell .workspace-room__workspace .sidebar__tool--contacts,
+body.room-shell .workspace-room__workspace .sidebar__tool--settings {
+  --btn-background: #14293f;
+  --btn-border-color: #314f6e;
+  --btn-color: #b9cadb;
 }
 
 .workspace-room__main {
