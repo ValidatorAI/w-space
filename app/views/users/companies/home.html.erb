@@ -27,14 +27,14 @@
   </div>
 <% end %>
 
-<div class="workspace-room"
+<div class="workspace-room workspace-room--context-hidden"
      data-controller="room-shell"
      data-action="click->room-shell#closeWorkspaceIfOpen">
   <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
     <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
   </aside>
 
-  <main class="workspace-room__main" id="conversation">
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
     <div id="message-area" class="message-area home-message-area" data-controller="home-attention">
       <div class="home-attention-feed">
         <div class="home-attention-header">
