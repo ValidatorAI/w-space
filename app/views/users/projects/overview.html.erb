@@ -1,191 +1,214 @@
 <% @page_title = "#{@project.display_name} Overview" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="project-overview-header-left">
-    <span class="btn btn--reversed btn--faux user-settings-nav__pill">📌 Project</span>
-    <h1 class="user-settings-nav__title txt-large"><%= @project.display_name %></h1>
-  </div>
-
-  <%= link_to "Edit Project Details", edit_rooms_project_path(@project.id, by: "project"),
-      class: "btn btn--reversed flex-item-justify-end",
-      data: { turbo: false, turbo_frame: "_top" } %>
-<% end %>
-
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
-
-<div id="message-area" class="message-area project-overview-area">
-  <div class="project-overview-content">
-    <div class="project-overview-metrics-grid">
-      <div class="project-overview-metric-card">
-        <span class="project-overview-metric-title">Project Code</span>
-        <div class="project-overview-metric-value-row">
-          <span class="project-overview-metric-value"><%= @project.short_code.presence || @project.slug.upcase %></span>
-          <span class="project-overview-metric-badge <%= @project.private? ? 'pending' : 'active' %>">
-            <%= @project.private? ? "Private" : "Public" %>
-          </span>
-        </div>
-      </div>
-
-      <div class="project-overview-metric-card">
-        <span class="project-overview-metric-title">Active Channels</span>
-        <div class="project-overview-metric-value-row">
-          <span class="project-overview-metric-value"><%= @total_rooms_count %></span>
-          <span class="project-overview-metric-badge complete">Active</span>
-        </div>
-      </div>
-
-      <div class="project-overview-metric-card">
-        <span class="project-overview-metric-title">Open Attention</span>
-        <div class="project-overview-metric-value-row">
-          <span class="project-overview-metric-value"><%= @attention_items.count %></span>
-          <span class="project-overview-metric-badge <%= @attention_items.any? ? 'pending' : 'complete' %>">
-            <%= @attention_items.any? ? "Pending Review" : "All Clear" %>
-          </span>
-        </div>
-      </div>
-
-      <div class="project-overview-metric-card">
-        <span class="project-overview-metric-title">Messages</span>
-        <div class="project-overview-metric-value-row">
-          <span class="project-overview-metric-value"><%= @messages_count %></span>
-          <span class="project-overview-metric-badge active">Recorded</span>
-        </div>
-      </div>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
     </div>
 
-    <div class="project-overview-grid">
-      <div class="project-overview-column">
-        <div class="project-overview-card">
-          <div class="project-overview-card-header">
-            <h3 class="project-overview-card-title">Project Summary &amp; Objectives</h3>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
+  </div>
+<% end %>
+
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
+
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area project-overview-area">
+      <div class="project-overview-content">
+        <div class="project-overview-metrics-grid">
+          <div class="project-overview-metric-card">
+            <span class="project-overview-metric-title">Project Code</span>
+            <div class="project-overview-metric-value-row">
+              <span class="project-overview-metric-value"><%= @project.short_code.presence || @project.slug.upcase %></span>
+              <span class="project-overview-metric-badge <%= @project.private? ? 'pending' : 'active' %>">
+                <%= @project.private? ? "Private" : "Public" %>
+              </span>
+            </div>
           </div>
-          <div class="project-overview-desc">
-            <% if @project.description.present? %>
-              <%= simple_format(@project.description) %>
-            <% else %>
-              <p><strong><%= @project.display_name %></strong> is configured for workspace collaboration, channel workflows, and automated agent coordination.</p>
-            <% end %>
-            <div class="project-overview-tags">
-              <span class="project-overview-tag">Path: <%= @project.path %></span>
-              <span class="project-overview-tag">Slug: <%= @project.slug %></span>
-              <% if @project.short_code.present? %>
-                <span class="project-overview-tag">Code: <%= @project.short_code %></span>
-              <% end %>
-              <span class="project-overview-tag"><%= @project.private? ? "🔒 Private Workspace" : "🌐 Shared Workspace" %></span>
+
+          <div class="project-overview-metric-card">
+            <span class="project-overview-metric-title">Active Channels</span>
+            <div class="project-overview-metric-value-row">
+              <span class="project-overview-metric-value"><%= @total_rooms_count %></span>
+              <span class="project-overview-metric-badge complete">Active</span>
+            </div>
+          </div>
+
+          <div class="project-overview-metric-card">
+            <span class="project-overview-metric-title">Open Attention</span>
+            <div class="project-overview-metric-value-row">
+              <span class="project-overview-metric-value"><%= @attention_items.count %></span>
+              <span class="project-overview-metric-badge <%= @attention_items.any? ? 'pending' : 'complete' %>">
+                <%= @attention_items.any? ? "Pending Review" : "All Clear" %>
+              </span>
+            </div>
+          </div>
+
+          <div class="project-overview-metric-card">
+            <span class="project-overview-metric-title">Messages</span>
+            <div class="project-overview-metric-value-row">
+              <span class="project-overview-metric-value"><%= @messages_count %></span>
+              <span class="project-overview-metric-badge active">Recorded</span>
             </div>
           </div>
         </div>
 
-        <div class="project-overview-card">
-          <div class="project-overview-card-header">
-            <h3 class="project-overview-card-title">Key Milestones &amp; Alignment</h3>
-          </div>
-          <div class="project-overview-milestones">
-            <% if @project_milestones.any? %>
-              <% @project_milestones.each do |milestone| %>
-                <div class="project-overview-milestone">
-                  <div class="project-overview-milestone-icon"><%= milestone.icon.presence || "✅" %></div>
-                  <div class="project-overview-milestone-content">
-                    <span class="project-overview-milestone-title"><%= milestone.title %></span>
-                    <% if milestone.description.present? %>
-                      <span class="project-overview-milestone-desc"><%= milestone.description %></span>
-                    <% end %>
-                  </div>
+        <div class="project-overview-grid">
+          <div class="project-overview-column">
+            <div class="project-overview-card">
+              <div class="project-overview-card-header">
+                <h3 class="project-overview-card-title">Project Summary &amp; Objectives</h3>
+              </div>
+              <div class="project-overview-desc">
+                <% if @project.description.present? %>
+                  <%= simple_format(@project.description) %>
+                <% else %>
+                  <p><strong><%= @project.display_name %></strong> is configured for workspace collaboration, channel workflows, and automated agent coordination.</p>
+                <% end %>
+                <div class="project-overview-tags">
+                  <span class="project-overview-tag">Path: <%= @project.path %></span>
+                  <span class="project-overview-tag">Slug: <%= @project.slug %></span>
+                  <% if @project.short_code.present? %>
+                    <span class="project-overview-tag">Code: <%= @project.short_code %></span>
+                  <% end %>
+                  <span class="project-overview-tag"><%= @project.private? ? "🔒 Private Workspace" : "🌐 Shared Workspace" %></span>
                 </div>
-              <% end %>
-            <% else %>
-              <div class="project-overview-milestone">
-                <div class="project-overview-milestone-icon">📝</div>
-                <div class="project-overview-milestone-content">
-                  <span class="project-overview-milestone-title">No milestones configured yet</span>
-                  <span class="project-overview-milestone-desc">Add project milestones to track the key phases, decisions, and alignment points for this initiative.</span>
+              </div>
+            </div>
+
+            <div class="project-overview-card">
+              <div class="project-overview-card-header">
+                <h3 class="project-overview-card-title">Key Milestones &amp; Alignment</h3>
+              </div>
+              <div class="project-overview-milestones">
+                <% if @project_milestones.any? %>
+                  <% @project_milestones.each do |milestone| %>
+                    <div class="project-overview-milestone">
+                      <div class="project-overview-milestone-icon"><%= milestone.icon.presence || "✅" %></div>
+                      <div class="project-overview-milestone-content">
+                        <span class="project-overview-milestone-title"><%= milestone.title %></span>
+                        <% if milestone.description.present? %>
+                          <span class="project-overview-milestone-desc"><%= milestone.description %></span>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="project-overview-milestone">
+                    <div class="project-overview-milestone-icon">📝</div>
+                    <div class="project-overview-milestone-content">
+                      <span class="project-overview-milestone-title">No milestones configured yet</span>
+                      <span class="project-overview-milestone-desc">Add project milestones to track the key phases, decisions, and alignment points for this initiative.</span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-overview-column">
+            <div class="project-overview-card">
+              <div class="project-overview-card-header">
+                <h3 class="project-overview-card-title">Project Contributors (<%= @project_users.count %>)</h3>
+              </div>
+              <div class="project-overview-team-list">
+                <% if @project_users.any? %>
+                  <% @project_users.each do |user| %>
+                    <div class="project-overview-team-member">
+                      <div class="project-overview-member-info">
+                        <div class="project-overview-member-avatar" style="background-color: <%= avatar_background_color(user) %>;">
+                          <%= user.initials.presence || user.name.first(1).upcase %>
+                        </div>
+                        <span><%= user.effective_display_name %></span>
+                      </div>
+                      <span style="font-size: 11px; color: var(--text-secondary);"><%= user.job_title.presence || (user.administrator? ? "Admin" : "Member") %></span>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="txt-small txt-secondary">No members assigned yet.</div>
+                <% end %>
+              </div>
+            </div>
+
+            <% if @ai_teammates.any? %>
+              <div class="project-overview-card">
+                <div class="project-overview-card-header">
+                  <h3 class="project-overview-card-title">Attached AI Teammates (<%= @ai_teammates.count %>)</h3>
+                </div>
+                <div class="project-overview-team-list">
+                  <% @ai_teammates.each do |bot_user| %>
+                    <div class="project-overview-team-member">
+                      <div class="project-overview-member-info">
+                        <div class="project-overview-member-avatar" style="background: var(--accent-purple, #9333ea);">
+                          🤖
+                        </div>
+                        <span><%= bot_user.effective_display_name %></span>
+                        <span style="font-size: 11px; color: var(--text-secondary);">(AI)</span>
+                      </div>
+                      <span class="project-overview-metric-badge complete">AI</span>
+                    </div>
+                  <% end %>
                 </div>
               </div>
             <% end %>
-          </div>
-        </div>
-      </div>
 
-      <div class="project-overview-column">
-        <div class="project-overview-card">
-          <div class="project-overview-card-header">
-            <h3 class="project-overview-card-title">Project Contributors (<%= @project_users.count %>)</h3>
-          </div>
-          <div class="project-overview-team-list">
-            <% if @project_users.any? %>
-              <% @project_users.each do |user| %>
-                <div class="project-overview-team-member">
-                  <div class="project-overview-member-info">
-                    <div class="project-overview-member-avatar" style="background-color: <%= avatar_background_color(user) %>;">
-                      <%= user.initials.presence || user.name.first(1).upcase %>
-                    </div>
-                    <span><%= user.effective_display_name %></span>
-                  </div>
-                  <span style="font-size: 11px; color: var(--text-secondary);"><%= user.job_title.presence || (user.administrator? ? "Admin" : "Member") %></span>
-                </div>
-              <% end %>
-            <% else %>
-              <div class="txt-small txt-secondary">No members assigned yet.</div>
-            <% end %>
-          </div>
-        </div>
-
-        <% if @ai_teammates.any? %>
-          <div class="project-overview-card">
-            <div class="project-overview-card-header">
-              <h3 class="project-overview-card-title">Attached AI Teammates (<%= @ai_teammates.count %>)</h3>
+            <div class="project-overview-card">
+              <div class="project-overview-card-header">
+                <h3 class="project-overview-card-title">Resources &amp; Channels</h3>
+              </div>
+              <div class="project-overview-links">
+                <% if @project.project_room %>
+                  <%= link_to @project.project_room, class: "project-overview-link" do %>
+                    <span>⚡</span>
+                    <span>Main Room: <%= @project.project_room.name %></span>
+                  <% end %>
+                <% end %>
+                <% @project_rooms.each do |room| %>
+                  <% next if room == @project.project_room %>
+                  <%= link_to room, class: "project-overview-link" do %>
+                    <span>#️⃣</span>
+                    <span><%= room.name %></span>
+                  <% end %>
+                <% end %>
+                <%= link_to user_company_project_status_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
+                  <span>📊</span>
+                  <span>Project Status &amp; Alignment</span>
+                <% end %>
+                <%= link_to user_company_project_all_hands_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
+                  <span>🗣️</span>
+                  <span>Project All-Hands</span>
+                <% end %>
+                <%= link_to user_company_project_knowledge_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
+                  <span>🧠</span>
+                  <span>Knowledge Base</span>
+                <% end %>
+              </div>
             </div>
-            <div class="project-overview-team-list">
-              <% @ai_teammates.each do |bot_user| %>
-                <div class="project-overview-team-member">
-                  <div class="project-overview-member-info">
-                    <div class="project-overview-member-avatar" style="background: var(--accent-purple, #9333ea);">
-                      🤖
-                    </div>
-                    <span><%= bot_user.effective_display_name %></span>
-                    <span style="font-size: 11px; color: var(--text-secondary);">(AI)</span>
-                  </div>
-                  <span class="project-overview-metric-badge complete">AI</span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-
-        <div class="project-overview-card">
-          <div class="project-overview-card-header">
-            <h3 class="project-overview-card-title">Resources &amp; Channels</h3>
-          </div>
-          <div class="project-overview-links">
-            <% if @project.project_room %>
-              <%= link_to @project.project_room, class: "project-overview-link" do %>
-                <span>⚡</span>
-                <span>Main Room: <%= @project.project_room.name %></span>
-              <% end %>
-            <% end %>
-            <% @project_rooms.each do |room| %>
-              <% next if room == @project.project_room %>
-              <%= link_to room, class: "project-overview-link" do %>
-                <span>#️⃣</span>
-                <span><%= room.name %></span>
-              <% end %>
-            <% end %>
-            <%= link_to user_company_project_status_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
-              <span>📊</span>
-              <span>Project Status &amp; Alignment</span>
-            <% end %>
-            <%= link_to user_company_project_all_hands_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
-              <span>🗣️</span>
-              <span>Project All-Hands</span>
-            <% end %>
-            <%= link_to user_company_project_knowledge_path(user_id: "me", id: @project.id), class: "project-overview-link" do %>
-              <span>🧠</span>
-              <span>Knowledge Base</span>
-            <% end %>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
