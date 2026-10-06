@@ -951,7 +951,8 @@ body.sidebar .company-members-table th {
   text-transform: uppercase;
 }
 
-body.sidebar .company-settings-feed {
+body.sidebar .company-settings-feed,
+body.room-shell .company-settings-feed {
   background-color: var(--surface-alt);
   max-block-size: calc(100dvh - 104px);
   min-block-size: calc(100dvh - 104px);
@@ -960,7 +961,8 @@ body.sidebar .company-settings-feed {
   width: 90%;
 }
 
-body.sidebar .settings-container {
+body.sidebar .settings-container,
+body.room-shell .settings-container {
   display: grid;
   gap: 16px;
   /*margin-inline: auto;*/
@@ -969,7 +971,8 @@ body.sidebar .settings-container {
   width: 90%;
 }
 
-body.sidebar .settings-card {
+body.sidebar .settings-card,
+body.room-shell .settings-card {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -977,7 +980,8 @@ body.sidebar .settings-card {
   padding: 22px;
 }
 
-body.sidebar .settings-section-title {
+body.sidebar .settings-section-title,
+body.room-shell .settings-section-title {
   align-items: center;
   display: flex;
   font-size: 15px;
@@ -986,55 +990,66 @@ body.sidebar .settings-section-title {
   margin: 0 0 14px;
 }
 
-body.sidebar .settings-section-title--spread {
+body.sidebar .settings-section-title--spread,
+body.room-shell .settings-section-title--spread {
   justify-content: space-between;
 }
 
-body.sidebar .settings-section-actions {
+body.sidebar .settings-section-actions,
+body.room-shell .settings-section-actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-body.sidebar .settings-section-actions form {
+body.sidebar .settings-section-actions form,
+body.room-shell .settings-section-actions form {
   margin: 0;
 }
 
-body.sidebar .settings-section-copy {
+body.sidebar .settings-section-copy,
+body.room-shell .settings-section-copy {
   color: var(--text-secondary);
   font-size: 13px;
   margin-bottom: 16px;
 }
 
-body.sidebar .company-settings-form {
+body.sidebar .company-settings-form,
+body.room-shell .company-settings-form {
   display: block;
 }
 
-body.sidebar .form-row {
+body.sidebar .form-row,
+body.room-shell .form-row {
   display: grid;
   gap: 14px;
 }
 
-body.sidebar .form-row--two {
+body.sidebar .form-row--two,
+body.room-shell .form-row--two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-body.sidebar .form-group {
+body.sidebar .form-group,
+body.room-shell .form-group {
   display: grid;
   gap: 6px;
 }
 
-body.sidebar .form-group label {
+body.sidebar .form-group label,
+body.room-shell .form-group label {
   font-size: 13px;
   font-weight: 600;
 }
 
-body.sidebar [data-controller~="mcp-form"] [hidden] {
+body.sidebar [data-controller~="mcp-form"] [hidden],
+body.room-shell [data-controller~="mcp-form"] [hidden] {
   display: none !important;
 }
 
-body.sidebar .private-toggle {
+body.sidebar .private-toggle,
+body.room-shell .private-toggle {
   align-items: center;
   cursor: pointer;
   display: inline-flex;
@@ -1042,64 +1057,76 @@ body.sidebar .private-toggle {
   gap: 8px;
 }
 
-body.sidebar .private-toggle input[type="checkbox"] {
+body.sidebar .private-toggle input[type="checkbox"],
+body.room-shell .private-toggle input[type="checkbox"] {
   appearance: auto;
   block-size: 1rem;
   inline-size: 1rem;
   margin: 0;
 }
 
-body.sidebar .mcp-form-help {
+body.sidebar .mcp-form-help,
+body.room-shell .mcp-form-help {
   color: var(--text-secondary);
   font-size: 12px;
   margin: 6px 0 0;
 }
 
-body.sidebar .input--disabled {
+body.sidebar .input--disabled,
+body.room-shell .input--disabled {
   background: var(--msg-bg);
   color: var(--text-secondary);
   cursor: not-allowed;
 }
 
-body.sidebar .workspace-url-field {
+body.sidebar .workspace-url-field,
+body.room-shell .workspace-url-field {
   align-items: center;
   display: flex;
   gap: 8px;
 }
 
-body.sidebar .workspace-url-field .input {
+body.sidebar .workspace-url-field .input,
+body.room-shell .workspace-url-field .input {
   min-inline-size: 0;
 }
 
-body.sidebar .workspace-url-copy-btn {
+body.sidebar .workspace-url-copy-btn,
+body.room-shell .workspace-url-copy-btn {
   flex-shrink: 0;
 }
 
-body.sidebar .data-table {
+body.sidebar .data-table,
+body.room-shell .data-table {
   border-collapse: collapse;
   inline-size: 100%;
 }
 
 body.sidebar .data-table th,
-body.sidebar .data-table td {
+body.room-shell .data-table th,
+body.sidebar .data-table td,
+body.room-shell .data-table td {
   border-bottom: 1px solid var(--border-color);
   font-size: 13px;
   padding: 10px 8px;
   text-align: left;
 }
 
-body.sidebar .data-table th {
+body.sidebar .data-table th,
+body.room-shell .data-table th {
   color: var(--text-secondary);
   font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
-body.sidebar .company-cell-muted {
+body.sidebar .company-cell-muted,
+body.room-shell .company-cell-muted {
   color: var(--text-secondary);
 }
 
-body.sidebar .action-btn {
+body.sidebar .action-btn,
+body.room-shell .action-btn {
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border-color);
@@ -1112,30 +1139,36 @@ body.sidebar .action-btn {
   text-decoration: none;
 }
 
-body.sidebar .action-btn:hover {
+body.sidebar .action-btn:hover,
+body.room-shell .action-btn:hover {
   background: color-mix(in oklab, var(--surface), #000000 4%);
 }
 
-body.sidebar .action-btn.primary {
+body.sidebar .action-btn.primary,
+body.room-shell .action-btn.primary {
   background: #000000;
   border-color: #000000;
   color: #ffffff;
 }
 
-body.sidebar .action-btn.primary:hover {
+body.sidebar .action-btn.primary:hover,
+body.room-shell .action-btn.primary:hover {
   background: #111111;
 }
 
-body.sidebar .action-btn--small {
+body.sidebar .action-btn--small,
+body.room-shell .action-btn--small {
   font-size: 11px;
   padding: 4px 8px;
 }
 
-body.sidebar .action-btn--dashed {
+body.sidebar .action-btn--dashed,
+body.room-shell .action-btn--dashed {
   border-style: dashed;
 }
 
-body.sidebar .role-select {
+body.sidebar .role-select,
+body.room-shell .role-select {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -1145,13 +1178,15 @@ body.sidebar .role-select {
   padding: 6px 8px;
 }
 
-body.sidebar .member-row-info {
+body.sidebar .member-row-info,
+body.room-shell .member-row-info {
   align-items: center;
   display: inline-flex;
   gap: 8px;
 }
 
-body.sidebar .top-avatar {
+body.sidebar .top-avatar,
+body.room-shell .top-avatar {
   align-items: center;
   background: #3b82f6;
   border-radius: 999px;
@@ -1164,13 +1199,15 @@ body.sidebar .top-avatar {
   justify-content: center;
 }
 
-body.sidebar .bot-selection-grid {
+body.sidebar .bot-selection-grid,
+body.room-shell .bot-selection-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-body.sidebar .bot-card {
+body.sidebar .bot-card,
+body.room-shell .bot-card {
   align-items: center;
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -1180,19 +1217,23 @@ body.sidebar .bot-card {
   padding: 12px;
 }
 
-body.sidebar .bot-card.selected {
+body.sidebar .bot-card.selected,
+body.room-shell .bot-card.selected {
   border-color: color-mix(in oklab, #000000, var(--border-color) 55%);
 }
 
-body.sidebar .bot-card:has(input[type="checkbox"]:checked) {
+body.sidebar .bot-card:has(input[type="checkbox"]:checked),
+body.room-shell .bot-card:has(input[type="checkbox"]:checked) {
   border-color: color-mix(in oklab, #000000, var(--border-color) 55%);
 }
 
-body.sidebar .bot-card input[type="checkbox"] {
+body.sidebar .bot-card input[type="checkbox"],
+body.room-shell .bot-card input[type="checkbox"] {
   accent-color: #000000;
 }
 
-body.sidebar .bot-card-icon {
+body.sidebar .bot-card-icon,
+body.room-shell .bot-card-icon {
   align-items: center;
   background: #000000;
   border-radius: 16px;
@@ -1206,51 +1247,61 @@ body.sidebar .bot-card-icon {
   padding: 16px;
 }
 
-body.sidebar .bot-card-info {
+body.sidebar .bot-card-info,
+body.room-shell .bot-card-info {
   display: grid;
   gap: 2px;
 }
 
-body.sidebar .bot-card-name {
+body.sidebar .bot-card-name,
+body.room-shell .bot-card-name {
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
 }
 
-body.sidebar .bot-card-role {
+body.sidebar .bot-card-role,
+body.room-shell .bot-card-role {
   color: var(--text-secondary);
   font-size: 12px;
 }
 
-body.sidebar .ai-admin-nav-grid {
+body.sidebar .ai-admin-nav-grid,
+body.room-shell .ai-admin-nav-grid {
   margin-top: 16px;
 }
 
-body.sidebar a.ai-admin-nav-card {
+body.sidebar a.ai-admin-nav-card,
+body.room-shell a.ai-admin-nav-card {
   align-items: flex-start;
   min-block-size: 90px;
   text-decoration: none;
 }
 
-body.sidebar a.ai-admin-nav-card:hover {
+body.sidebar a.ai-admin-nav-card:hover,
+body.room-shell a.ai-admin-nav-card:hover {
   border-color: color-mix(in oklab, #000000, var(--border-color) 50%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-body.sidebar a.ai-admin-nav-card.ai-admin-nav-card--active {
+body.sidebar a.ai-admin-nav-card.ai-admin-nav-card--active,
+body.room-shell a.ai-admin-nav-card.ai-admin-nav-card--active {
   border-color: color-mix(in oklab, #000000, var(--border-color) 45%);
 }
 
-body.sidebar .ai-admin-nav-card .bot-card-role {
+body.sidebar .ai-admin-nav-card .bot-card-role,
+body.room-shell .ai-admin-nav-card .bot-card-role {
   line-height: 1.35;
 }
 
-body.sidebar .profile-list-grid {
+body.sidebar .profile-list-grid,
+body.room-shell .profile-list-grid {
   gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-body.sidebar .profile-list-card {
+body.sidebar .profile-list-card,
+body.room-shell .profile-list-card {
   align-items: stretch;
   cursor: pointer;
   display: grid;
@@ -1258,23 +1309,27 @@ body.sidebar .profile-list-card {
   min-block-size: 90px;
 }
 
-body.sidebar a.profile-list-card--link {
+body.sidebar a.profile-list-card--link,
+body.room-shell a.profile-list-card--link {
   color: inherit;
   text-decoration: none;
 }
 
-body.sidebar a.profile-list-card--link:hover {
+body.sidebar a.profile-list-card--link:hover,
+body.room-shell a.profile-list-card--link:hover {
   border-color: color-mix(in oklab, #000000, var(--border-color) 50%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-body.sidebar .profile-list-card__identity {
+body.sidebar .profile-list-card__identity,
+body.room-shell .profile-list-card__identity {
   align-items: center;
   display: flex;
   gap: 12px;
 }
 
-body.sidebar .profile-list-card__avatar {
+body.sidebar .profile-list-card__avatar,
+body.room-shell .profile-list-card__avatar {
   block-size: 44px;
   border: 1px solid var(--border-color);
   border-radius: 999px;
@@ -1282,13 +1337,15 @@ body.sidebar .profile-list-card__avatar {
   object-fit: cover;
 }
 
-body.sidebar .profile-list-card__meta {
+body.sidebar .profile-list-card__meta,
+body.room-shell .profile-list-card__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-body.sidebar .profile-list-card__chip {
+body.sidebar .profile-list-card__chip,
+body.room-shell .profile-list-card__chip {
   background: var(--surface-alt);
   border: 1px solid var(--border-color);
   border-radius: 999px;
@@ -1298,17 +1355,20 @@ body.sidebar .profile-list-card__chip {
   padding: 2px 9px;
 }
 
-body.sidebar .mcp-list-card {
+body.sidebar .mcp-list-card,
+body.room-shell .mcp-list-card {
   cursor: default;
 }
 
-body.sidebar .mcp-list-card__actions {
+body.sidebar .mcp-list-card__actions,
+body.room-shell .mcp-list-card__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-body.sidebar .mcp-list-card__actions form {
+body.sidebar .mcp-list-card__actions form,
+body.room-shell .mcp-list-card__actions form {
   margin: 0;
 }
 
