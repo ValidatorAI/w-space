@@ -366,6 +366,7 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room {
   border-radius: 0.5rem;
   box-shadow: none;
   margin-inline-end: 0;
+  position: relative;
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room:where(:not(:active):hover),
@@ -376,12 +377,27 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room:where(:n
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.unread,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.workspace-room__active,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link.workspace-room__active {
-  --btn-background: #26486d;
+  --btn-background: transparent;
   --btn-border-color: transparent;
   --btn-color: #f4f8ff;
 
   box-shadow: none;
   font-weight: 700;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.unread::after,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link.unread::after {
+  background: #2ecc71;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: 6px;
+  inset-inline-end: 0.45rem;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  z-index: 2;
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-company__button,
