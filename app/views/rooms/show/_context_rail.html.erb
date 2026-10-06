@@ -1,0 +1,89 @@
+<div class="room-context-rail">
+  <header class="room-context-rail__top">
+    <h2>Room context</h2>
+    <button type="button"
+            class="btn room-context-rail__close"
+            aria-label="Close context rail"
+            data-action="room-shell#toggleContext">
+      ×
+    </button>
+  </header>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">INTENDED OUTCOME</span>
+    <h3><%= @room_outcome.presence || "Align on next action with clear ownership and source-backed context." %></h3>
+    <p>Updated <%= time_ago_in_words(@room.updated_at) %> ago.</p>
+  </section>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">NEXT DECISION</span>
+    <% if @open_decision_requests.any? %>
+      <% next_decision = @open_decision_requests.first %>
+      <div class="room-context-rail__decision">
+        <strong><%= next_decision.decision_text.presence || "Decision request pending" %></strong>
+        <span>Requested <%= time_ago_in_words(next_decision.requested_at) %> ago</span>
+      </div>
+    <% else %>
+      <p>No pending decision approval in this room.</p>
+    <% end %>
+  </section>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">ROOM ACTIVITY</span>
+    <div class="room-context-rail__metrics">
+      <div>
+        <span>Messages in view</span>
+        <strong><%= @messages.size %></strong>
+      </div>
+      <div>
+        <span>Open decisions</span>
+        <strong><%= @open_decision_requests.size %></strong>
+      </div>
+      <div>
+        <span>Child topics</span>
+        <strong><%= @room.child_topics.count %></strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">PEOPLE & AUTHORITY</span>
+    <div class="room-context-rail__members">
+      <% @room_participants.each do |participant| %>
+        <div class="room-context-rail__member">
+          <span class="room-context-rail__avatar"><%= participant_avatar_tag(participant) %></span>
+          <span>
+            <strong><%= participant.name %></strong>
+            <% if participant == @room.creator %>
+              <small>Room owner</small>
+            <% elsif participant.is_a?(Agent) %>
+              <small>AI collaborator</small>
+            <% else %>
+              <small>Room member</small>
+            <% end %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">LINKED SOURCES</span>
+    <% if @artifact_assets.any? %>
+      <% @artifact_assets.first(4).each do |asset| %>
+        <% href = asset.external_source? ? asset.url : user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url) %>
+        <%= link_to href,
+              class: "room-context-rail__link",
+              target: ("_blank" if asset.external_source?),
+              rel: ("noopener noreferrer" if asset.external_source?),
+              data: { turbo: false } do %>
+          <%= asset.title %>
+        <% end %>
+      <% end %>
+    <% elsif @room_project.present? %>
+      <%= link_to "Open project knowledge", user_company_project_knowledge_path(user_id: "me", id: @room_project.id), class: "room-context-rail__link", data: { turbo: false, turbo_frame: "_top" } %>
+    <% else %>
+      <p>No linked sources yet.</p>
+    <% end %>
+  </section>
+</div>

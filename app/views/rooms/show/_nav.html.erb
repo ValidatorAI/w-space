@@ -1,42 +1,27 @@
 <% content_for :nav do %>
-  <% room_members = room.users.distinct.to_a.sort_by { |member| [ member.bot? ? 1 : 0, member.name.to_s.downcase ] } %>
-  <% top_level_project_room = room.project.present? && room.parent_id.nil? && !room.direct? %>
-  <% child_room = room.parent_id.present? && !room.direct? %>
+  <% workspace_name = room.project&.display_name || "Workspace" %>
 
-  <%= account_logo_tag if Current.account.logo.attached? %>
-
-  <% if top_level_project_room %>
-    <span class="btn btn--reversed btn--faux room--current user-settings-nav__pill">⚡ <%= room.project.display_name %></span>
-    <h1 class="user-settings-nav__title txt-large"># <%= room_display_name(room) %></h1>
-  <% elsif child_room %>
-    <span class="btn btn--reversed btn--faux room--current user-settings-nav__pill">Topic</span>
-    <h1 class="user-settings-nav__title txt-large"><%= room_display_name(room) %></h1>
-  <% else %>
-    <%= tag.span class: "btn btn--reversed btn--faux room--current" do %>
-      <h1 class="room__contents txt-medium overflow-ellipsis">
-        <% if room.direct? %>
-          <span class="for-screen-reader">Ping with</span>
-        <% end %>
-
-        <%= room_display_name(room) %>
-      </h1>
-    <% end %>
-  <% end %>
-
-  <% if room_members.any? %>
-    <div class="nav__room-members" aria-label="Room members">
-      <span class="nav__room-members-label">Members</span>
-
-      <% room_members.each do |member| %>
-        <% member_classes = [ "nav__room-member" ] %>
-        <% member_classes << "nav__room-member--robot" if member.bot? %>
-
-        <span class="<%= member_classes.join(" ") %>" title="<%= member.name %>">
-          <span class="nav__room-member-avatar">
-            <%= participant_avatar_tag member %>
-          </span>
-        </span>
-      <% end %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
     </div>
-  <% end %>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span><%= workspace_name %></span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(room.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
+  </div>
 <% end %>

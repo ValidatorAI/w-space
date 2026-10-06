@@ -1,0 +1,46 @@
+<div class="workspace-room__panel-content">
+  <span class="workspace-room__eyebrow">CONNECTED SOURCES</span>
+  <h2>Artifacts and evidence</h2>
+
+  <% if @room_project.blank? %>
+    <p class="workspace-room__empty">This room is not linked to a project knowledge base yet.</p>
+  <% else %>
+    <% if @artifact_assets.any? %>
+      <h3>External assets and playbooks</h3>
+      <div class="workspace-room__artifact-grid">
+        <% @artifact_assets.each do |asset| %>
+          <% href = if asset.external_source?
+                    asset.url
+                  else
+                    user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url)
+                  end %>
+          <% turbo_options = asset.external_source? ? { turbo: false } : { turbo: false, turbo_frame: "_top" } %>
+          <%= link_to href,
+                class: "workspace-room__artifact-card",
+                target: ("_blank" if asset.external_source?),
+                rel: ("noopener noreferrer" if asset.external_source?),
+                data: turbo_options do %>
+            <strong><%= asset.title %></strong>
+            <span><%= asset.doc_type.presence || "Reference" %></span>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="workspace-room__empty">No external assets linked to this room's project.</p>
+    <% end %>
+
+    <% if @artifact_knowledge_items.any? %>
+      <h3>Knowledge highlights</h3>
+      <ul class="workspace-room__knowledge-list">
+        <% @artifact_knowledge_items.each do |item| %>
+          <li>
+            <strong><%= item.title %></strong>
+            <span><%= item.description.truncate(180) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="workspace-room__empty">No active project knowledge highlights are available.</p>
+    <% end %>
+  <% end %>
+</div>

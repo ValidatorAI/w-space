@@ -1,0 +1,36 @@
+<div class="workspace-room__panel-content">
+  <span class="workspace-room__eyebrow">OPEN DECISIONS</span>
+  <h2>Decision queue</h2>
+  <p class="workspace-room__muted">Track pending room decisions and confirmed records linked to this project.</p>
+
+  <% if @open_decision_requests.any? %>
+    <div class="workspace-room__decision-cards">
+      <%= render partial: "approval_requests/card", collection: @open_decision_requests, as: :approval_request %>
+    </div>
+  <% else %>
+    <p class="workspace-room__empty">No pending decision approvals in this room right now.</p>
+  <% end %>
+
+  <h3>Recorded decisions</h3>
+  <% if @recent_decision_records.any? %>
+    <ul class="workspace-room__record-list">
+      <% @recent_decision_records.each do |decision| %>
+        <li>
+          <div>
+            <strong><%= decision.identifier %></strong>
+            <span><%= decision.title %></span>
+          </div>
+          <span class="workspace-room__record-meta"><%= decision.status.titleize %> · <%= decision.formatted_date %></span>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if @room_project.present? %>
+      <p class="workspace-room__muted">
+        <%= link_to "Open full decision records", user_company_project_knowledge_path(user_id: "me", id: @room_project.id), data: { turbo: false, turbo_frame: "_top" } %>
+      </p>
+    <% end %>
+  <% else %>
+    <p class="workspace-room__empty">No decision records are linked yet.</p>
+  <% end %>
+</div>

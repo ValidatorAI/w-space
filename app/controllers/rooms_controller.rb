@@ -9,6 +9,7 @@ class RoomsController < ApplicationController
 
   def show
     @messages = find_messages
+    prepare_room_shell_context
   end
 
   def destroy
@@ -60,6 +61,31 @@ class RoomsController < ApplicationController
 
     def room_params
       params.require(:room).permit(:name)
+    end
+
+    def prepare_room_shell_context
+      @room_project = @room.project || @room.parent&.project
+      room_ids = [ @room.id ] + @room.child_topics.ids
+
+      decision_requests_scope = ApprovalRequest.where(room_id: room_ids, request_type: "decision").recent
+      @open_decision_requests = decision_requests_scope.where(status: :pending).limit(5)
+      @recent_decision_requests = decision_requests_scope.limit(10)
+
+      if @room_project
+        @recent_decision_records = @room_project.adrs.active.ordered.limit(5)
+        @artifact_assets = @room_project.external_assets.active.ordered.limit(6)
+        @artifact_knowledge_items = @room_project.knowledge_items.active.ordered.limit(6)
+        @room_outcome = @room_project.description.presence || @artifact_knowledge_items.first&.description
+      else
+        @recent_decision_records = []
+        @artifact_assets = []
+        @artifact_knowledge_items = []
+        @room_outcome = nil
+      end
+
+      @room_participants = @room.memberships.includes(:participant).map(&:participant).compact
+      @decision_items_count = @open_decision_requests.size + @recent_decision_records.size
+      @artifact_items_count = @artifact_assets.size + @artifact_knowledge_items.size
     end
 
     def broadcast_remove_room
