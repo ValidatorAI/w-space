@@ -16,6 +16,9 @@ export default class extends Controller {
     this.mobileMedia.addEventListener("change", this.handleViewportChange)
     this.contextMedia.addEventListener("change", this.handleViewportChange)
     this.workspaceTarget?.addEventListener("turbo:frame-load", this.markActiveSidebarLink)
+    this.workspaceTarget?.addEventListener("click", this.handleSidebarRoomClick)
+    document.addEventListener("turbo:render", this.markActiveSidebarLink)
+    document.addEventListener("turbo:load", this.markActiveSidebarLink)
 
     this.selectByName(this.defaultTabValue || "conversation")
     this.handleViewportChange()
@@ -26,6 +29,9 @@ export default class extends Controller {
     this.mobileMedia?.removeEventListener("change", this.handleViewportChange)
     this.contextMedia?.removeEventListener("change", this.handleViewportChange)
     this.workspaceTarget?.removeEventListener("turbo:frame-load", this.markActiveSidebarLink)
+    this.workspaceTarget?.removeEventListener("click", this.handleSidebarRoomClick)
+    document.removeEventListener("turbo:render", this.markActiveSidebarLink)
+    document.removeEventListener("turbo:load", this.markActiveSidebarLink)
   }
 
   switchTab(event) {
@@ -95,6 +101,13 @@ export default class extends Controller {
 
     const expanded = !this.element.classList.contains("workspace-room--context-hidden")
     this.contextToggleTarget.setAttribute("aria-expanded", String(expanded))
+  }
+
+  handleSidebarRoomClick(event) {
+    const link = event.target.closest("a.room")
+    if (!link) return
+
+    requestAnimationFrame(() => this.markActiveSidebarLink())
   }
 
   markActiveSidebarLink() {

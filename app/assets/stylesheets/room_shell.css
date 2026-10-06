@@ -374,13 +374,20 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room:where(:n
   --btn-background: #1b324c;
 }
 
-body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.unread,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.workspace-room__active,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link.workspace-room__active {
-  --btn-background: transparent;
+  --btn-background: #26486d;
   --btn-border-color: transparent;
   --btn-color: #f4f8ff;
 
+  box-shadow: none;
+  font-weight: 700;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room.unread {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: #f4f8ff;
   box-shadow: none;
   font-weight: 700;
 }
