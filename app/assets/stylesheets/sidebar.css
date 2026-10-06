@@ -355,6 +355,69 @@
   padding-inline: var(--sidebar-inline-space);
 }
 
+.sidebar-direct-messages {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sidebar-direct-messages__summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  margin: 0;
+  user-select: none;
+}
+
+.sidebar-direct-messages__summary::-webkit-details-marker,
+.sidebar-direct-messages__summary::marker {
+  display: none;
+}
+
+.sidebar-direct-messages__summary::after {
+  color: color-mix(in oklab, var(--color-text), transparent 45%);
+  content: "▾";
+  font-size: 0.72rem;
+  transition: transform 150ms ease;
+}
+
+.sidebar-direct-messages:not([open]) > .sidebar-direct-messages__summary::after {
+  transform: rotate(-90deg);
+}
+
+.sidebar-direct-messages__list {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.sidebar-direct-messages__list .direct {
+  align-items: center;
+  border-radius: 999px;
+  color: var(--color-text);
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-start;
+  max-inline-size: none;
+  padding: 0.4rem 0.55rem;
+  text-decoration: none;
+  width: 100%;
+}
+
+.sidebar-direct-messages__list .direct:hover,
+.sidebar-direct-messages__list .direct:focus-visible {
+  background: color-mix(in oklab, var(--color-text), transparent 92%);
+}
+
+.sidebar-direct-messages__list .direct .avatar {
+  flex-shrink: 0;
+}
+
+.sidebar-direct-messages__list .direct__author {
+  margin: 0;
+  max-inline-size: 100%;
+}
+
 .sidebar-company {
   display: grid;
   gap: 0.6em;

@@ -191,6 +191,18 @@
           <%= render "users/sidebars/rooms/shared", room: membership.room, unread: membership.unread?, depth: depth %>
         <% end %>
       </div>
+
+      <% if @direct_memberships.any? %>
+        <details class="sidebar-direct-messages" open>
+          <summary class="sidebar-direct-messages__summary rooms__section-label">Direct messages</summary>
+
+          <div class="sidebar-direct-messages__list">
+            <% @direct_memberships.each do |membership| %>
+              <%= render "users/sidebars/rooms/direct", membership: membership %>
+            <% end %>
+          </div>
+        </details>
+      <% end %>
     </div>
 
     <button class="btn sidebar__toggle" data-action="toggle-class#toggle">

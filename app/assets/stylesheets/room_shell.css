@@ -243,6 +243,33 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .rooms__sectio
   text-transform: lowercase;
 }
 
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-direct-messages {
+  border-left: 1px solid rgba(142, 169, 196, 0.35);
+  margin-left: 0.7rem;
+  padding-left: 0.7rem;
+  padding-top: 0.2rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-direct-messages__summary {
+  color: #8ea9c4;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-direct-messages__list .direct {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: #dfeaf8;
+  border-radius: 0.5rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-direct-messages__list .direct:where(:not(:active):hover),
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-direct-messages__list .direct:where(:not(:active)):focus-visible {
+  --btn-background: #1d3550;
+}
+
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-rooms {
   border-left: 1px solid rgba(142, 169, 196, 0.35);
   margin-left: 0.6rem;

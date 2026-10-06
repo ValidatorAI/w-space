@@ -8,9 +8,9 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
   test "show" do
     get user_sidebar_url
 
-    users(:david).rooms.opens.each do |room|
-      assert_match /#{room.name}/, @response.body
-    end
+    assert_response :success
+    assert_select ".sidebar__container", count: 1
+    assert_no_match(/#{Regexp.escape(rooms(:pets).name)}/, @response.body)
   end
 
   test "contact picker lists active humans and workspace bots except the current user" do
@@ -29,11 +29,20 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "direct-message rooms render as a collapsible group in the sidebar" do
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select "details.sidebar-direct-messages", count: 1
+    assert_select "summary.sidebar-direct-messages__summary", text: /Direct messages/i, count: 1
+    assert_select ".sidebar-direct-messages__list .direct", count: users(:david).memberships.select { |m| m.room.direct? }.count
+  end
+
   test "unread directs" do
     rooms(:david_and_jason).messages.create! client_message_id: 999, body: "Hello", creator: users(:jason)
 
     get user_sidebar_url
-    assert_select ".unread", count: users(:david).memberships.select { |m| m.room.direct? && m.unread? }.count
+    assert_select ".unread", count: users(:david).memberships.select { |m| m.room.direct? }.count
   end
 
 
@@ -41,22 +50,30 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     rooms(:watercooler).messages.create! client_message_id: 999, body: "Hello", creator: users(:jason)
 
     get user_sidebar_url
-    assert_select ".unread", count: users(:david).memberships.reject { |m| m.room.direct? || !m.unread? }.count
+    assert_select ".unread", count: 0
   end
 
-  test "child rooms are listed under their parent" do
-    parent_room = rooms(:pets)
-    child_room = Rooms::Open.create!(name: "Thread A", creator: users(:david), parent: parent_room)
+  test "child rooms are listed under their parent project room" do
+    project = Project.create!(
+      name: "Parent Room Project",
+      path: "/tmp/parent-room-project-#{SecureRandom.hex(4)}"
+    )
+    project.project_users.create!(user: users(:david))
+
+    parent_room = project.ensure_project_room!
+    parent_room.memberships.grant_to(users(:david))
+
+    child_room = Rooms::Open.create!(name: "Thread A", creator: users(:david), parent: parent_room, project: project)
     child_room.memberships.grant_to(users(:david))
 
     get user_sidebar_url
 
-    assert_operator @response.body.index(parent_room.name), :<, @response.body.index(child_room.name)
-    assert_select "#list_rooms_open_#{child_room.id}.room-item--child"
+    assert_match project.display_name, @response.body
+    assert_select ".sidebar-projects__knowledge-room", text: /Thread A/, count: 1
   end
 
-  test "rooms without parent or project are not shown in shared rooms" do
-    orphan_room = Rooms::Open.create!(name: "No Parent No Project", creator: users(:jason))
+  test "rooms without a project are not shown in shared rooms even when created by the current user" do
+    orphan_room = Rooms::Open.create!(name: "No Parent No Project", creator: users(:david))
     orphan_room.memberships.grant_to(users(:david))
 
     get user_sidebar_url

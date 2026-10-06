@@ -80,10 +80,6 @@ class Users::SidebarsController < ApplicationController
     end
 
     def room_without_parent_or_project?(room)
-      return false if room.project_id.present?
-      return true if room.parent&.direct?
-      return false if room.parent_id.present?
-
-      room.creator_id != Current.user.id
+      room.project_id.blank? && !room.direct?
     end
 end
