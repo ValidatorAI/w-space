@@ -16,7 +16,7 @@
 }
 
 body.room-shell {
-  --navbar-height: 4.25rem;
+  --navbar-height: 4.125rem;
 }
 
 body.room-shell #sidebar {
@@ -26,9 +26,12 @@ body.room-shell #sidebar {
 body.room-shell #nav {
   background: var(--workspace-room-topbar);
   border-bottom: 1px solid var(--workspace-room-topbar-border);
-  inset-inline-end: 0;
-  padding: 0.7rem 1.1rem;
+  inset: auto;
+  margin: 0;
+  padding: 0 1rem;
   pointer-events: auto;
+  position: relative;
+  z-index: auto;
 }
 
 body.room-shell #nav::before {
@@ -38,7 +41,7 @@ body.room-shell #nav::before {
 body.room-shell #main-content {
   background: var(--workspace-room-bg);
   overflow: hidden;
-  padding-top: var(--navbar-height);
+  padding-top: 0;
 }
 
 body.room-shell #footer {
@@ -167,6 +170,7 @@ body.room-shell #footer .composer {
 
 .workspace-room__workspace .sidebar__container {
   padding-block-end: 0;
+  padding-block-start: 0;
 }
 
 .workspace-room__workspace .sidebar__toggle {
@@ -351,7 +355,7 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   display: flex;
   gap: 0.85rem;
   justify-content: space-between;
-  padding: 1rem 1.25rem 0.8rem;
+  padding: 0.9rem 1.1rem 0.7rem;
 }
 
 .workspace-room__heading {
@@ -431,7 +435,7 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   border-bottom: 1px solid var(--workspace-room-line);
   display: flex;
   gap: 0.85rem;
-  padding: 0 1.25rem;
+  padding: 0 1.1rem;
 }
 
 .workspace-room__tab {
