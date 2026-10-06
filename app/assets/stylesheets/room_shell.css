@@ -176,9 +176,26 @@ body.room-shell #footer .composer {
   overflow: hidden;
 }
 
+.workspace-room__workspace > turbo-frame,
+.workspace-room__workspace > turbo-frame > * {
+  background: #0f1f34;
+}
+
 .workspace-room__workspace .sidebar__container {
+  background: #0f1f34;
   padding-block-end: 0;
   padding-block-start: 0;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace > turbo-frame,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace > turbo-frame > *,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__container,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-company,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .rooms,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__bottom-row {
+  background: #0f1f34 !important;
 }
 
 .workspace-room__workspace .sidebar__toggle {
