@@ -456,6 +456,22 @@
   min-inline-size: 0;
 }
 
+.sidebar-projects__project-icon {
+  align-items: center;
+  background: #12263d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #f4f8ff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  height: 1.65rem;
+  justify-content: center;
+  line-height: 1;
+  width: 1.65rem;
+}
+
 .sidebar-projects__name {
   color: #000 !important;
   font-weight: 700;

@@ -46,6 +46,7 @@
 
           <% @projects.each do |project| %>
             <% archived_project = project.archived? %>
+            <% project_initial = project.display_name.to_s.first.to_s.upcase.presence || "?" %>
             <div class="sidebar-projects__item" data-project-id="<%= project.id %>">
               <% project_room = project.project_room %>
               <div class="sidebar-projects__row">
@@ -55,12 +56,14 @@
                         class: [ "room btn txt-nowrap sidebar-projects__button", "unread": membership&.unread? ],
                         data: { project_id: project.id } do %>
                     <span class="sidebar-projects__main">
+                      <span class="sidebar-projects__project-icon" aria-hidden="true"><%= project_initial %></span>
                       <span class="overflow-ellipsis sidebar-projects__name"><%= project.display_name %></span>
                     </span>
                   <% end %>
                 <% else %>
                   <span class="room btn txt-nowrap sidebar-projects__button sidebar-projects__button--inactive">
                     <span class="sidebar-projects__main">
+                      <span class="sidebar-projects__project-icon" aria-hidden="true"><%= project_initial %></span>
                       <span class="overflow-ellipsis sidebar-projects__name"><%= project.display_name %></span>
                     </span>
                   </span>

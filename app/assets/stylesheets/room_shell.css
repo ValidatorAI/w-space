@@ -374,6 +374,15 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
   color: #f1f6fc !important;
 }
 
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__project-icon {
+  background: #152d44;
+  border-color: rgba(146, 176, 204, 0.35);
+  color: #edf5ff;
+  font-size: 0.7rem;
+  height: 1.8rem;
+  width: 1.8rem;
+}
+
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__name {
   color: #f1f6fc !important;
 }
