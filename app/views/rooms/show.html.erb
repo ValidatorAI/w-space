@@ -135,6 +135,8 @@
              hidden>
       <%= render "rooms/show/artifacts_panel", room: @room %>
     </section>
+
+    <%= render "rooms/show/composer", room: @room %>
   </main>
 
   <aside class="workspace-room__context"
@@ -144,5 +146,3 @@
     <%= render "rooms/show/context_rail", room: @room %>
   </aside>
 </div>
-
-<%= render "rooms/show/composer", room: @room %>
