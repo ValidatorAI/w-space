@@ -2,17 +2,7 @@
 <div class="room-item <%= "room-item--child" if depth.positive? %>" id="<%= dom_id(room, :list) %>" style="--room-depth: <%= depth %>">
   <%= link_to_room room,
         class: [ "room-item__link room btn txt-nowrap", "unread": local_assigns[:unread] ] do %>
+    <span class="room-item__prefix" aria-hidden="true">#</span>
     <span class="overflow-ellipsis"><%= room.name %></span>
-    <% unless room.is_a?(Rooms::Meta) %>
-      <details class="room-item__actions" onclick="event.stopPropagation();">
-        <summary class="room-item__actions-btn">
-          <%= image_tag "trash.svg", size: 12 %>
-        </summary>
-        <div class="room-item__menu">
-          <%= button_to "Clear", room_clear_path(room), method: :post, class: "room-item__menu-btn" %>
-          <%= button_to "Delete", room_path(room), method: :delete, class: "room-item__menu-btn room-item__menu-btn--danger" %>
-        </div>
-      </details>
-    <% end %>
   <% end %>
 </div>

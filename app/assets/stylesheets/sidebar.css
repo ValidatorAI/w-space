@@ -651,7 +651,7 @@
 }
 
 .room {
-  background-color: var(--color-text-reversed);
+  /* background-color: var(--color-text-reversed); */
   color: var(--color-text);
   font-weight: normal;
   justify-content: start;

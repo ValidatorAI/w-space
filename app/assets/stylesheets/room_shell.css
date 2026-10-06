@@ -227,6 +227,98 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
   letter-spacing: 0.16em;
 }
 
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .rooms {
+  border-left: 1px solid rgba(142, 169, 196, 0.4);
+  margin-left: 0.7rem;
+  padding-left: 0.7rem;
+  padding-top: 0.25rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .rooms__section-label {
+  color: #8ea9c4;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin: 0.1rem 0 0.3rem;
+  text-transform: lowercase;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-rooms {
+  border-left: 1px solid rgba(142, 169, 196, 0.35);
+  margin-left: 0.6rem;
+  padding-left: 0.75rem;
+  padding-top: 0.1rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-rooms-label {
+  color: #8ea9c4;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin-bottom: 0.15rem;
+  text-transform: lowercase;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item {
+  display: block;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: #dfeaf8;
+  --btn-padding: 0.42rem 0.55rem;
+
+  align-items: center;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 0.45rem;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link::before,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room::before {
+  color: #a6bdd8;
+  content: "#";
+  display: inline-block;
+  font-weight: 700;
+  line-height: 1;
+  width: 0.8rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link:where(:not(:active):hover),
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link:where(:not(:active)):focus-visible,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room:where(:not(:active):hover),
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room:where(:not(:active)):focus-visible {
+  --btn-background: #1d3550;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link.workspace-room__active,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link.unread,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room.unread,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room.workspace-room__active {
+  --btn-background: #2a4669;
+  --btn-color: #f4f8ff;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__prefix {
+  color: #a6bdd8;
+  font-weight: 700;
+  line-height: 1;
+  width: 0.85rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__actions,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__actions-btn,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__menu {
+  display: none !important;
+}
+
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-company__settings,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__settings-link {
   --btn-background: transparent;
