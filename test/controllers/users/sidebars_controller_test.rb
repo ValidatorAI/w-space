@@ -36,13 +36,15 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.sidebar-direct-messages", count: 1
     assert_select "summary.sidebar-direct-messages__summary", text: /Direct messages/i, count: 1
     assert_select ".sidebar-direct-messages__list .direct", count: users(:david).memberships.select { |m| m.room.direct? }.count
+    assert_select ".rooms__section-label", text: /Rooms/i, count: 0
+    assert_select "#shared_rooms", count: 0
   end
 
   test "unread directs" do
     rooms(:david_and_jason).messages.create! client_message_id: 999, body: "Hello", creator: users(:jason)
 
     get user_sidebar_url
-    assert_select ".unread", count: users(:david).memberships.select { |m| m.room.direct? }.count
+    assert_select ".unread", count: users(:david).memberships.select { |m| m.room.direct? && m.unread? }.count
   end
 
 
