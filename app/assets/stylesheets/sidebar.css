@@ -458,18 +458,18 @@
 
 .sidebar-projects__project-icon {
   align-items: center;
-  background: #12263d;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: #f4f8ff;
+  background: rgb(211, 171, 99);
+  border: 0;
+  border-radius: 4px;
+  color: #0f1f34;
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  height: 1.65rem;
+  height: 20px;
   justify-content: center;
   line-height: 1;
-  width: 1.65rem;
+  width: 20px;
 }
 
 .sidebar-projects__name {
