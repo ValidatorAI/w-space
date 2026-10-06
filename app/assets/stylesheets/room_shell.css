@@ -15,12 +15,32 @@
   --workspace-room-context-width: clamp(17.5rem, 23vw, 23rem);
 }
 
+html,
+body {
+  overflow-x: hidden !important;
+}
+
 body.room-shell {
   --navbar-height: 4.125rem;
+  overflow: hidden !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body.room-shell::-webkit-scrollbar,
+body.room-shell #main-content::-webkit-scrollbar,
+body.room-shell #sidebar::-webkit-scrollbar,
+body.room-shell .workspace-room__panel-content::-webkit-scrollbar,
+body.room-shell .workspace-room__context::-webkit-scrollbar,
+body.room-shell .overflow-y::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 body.room-shell #sidebar {
   display: block;
+  overflow: hidden;
 }
 
 body.room-shell #nav {
@@ -43,6 +63,12 @@ body.room-shell #main-content {
   background: var(--workspace-room-bg);
   overflow: hidden;
   padding-top: 0;
+}
+
+body.room-shell .workspace-room__panel-content,
+body.room-shell .workspace-room__context {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body.room-shell #footer {

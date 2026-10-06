@@ -93,9 +93,15 @@ body.sidebar .nav__room-members {
   flex: 1 0 100%;
   gap: 0.4rem;
   margin-top: 0.25rem;
-  overflow-x: auto;
+  overflow: hidden;
   padding-top: 0.65rem;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+
+body.sidebar .nav__room-members::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 body.sidebar .nav__room-members-label {
