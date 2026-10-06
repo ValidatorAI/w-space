@@ -2,7 +2,13 @@
 
 <% cache [ message, local_assigns[:parent_room] ] do %>
   <%= message_tag message do %>
-    <h2 class="message__day-separator"><%= local_datetime_tag message.created_at, style: :date %></h2>
+    <div class="message__day-separator">
+      <span>
+        <%= local_datetime_tag message.created_at, style: :date, class: "message__day-separator-date" %>
+        <span class="message__day-separator-dot">&middot;</span>
+        <%= local_datetime_tag message.created_at, style: :time, class: "message__day-separator-time" %>
+      </span>
+    </div>
 
     <figure class="avatar message__avatar">
       <%= participant_avatar_tag message.creator %>
@@ -10,13 +16,13 @@
 
     <turbo-frame id="<%= dom_id(message, :edit) %>">
       <div class="message__body">
-        <div class="message__body-content">
+        <div class="message__body-content message-content">
           <% if local_assigns[:parent_room] && message.room_id != parent_room.id %>
             <%= link_to room_at_message_path(message.room, message), class: "message__topic", target: "_top", data: { reply_target: "link" } do %>
               Topic: <%= room_display_name(message.room, for_user: nil) %>
             <% end %>
           <% end %>
-          <div class="message__meta">
+          <div class="message__meta message-meta">
             <h3 class="message__heading">
               <span class="message__author" title="<%= message.creator.title %>">
                 <strong data-reply-target="author"><%= message.creator.name %></strong>
