@@ -674,7 +674,114 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
 }
 
 .workspace-room__panel--conversation .messages {
-  padding-block-start: 0;
+  padding: 1.1rem 1.3rem 0;
+  row-gap: 1rem;
+}
+
+.workspace-room__panel--conversation .message {
+  --message-column-gap: 0.32rem;
+  column-gap: 0.38rem;
+  grid-auto-columns: auto minmax(0, 1fr);
+  grid-template-areas: "avatar body";
+  padding-inline: 0;
+}
+
+.workspace-room__panel--conversation .message__avatar {
+  --avatar-size: 2.1rem;
+  --avatar-border-radius: 0.55rem;
+
+  margin-inline: 0;
+}
+
+.workspace-room__panel--conversation .message__avatar .avatar {
+  --avatar-size: 2.1rem;
+  --avatar-border-radius: 0.55rem;
+
+  border-radius: var(--avatar-border-radius);
+  box-shadow: none;
+}
+
+.workspace-room__panel--conversation .message__body {
+  justify-content: flex-start;
+  margin-inline-start: 0;
+  max-inline-size: min(78ch, 100%);
+  position: relative;
+}
+
+.workspace-room__panel--conversation .message__actions {
+  align-items: center;
+  display: flex;
+  inset-block-start: 0.35rem;
+  inset-inline-end: -2.2rem;
+  justify-content: center;
+  position: absolute;
+  z-index: 2;
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn,
+.workspace-room__panel--conversation .message__actions .message__edit-btn {
+  --btn-padding: 0.28rem 0.42rem;
+
+  min-block-size: auto;
+  opacity: 1;
+}
+
+.workspace-room__panel--conversation .message--me .message__body,
+.workspace-room__panel--conversation .message--me :is(.message__meta, .message__heading) {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.workspace-room__panel--conversation .message--me {
+  grid-template-areas: "avatar body body";
+}
+
+.workspace-room__panel--conversation .message__meta {
+  align-items: center;
+  display: flex;
+  gap: 0.22rem;
+  line-height: 1.2;
+  margin-block-end: 0.14rem;
+  padding-inline-end: 2.1rem;
+}
+
+.workspace-room__panel--conversation .message__heading {
+  align-items: center;
+  display: flex;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.workspace-room__panel--conversation .message__author,
+.workspace-room__panel--conversation .message__permalink {
+  font-size: 0.72rem;
+}
+
+.workspace-room__panel--conversation .message__permalink {
+  color: var(--workspace-room-muted);
+  opacity: 1;
+}
+
+.workspace-room__panel--conversation .message__body-content {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #1f2d3a;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin-block-end: 0;
+  max-inline-size: 100%;
+  padding: 0;
+  padding-inline-start: 0;
+}
+
+.workspace-room__panel--conversation .message__body-content p,
+.workspace-room__panel--conversation .message__body-content li,
+.workspace-room__panel--conversation .message__body-content span,
+.workspace-room__panel--conversation .message__body-content div {
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .workspace-room__panel-content {
