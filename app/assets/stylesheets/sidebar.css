@@ -424,6 +424,7 @@
 }
 
 .sidebar-direct-messages__list .direct__author {
+  color: #b5c5d5 !important;
   margin: 0;
   max-inline-size: 100%;
 }
