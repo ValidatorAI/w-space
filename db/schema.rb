@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_08_020000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_08_030000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -313,6 +313,16 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_020000) do
     t.text "tags"
     t.datetime "updated_at", null: false
     t.index ["message_id"], name: "index_message_analysis_on_message_id", unique: true
+  end
+
+  create_table "message_topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.integer "message_id", null: false
+    t.integer "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_message_topics_on_message_id"
+    t.index ["topic_id"], name: "index_message_topics_on_topic_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -697,6 +707,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_020000) do
   add_foreign_key "file_reservations", "agents"
   add_foreign_key "file_reservations", "projects"
   add_foreign_key "message_analysis", "messages"
+  add_foreign_key "message_topics", "messages"
+  add_foreign_key "message_topics", "topics"
   add_foreign_key "messages", "rooms"
   add_foreign_key "project_adrs", "projects"
   add_foreign_key "project_all_hands_action_items", "projects"
