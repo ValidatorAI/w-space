@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_08_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_08_010000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -620,6 +620,23 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_000000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "topics", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.integer "importance_level"
+    t.text "memory"
+    t.text "name", null: false
+    t.boolean "need_an_action", default: false, null: false
+    t.integer "parent_topic_id"
+    t.integer "project_id", null: false
+    t.text "related_topics"
+    t.text "required_actions"
+    t.text "state"
+    t.datetime "updated_at", null: false
+    t.index ["parent_topic_id"], name: "index_topics_on_parent_topic_id"
+    t.index ["project_id"], name: "index_topics_on_project_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.text "bio"
     t.string "bot_token"
@@ -694,6 +711,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_000000) do
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"
   add_foreign_key "sessions", "users"
+  add_foreign_key "topics", "projects"
+  add_foreign_key "topics", "topics", column: "parent_topic_id"
   add_foreign_key "webhooks", "users"
 
   # Virtual tables defined in this database.
