@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_08_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -301,6 +301,18 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
     t.index ["room_id", "created_at"], name: "index_memberships_on_room_id_and_created_at"
     t.index ["room_id", "participant_type", "participant_id"], name: "index_memberships_on_room_and_participant", unique: true
     t.index ["room_id"], name: "index_memberships_on_room_id"
+  end
+
+  create_table "message_analysis", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "importance_level", null: false
+    t.boolean "is_a_response", default: false, null: false
+    t.text "message_content_summary", null: false
+    t.integer "message_id", null: false
+    t.text "message_type", null: false
+    t.text "tags"
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_message_analysis_on_message_id", unique: true
   end
 
   create_table "messages", force: :cascade do |t|
@@ -658,6 +670,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
   add_foreign_key "company_status_periods", "accounts"
   add_foreign_key "file_reservations", "agents"
   add_foreign_key "file_reservations", "projects"
+  add_foreign_key "message_analysis", "messages"
   add_foreign_key "messages", "rooms"
   add_foreign_key "project_adrs", "projects"
   add_foreign_key "project_all_hands_action_items", "projects"
