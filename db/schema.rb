@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_08_010000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_08_020000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -566,6 +566,15 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_010000) do
     t.index ["updated_at"], name: "index_room_ai_activity_states_on_updated_at"
   end
 
+  create_table "room_history_topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.text "last_state"
+    t.integer "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id"], name: "index_room_history_topics_on_room_id"
+  end
+
   create_table "rooms", force: :cascade do |t|
     t.datetime "archived_at"
     t.datetime "created_at", null: false
@@ -707,6 +716,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_08_010000) do
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "room_ai_activity_states", "agents"
   add_foreign_key "room_ai_activity_states", "rooms"
+  add_foreign_key "room_history_topics", "rooms"
   add_foreign_key "rooms", "projects"
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"
