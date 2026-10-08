@@ -5,6 +5,7 @@ class Project < ApplicationRecord
   has_many :project_users, dependent: :delete_all
   has_many :users, through: :project_users
   has_many :attention_items, dependent: :nullify
+  has_many :topics, dependent: :destroy
   has_many :bottlenecks, class_name: "ProjectBottleneck", dependent: :destroy
   has_many :todos, class_name: "ProjectTodo", dependent: :destroy
   has_many :knowledge_items, class_name: "ProjectKnowledgeItem", dependent: :destroy

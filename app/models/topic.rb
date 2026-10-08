@@ -1,6 +1,8 @@
 class Topic < ApplicationRecord
   belongs_to :project
   belongs_to :parent_topic, class_name: "Topic", optional: true, inverse_of: :child_topics
+  has_many :message_topics, dependent: :destroy
+  has_many :messages, through: :message_topics
   has_many :child_topics, class_name: "Topic", foreign_key: :parent_topic_id, dependent: :nullify, inverse_of: :parent_topic
 
   validates :project, presence: true
