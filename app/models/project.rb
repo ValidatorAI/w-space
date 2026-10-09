@@ -7,6 +7,7 @@ class Project < ApplicationRecord
   has_many :attention_items, dependent: :nullify
   has_many :topics, dependent: :destroy
   has_many :bottlenecks, class_name: "ProjectBottleneck", dependent: :destroy
+  has_many :tasks, dependent: :destroy
   has_many :todos, class_name: "ProjectTodo", dependent: :destroy
   has_many :knowledge_items, class_name: "ProjectKnowledgeItem", dependent: :destroy
   has_many :project_all_hands_takeaways, class_name: "ProjectAllHandsTakeaway", dependent: :destroy
