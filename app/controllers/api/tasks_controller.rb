@@ -44,6 +44,14 @@ module Api
       head :no_content
     end
 
+    def task_cost
+      task = Task.find_by(id: params[:task_id])
+      return render json: { error: "Task not found" }, status: :not_found unless task
+
+      task.apply_task_cost!(params[:token_used], params[:usd_used])
+      render json: serialize(task)
+    end
+
     private
 
     def task_params
@@ -52,6 +60,7 @@ module Api
         :token_used,
         :token_budget,
         :usd_usage,
+        :usd_used,
         :usd_budget,
         :room_id,
         :project_id,
