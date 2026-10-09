@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_09_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_09_010000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -647,6 +647,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_09_000000) do
     t.integer "token_budget"
     t.integer "token_used"
     t.datetime "updated_at", null: false
+    t.float "usd_budget"
+    t.float "usd_usage"
     t.index ["parent_task_id"], name: "index_tasks_on_parent_task_id"
     t.index ["project_id"], name: "index_tasks_on_project_id"
     t.index ["room_id"], name: "index_tasks_on_room_id"

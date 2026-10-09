@@ -51,6 +51,8 @@ module Api
         :adder_profile,
         :token_used,
         :token_budget,
+        :usd_usage,
+        :usd_budget,
         :room_id,
         :project_id,
         :description,
