@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_09_010000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_09_020000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -638,6 +638,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_09_010000) do
     t.text "assigneee_profile"
     t.datetime "created_at", null: false
     t.text "description", null: false
+    t.integer "grand_parent_id"
     t.integer "importance", default: 0, null: false
     t.integer "level", default: 0, null: false
     t.integer "parent_task_id"
@@ -649,6 +650,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_09_010000) do
     t.datetime "updated_at", null: false
     t.float "usd_budget"
     t.float "usd_usage"
+    t.index ["grand_parent_id"], name: "index_tasks_on_grand_parent_id"
     t.index ["parent_task_id"], name: "index_tasks_on_parent_task_id"
     t.index ["project_id"], name: "index_tasks_on_project_id"
     t.index ["room_id"], name: "index_tasks_on_room_id"

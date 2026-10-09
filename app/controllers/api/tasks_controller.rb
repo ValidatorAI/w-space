@@ -60,6 +60,7 @@ module Api
         :added_to_kanban,
         :runned,
         :parent_task_id,
+        :grand_parent_id,
         :importance,
         :level
       )
@@ -72,6 +73,10 @@ module Api
 
       if params[:project_id].present?
         scope = scope.where(project_id: params[:project_id])
+      end
+
+      if params[:grand_parent_id].present?
+        scope = scope.where(grand_parent_id: params[:grand_parent_id])
       end
 
       if params.key?(:added_to_kanban)
