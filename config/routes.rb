@@ -218,6 +218,7 @@ Rails.application.routes.draw do
     resources :room_history_topics, only: %i[ index show create update destroy ]
     resources :room_history, only: %i[ index show create update destroy ], controller: "room_history_topics"
     resources :message_topics, only: %i[ index show create update destroy ]
+    resources :tasks, only: %i[ index show create update destroy ]
 
     resources :attention_items, only: %i[ index show create update destroy ]
 
