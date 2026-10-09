@@ -220,7 +220,10 @@ Rails.application.routes.draw do
     resources :message_topics, only: %i[ index show create update destroy ]
     post "tasks/task_cost", to: "tasks#task_cost", as: :task_cost
     patch "tasks/task_cost", to: "tasks#task_cost"
-    resources :tasks, only: %i[ index show create update destroy ]
+    resources :tasks, only: %i[ index show create update destroy ] do
+      get :children, on: :member
+      get :parents, on: :member
+    end
 
     resources :attention_items, only: %i[ index show create update destroy ]
 

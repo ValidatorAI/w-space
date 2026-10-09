@@ -142,6 +142,32 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 3.0, root.usd_used
   end
 
+  test "lists all descendant tasks recursively" do
+    root = Task.create!(project: @project, room: @room, description: "Root task", importance: 1, level: 1)
+    child = Task.create!(project: @project, room: @room, description: "Child task", importance: 1, level: 1, parent_task: root)
+    grandchild = Task.create!(project: @project, room: @room, description: "Grandchild task", importance: 1, level: 1, parent_task: child)
+    sibling = Task.create!(project: @project, room: @room, description: "Sibling task", importance: 1, level: 1)
+
+    get "/api/tasks/#{root.id}/children", headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [child.id, grandchild.id].sort, body["tasks"].map { |t| t["id"] }.sort
+    assert_not_includes body["tasks"].map { |t| t["id"] }, sibling.id
+  end
+
+  test "lists all ancestor tasks recursively from child upward" do
+    root = Task.create!(project: @project, room: @room, description: "Root task", importance: 1, level: 1)
+    child = Task.create!(project: @project, room: @room, description: "Child task", importance: 1, level: 1, parent_task: root)
+    grandchild = Task.create!(project: @project, room: @room, description: "Grandchild task", importance: 1, level: 1, parent_task: child)
+
+    get "/api/tasks/#{grandchild.id}/parents", headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [child.id, root.id], body["tasks"].map { |t| t["id"] }
+  end
+
   test "rejects requests without a bearer token" do
     get api_tasks_url
     assert_response :unauthorized

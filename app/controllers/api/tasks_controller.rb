@@ -52,6 +52,28 @@ module Api
       render json: serialize(task)
     end
 
+    def children
+      task = Task.find_by(id: params[:id])
+      return render json: { error: "Task not found" }, status: :not_found unless task
+
+      descendants = collect_descendants(task)
+      render json: {
+        count: descendants.count,
+        tasks: descendants.map { |item| serialize(item) }
+      }
+    end
+
+    def parents
+      task = Task.find_by(id: params[:id])
+      return render json: { error: "Task not found" }, status: :not_found unless task
+
+      ancestors = collect_ancestors(task)
+      render json: {
+        count: ancestors.count,
+        tasks: ancestors.map { |item| serialize(item) }
+      }
+    end
+
     private
 
     def task_params
@@ -97,6 +119,23 @@ module Api
       end
 
       scope
+    end
+
+    def collect_descendants(task, visited = Set.new)
+      return [] if visited.include?(task.id)
+
+      visited << task.id
+      task.child_tasks.flat_map do |child|
+        [child] + collect_descendants(child, visited)
+      end
+    end
+
+    def collect_ancestors(task, visited = Set.new)
+      parent = task.parent_task
+      return [] if parent.nil? || visited.include?(parent.id)
+
+      visited << parent.id
+      [parent] + collect_ancestors(parent, visited)
     end
 
     def serialize(task)
