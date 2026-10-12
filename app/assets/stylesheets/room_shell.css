@@ -763,16 +763,43 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   inset-block-start: 0.35rem;
   inset-inline-end: -2.2rem;
   justify-content: center;
+  opacity: 0;
+  pointer-events: none;
   position: absolute;
+  transition: opacity 120ms ease;
   z-index: 2;
+}
+
+.workspace-room__panel--conversation .message:hover .message__actions,
+.workspace-room__panel--conversation .message:focus-within .message__actions,
+.workspace-room__panel--conversation .message .message__actions:has(details[open]) {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .workspace-room__panel--conversation .message__actions .message__options-btn,
 .workspace-room__panel--conversation .message__actions .message__edit-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-color: color-mix(in oklab, var(--color-text), transparent 42%);
   --btn-padding: 0.28rem 0.42rem;
 
+  border: none;
   min-block-size: auto;
   opacity: 1;
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn:hover,
+.workspace-room__panel--conversation .message__actions .message__edit-btn:hover,
+.workspace-room__panel--conversation .message__actions .message__options-btn:focus-visible,
+.workspace-room__panel--conversation .message__actions .message__edit-btn:focus-visible {
+  --btn-background: color-mix(in oklab, var(--color-text), transparent 92%);
+  --btn-color: var(--color-text);
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn img,
+.workspace-room__panel--conversation .message__actions .message__edit-btn img {
+  filter: grayscale(1) brightness(0.65);
 }
 
 .workspace-room__panel--conversation .message--me .message__body,
