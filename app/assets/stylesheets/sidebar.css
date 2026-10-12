@@ -796,7 +796,7 @@
 }
 
 .sidebar-projects__knowledge-room-row--child {
-  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
 }
 
 .sidebar-projects__knowledge-room-row > .sidebar-projects__knowledge-room {

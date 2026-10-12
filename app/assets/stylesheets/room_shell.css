@@ -331,13 +331,19 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link::before,
-body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room::before {
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room:not(.sidebar-projects__knowledge-room--child)::before {
   color: #a6bdd8;
   content: "#";
   display: inline-block;
   font-weight: 700;
   line-height: 1;
   width: 0.8rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room--child::before {
+  content: "";
+  display: none;
+  width: 0;
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link:where(:not(:active):hover),
@@ -500,11 +506,11 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room--child,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item--child {
-  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room-row--child > .sidebar-projects__knowledge-room {
-  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__actions-btn {
