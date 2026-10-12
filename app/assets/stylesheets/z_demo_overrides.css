@@ -1042,20 +1042,23 @@ body.sidebar .message__body-content {
   max-inline-size: min(85%, 72ch);
 }
 
-body.sidebar .user-settings-nav__pill {
+body.sidebar .user-settings-nav__pill,
+body.room-shell .user-settings-nav__pill {
   --btn-padding: 0.5em 1em;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-body.sidebar .user-settings-nav__title {
+body.sidebar .user-settings-nav__title,
+body.room-shell .user-settings-nav__title {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
 }
 
-body.sidebar .user-settings-content {
+body.sidebar .user-settings-content,
+body.room-shell .user-settings-content {
   padding: 12px 12px 12px;
 }
 
@@ -1865,7 +1868,8 @@ body.sidebar .settings-footer-actions {
   }
 }
 
-body.sidebar .user-settings-grid {
+body.sidebar .user-settings-grid,
+body.room-shell .user-settings-grid {
   margin-inline: auto;
   max-inline-size: 72rem;
   display: grid;
@@ -1873,7 +1877,8 @@ body.sidebar .user-settings-grid {
   gap: 16px;
 }
 
-body.sidebar .user-settings-card {
+body.sidebar .user-settings-card,
+body.room-shell .user-settings-card {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -1881,32 +1886,37 @@ body.sidebar .user-settings-card {
   padding: 22px;
 }
 
-body.sidebar .user-settings-card-header {
+body.sidebar .user-settings-card-header,
+body.room-shell .user-settings-card-header {
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 18px;
   padding-bottom: 12px;
 }
 
-body.sidebar .user-settings-card-title {
+body.sidebar .user-settings-card-title,
+body.room-shell .user-settings-card-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
 }
 
-body.sidebar .user-settings-card-desc {
+body.sidebar .user-settings-card-desc,
+body.room-shell .user-settings-card-desc {
   color: var(--text-secondary);
   margin: 6px 0 0;
   font-size: 13px;
 }
 
-body.sidebar .avatar-row {
+body.sidebar .avatar-row,
+body.room-shell .avatar-row {
   align-items: center;
   column-gap: 14px;
   display: flex;
   margin-bottom: 16px;
 }
 
-body.sidebar .user-settings-avatar {
+body.sidebar .user-settings-avatar,
+body.room-shell .user-settings-avatar {
   align-items: center;
   border: none;
   border-radius: 999px;
@@ -1916,13 +1926,15 @@ body.sidebar .user-settings-avatar {
   overflow: hidden;
 }
 
-body.sidebar .user-settings-avatar img {
+body.sidebar .user-settings-avatar img,
+body.room-shell .user-settings-avatar img {
   block-size: 64px;
   inline-size: 64px;
   object-fit: cover;
 }
 
-body.sidebar .user-settings-avatar-btn {
+body.sidebar .user-settings-avatar-btn,
+body.room-shell .user-settings-avatar-btn {
   display: inline-flex;
   margin-bottom: 4px;
   position: relative;
@@ -1939,49 +1951,60 @@ body.sidebar .user-settings-avatar-btn {
   color: var(--text-primary);
 }
 
-body.sidebar .user-settings-avatar-btn input[type="file"] {
+body.sidebar .user-settings-avatar-btn input[type="file"],
+body.room-shell .user-settings-avatar-btn input[type="file"] {
   inset: 0;
   opacity: 0;
   position: absolute;
 }
 
-body.sidebar .user-settings-help {
+body.sidebar .user-settings-help,
+body.room-shell .user-settings-help {
   color: var(--text-secondary);
   display: block;
   font-size: 0.82rem;
 }
 
-body.sidebar .user-settings-form {
+body.sidebar .user-settings-form,
+body.room-shell .user-settings-form {
   display: grid;
   row-gap: 20px;
 }
 
-body.sidebar .user-settings-form .form-group {
+body.sidebar .user-settings-form .form-group,
+body.room-shell .user-settings-form .form-group {
   margin: 0;
 }
 
-body.sidebar .user-settings-form .form-group label {
+body.sidebar .user-settings-form .form-group label,
+body.room-shell .user-settings-form .form-group label {
   display: inline-block;
   font-weight: 600;
   margin-bottom: 6px;
   font-size: 13px;
 }
 
-body.sidebar .user-settings-form .input {
+body.sidebar .user-settings-form .input,
+body.room-shell .user-settings-form .input {
   inline-size: 100%;
 }
 
 /* Keep browser autofill aligned with light input surfaces in sidebar screens. */
 body.sidebar .input:autofill,
+body.room-shell .input:autofill,
 body.sidebar .input:-webkit-autofill,
+body.room-shell .input:-webkit-autofill,
 body.sidebar .input:-webkit-autofill:hover,
-body.sidebar .input:-webkit-autofill:focus {
+body.room-shell .input:-webkit-autofill:hover,
+body.sidebar .input:-webkit-autofill:focus,
+body.room-shell .input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--color-text);
   -webkit-box-shadow: 0 0 0 1000px var(--input-background, var(--surface)) inset;
   box-shadow: 0 0 0 1000px var(--input-background, var(--surface)) inset;
 }
 
-body.sidebar .user-settings-option {
+body.sidebar .user-settings-option,
+body.room-shell .user-settings-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1989,31 +2012,37 @@ body.sidebar .user-settings-option {
   margin-bottom: 16px;
 }
 
-body.sidebar .user-settings-option-title {
+body.sidebar .user-settings-option-title,
+body.room-shell .user-settings-option-title {
   margin: 0;
   font-size: 1rem;
 }
 
-body.sidebar .user-settings-option-desc {
+body.sidebar .user-settings-option-desc,
+body.room-shell .user-settings-option-desc {
   margin: 2px 0 0;
   color: var(--text-secondary);
 }
 
-body.sidebar .user-settings-divider {
+body.sidebar .user-settings-divider,
+body.room-shell .user-settings-divider {
   border-top: 1px solid var(--border-color);
   margin: 18px 0;
 }
 
-body.sidebar .user-settings-muted-header {
+body.sidebar .user-settings-muted-header,
+body.room-shell .user-settings-muted-header {
   margin-bottom: 10px;
 }
 
-body.sidebar .user-settings-muted-list {
+body.sidebar .user-settings-muted-list,
+body.room-shell .user-settings-muted-list {
   display: grid;
   row-gap: 10px;
 }
 
-body.sidebar .user-settings-muted-item {
+body.sidebar .user-settings-muted-item,
+body.room-shell .user-settings-muted-item {
   align-items: center;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -2022,11 +2051,13 @@ body.sidebar .user-settings-muted-item {
   padding: 10px 12px;
 }
 
-body.sidebar .user-settings-muted-btn {
+body.sidebar .user-settings-muted-btn,
+body.room-shell .user-settings-muted-btn {
   --btn-padding: 0.35em 0.9em;
 }
 
-body.sidebar .user-settings-page-actions {
+body.sidebar .user-settings-page-actions,
+body.room-shell .user-settings-page-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -2037,7 +2068,8 @@ body.sidebar .user-settings-page-actions {
 }
 
 @media (max-width: 78ch) {
-  body.sidebar .user-settings-grid {
+  body.sidebar .user-settings-grid,
+  body.room-shell .user-settings-grid {
     grid-template-columns: 1fr;
   }
 }
