@@ -11,7 +11,7 @@
       <div class="sidebar-company__header">
         <h2 class="sidebar-company__title">Company</h2>
         <%= link_to user_company_settings_path(user_id: "me"), class: "btn sidebar-company__settings", aria: { label: "Company settings" } do %>
-          <span aria-hidden="true">⚙️</span>
+          <%= image_tag "pencil.svg", size: 16, aria: { hidden: "true" } %>
         <% end %>
       </div>
 

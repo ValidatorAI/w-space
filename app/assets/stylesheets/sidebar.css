@@ -450,12 +450,42 @@
   text-transform: uppercase;
 }
 
-.sidebar-company__settings {
+.btn.sidebar-company__settings,
+.btn.sidebar-projects__settings-link,
+.btn.sidebar-projects__knowledge-settings-link,
+.btn.sidebar-projects__knowledge-add-link {
   --btn-background: transparent;
   --btn-border-color: transparent;
-  --btn-padding: 0.2em;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.18em 0.32em;
 
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
   min-block-size: auto;
+  padding-inline: 0.32em !important;
+}
+
+.btn.sidebar-company__settings:hover,
+.btn.sidebar-company__settings:focus,
+.btn.sidebar-company__settings:focus-visible,
+.btn.sidebar-projects__settings-link:hover,
+.btn.sidebar-projects__settings-link:focus,
+.btn.sidebar-projects__settings-link:focus-visible,
+.btn.sidebar-projects__knowledge-settings-link:hover,
+.btn.sidebar-projects__knowledge-settings-link:focus,
+.btn.sidebar-projects__knowledge-settings-link:focus-visible,
+.btn.sidebar-projects__knowledge-add-link:hover,
+.btn.sidebar-projects__knowledge-add-link:focus,
+.btn.sidebar-projects__knowledge-add-link:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
 }
 
 .sidebar-company__buttons {
@@ -610,12 +640,13 @@
 
 .sidebar-projects__settings-link {
   --btn-background: transparent;
-  --btn-border-color: color-mix(in oklab, var(--color-text), transparent 78%);
+  --btn-border-color: transparent;
   --btn-border-radius: 999px;
-  --btn-border-size: 1px;
-  --btn-padding: 0.42em;
+  --btn-border-size: 0;
+  --btn-padding: 0.22em;
 
   align-items: center;
+  color: #adc0d0;
   display: inline-flex;
   flex: 0 0 auto;
   justify-content: center;
@@ -623,7 +654,17 @@
   position: relative;
   z-index: 2;
 
-  border: 0px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-projects__settings-link:hover,
+.sidebar-projects__settings-link:focus,
+.sidebar-projects__settings-link:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
 }
 
 .sidebar-projects__settings-link--inactive {
