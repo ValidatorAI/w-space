@@ -163,7 +163,7 @@
             </dialog>
           </section>
 
-          <section class="create-project-card" aria-label="Channel management">
+          <section class="create-project-card project-settings-card--channels" aria-label="Channel management">
             <header class="create-project-card__header create-project-card__header--inline">
               <h2 class="create-project-card__title">💬 Channel Management</h2>
               <%= link_to "+ Create Channel", new_rooms_open_path(project_id: @project.id, parent_room_id: @room.id, from_project_settings: true), class: "btn btn--reversed", data: { turbo: false, turbo_frame: "_top" } %>

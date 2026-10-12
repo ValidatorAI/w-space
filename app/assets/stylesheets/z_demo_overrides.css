@@ -708,6 +708,120 @@ body.room-shell .project-settings-card--teammates .project-settings-inline-actio
   gap: 8px;
 }
 
+body.sidebar .project-settings-card--channels,
+body.room-shell .project-settings-card--channels {
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 18px;
+  box-shadow: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+body.sidebar .project-settings-card--channels .create-project-card__header,
+body.room-shell .project-settings-card--channels .create-project-card__header {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.12);
+  margin: 0;
+  padding: 18px 22px 16px;
+}
+
+body.sidebar .project-settings-card--channels .create-project-card__title,
+body.room-shell .project-settings-card--channels .create-project-card__title {
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body.sidebar .project-settings-card--channels .btn,
+body.room-shell .project-settings-card--channels .btn {
+  background: #101010;
+  border: 1px solid rgba(17, 24, 39, 0.16);
+  border-radius: 12px;
+  box-shadow: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.72rem 1.1rem;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-table,
+body.room-shell .project-settings-card--channels .project-settings-table {
+  border-collapse: collapse;
+  inline-size: 100%;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-table th,
+body.room-shell .project-settings-card--channels .project-settings-table th,
+body.sidebar .project-settings-card--channels .project-settings-table td,
+body.room-shell .project-settings-card--channels .project-settings-table td {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.12);
+  font-size: 14px;
+  padding: 15px 22px;
+  text-align: left;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-table th,
+body.room-shell .project-settings-card--channels .project-settings-table th {
+  color: rgba(17, 24, 39, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-table tbody tr:last-child td,
+body.room-shell .project-settings-card--channels .project-settings-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-badge,
+body.room-shell .project-settings-card--channels .project-settings-badge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  min-inline-size: 4rem;
+  justify-content: center;
+  padding: 4px 12px;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-badge--active,
+body.room-shell .project-settings-card--channels .project-settings-badge--active {
+  background: #d9f4e5;
+  color: #1d7d52;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-badge--public,
+body.room-shell .project-settings-card--channels .project-settings-badge--public {
+  background: #eef1f4;
+  color: #4b5563;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-inline-actions,
+body.room-shell .project-settings-card--channels .project-settings-inline-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-inline-actions .btn,
+body.room-shell .project-settings-card--channels .project-settings-inline-actions .btn {
+  background: #f8f9f9;
+  border: 1px solid rgba(17, 24, 39, 0.2);
+  border-radius: 10px;
+  color: #111827;
+  font-weight: 500;
+  min-inline-size: 4.1rem;
+  padding: 0.52rem 0.85rem;
+}
+
+body.sidebar .project-settings-card--channels .project-settings-inline-actions .btn--negative,
+body.room-shell .project-settings-card--channels .project-settings-inline-actions .btn--negative {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
 body.sidebar .project-settings-badge--active {
   background: #d1fae5;
   color: #065f46;
