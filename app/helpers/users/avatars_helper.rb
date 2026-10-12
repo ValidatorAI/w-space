@@ -11,7 +11,9 @@ module Users::AvatarsHelper
   end
 
   def avatar_tag(user, **options)
-    link_to user_path(user), title: user.title, class: "btn avatar", data: { turbo_frame: "_top" } do
+    target = user == Current.user ? user_settings_path : user_path(user)
+
+    link_to target, title: user.title, class: "btn avatar", data: { turbo_frame: "_top" } do
       image_tag fresh_user_avatar_path(user), aria: { hidden: "true" }, size: 48, **options
     end
   end
