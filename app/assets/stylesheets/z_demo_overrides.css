@@ -881,6 +881,33 @@ body.sidebar .project-settings-danger-copy {
   margin-bottom: 14px;
 }
 
+body.sidebar .create-project-card--danger .project-settings-inline-actions,
+body.room-shell .create-project-card--danger .project-settings-inline-actions,
+body.sidebar .project-settings-card--danger .project-settings-inline-actions,
+body.room-shell .project-settings-card--danger .project-settings-inline-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+body.sidebar .create-project-card--danger .project-settings-inline-actions form,
+body.room-shell .create-project-card--danger .project-settings-inline-actions form,
+body.sidebar .project-settings-card--danger .project-settings-inline-actions form,
+body.room-shell .project-settings-card--danger .project-settings-inline-actions form {
+  display: flex;
+  margin: 0;
+}
+
+body.sidebar .create-project-card--danger .project-settings-inline-actions .btn,
+body.room-shell .create-project-card--danger .project-settings-inline-actions .btn,
+body.sidebar .project-settings-card--danger .project-settings-inline-actions .btn,
+body.room-shell .project-settings-card--danger .project-settings-inline-actions .btn {
+  min-inline-size: 0;
+  white-space: nowrap;
+}
+
 body.sidebar .directs,
 body.sidebar .sidebar__tools {
   backdrop-filter: none;
