@@ -287,11 +287,25 @@ body.room-shell .create-project-card__header {
   padding-bottom: 12px;
 }
 
+body.sidebar .create-project-card__header--inline,
+body.room-shell .create-project-card__header--inline {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
 body.sidebar .create-project-card__title,
 body.room-shell .create-project-card__title {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
+}
+
+body.sidebar .create-project-card--danger,
+body.room-shell .create-project-card--danger {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 body.sidebar .create-project-card__subtitle,
@@ -341,6 +355,22 @@ body.room-shell .form-section-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 10px;
+}
+
+body.sidebar .form-checkbox,
+body.room-shell .form-checkbox {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  gap: 8px;
+}
+
+body.sidebar .form-checkbox-input,
+body.room-shell .form-checkbox-input {
+  appearance: auto;
+  block-size: 1rem;
+  inline-size: 1rem;
 }
 
 body.sidebar .form-section-copy,
@@ -535,37 +565,147 @@ body.room-shell .project-settings-table-wrap {
   overflow-x: auto;
 }
 
-body.sidebar .project-settings-table,
-body.room-shell .project-settings-table {
+body.sidebar .project-settings-card--teammates,
+body.room-shell .project-settings-card--teammates {
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 18px;
+  box-shadow: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+body.sidebar .project-settings-card--teammates .create-project-card__header,
+body.room-shell .project-settings-card--teammates .create-project-card__header {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.12);
+  margin: 0;
+  padding: 18px 22px 16px;
+}
+
+body.sidebar .project-settings-card--teammates .create-project-card__title,
+body.room-shell .project-settings-card--teammates .create-project-card__title {
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body.sidebar .project-settings-card--teammates .btn,
+body.room-shell .project-settings-card--teammates .btn {
+  background: #f8f9f9;
+  border: 1px solid rgba(17, 24, 39, 0.18);
+  border-radius: 12px;
+  box-shadow: none;
+  color: #111827;
+  font-weight: 600;
+  padding: 0.7rem 1.05rem;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-table,
+body.room-shell .project-settings-card--teammates .project-settings-table {
   border-collapse: collapse;
   inline-size: 100%;
 }
 
-body.sidebar .project-settings-table th,
-body.room-shell .project-settings-table th,
-body.sidebar .project-settings-table td,
-body.room-shell .project-settings-table td {
-  border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
-  padding: 10px 8px;
+body.sidebar .project-settings-card--teammates .project-settings-table th,
+body.room-shell .project-settings-card--teammates .project-settings-table th,
+body.sidebar .project-settings-card--teammates .project-settings-table td,
+body.room-shell .project-settings-card--teammates .project-settings-table td {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.12);
+  font-size: 14px;
+  padding: 16px 22px;
   text-align: left;
 }
 
-body.sidebar .project-settings-table th,
-body.room-shell .project-settings-table th {
-  color: var(--text-secondary);
-  font-size: 12px;
-  letter-spacing: 0.03em;
+body.sidebar .project-settings-card--teammates .project-settings-table th,
+body.room-shell .project-settings-card--teammates .project-settings-table th {
+  color: rgba(17, 24, 39, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-body.sidebar .project-settings-badge,
-body.room-shell .project-settings-badge {
+body.sidebar .project-settings-card--teammates .project-settings-table tbody tr:last-child td,
+body.room-shell .project-settings-card--teammates .project-settings-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-member,
+body.room-shell .project-settings-card--teammates .project-settings-member {
+  align-items: center;
+  display: inline-flex;
+  gap: 12px;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-member span:last-child,
+body.room-shell .project-settings-card--teammates .project-settings-member span:last-child {
+  color: #111827;
+  font-size: 1.02rem;
+  font-weight: 500;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge,
+body.room-shell .project-settings-card--teammates .project-settings-badge {
   border-radius: 999px;
   display: inline-flex;
   font-size: 12px;
   font-weight: 600;
-  padding: 2px 8px;
+  min-inline-size: 3.4rem;
+  justify-content: center;
+  padding: 4px 10px;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--active,
+body.room-shell .project-settings-card--teammates .project-settings-badge--active {
+  background: #d9f4e5;
+  color: #1d7d52;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--offline,
+body.room-shell .project-settings-card--teammates .project-settings-badge--offline {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--private,
+body.room-shell .project-settings-card--teammates .project-settings-badge--private {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--public,
+body.room-shell .project-settings-card--teammates .project-settings-badge--public {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--human,
+body.room-shell .project-settings-card--teammates .project-settings-badge--human {
+  background: #dfeafc;
+  color: #2447ab;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-badge--ai,
+body.room-shell .project-settings-card--teammates .project-settings-badge--ai {
+  background: #dff7e9;
+  color: #1d6b4e;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-member .avatar,
+body.room-shell .project-settings-card--teammates .project-settings-member .avatar {
+  --btn-border-size: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  overflow: hidden;
+}
+
+body.sidebar .project-settings-card--teammates .project-settings-inline-actions,
+body.room-shell .project-settings-card--teammates .project-settings-inline-actions {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 body.sidebar .project-settings-badge--active {
