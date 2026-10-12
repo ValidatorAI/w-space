@@ -673,7 +673,21 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   overflow: hidden;
 }
 
+.workspace-room__panel--conversation {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.workspace-room__panel--conversation .message-area {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .workspace-room__panel--conversation .messages {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 1.1rem 1.3rem 0;
   row-gap: 1.35rem;
 }
