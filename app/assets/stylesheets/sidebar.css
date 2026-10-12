@@ -722,6 +722,53 @@
   --row-gap: 0.35em;
 }
 
+.sidebar-projects__knowledge-rooms-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+.sidebar-projects__knowledge-rooms-label {
+  color: color-mix(in oklab, var(--color-text), transparent 65%);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+.sidebar-projects__knowledge-add-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.04em 0.32em;
+
+  align-items: center;
+  color: #adc0d0;
+  display: inline-flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  margin-inline-start: auto;
+  min-inline-size: auto;
+  padding: 0.08em 0.32em;
+
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-projects__knowledge-add-btn:hover,
+.sidebar-projects__knowledge-add-btn:focus,
+.sidebar-projects__knowledge-add-btn:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
+}
+
 .sidebar-projects__knowledge-room-row {
   align-items: center;
   display: flex;
