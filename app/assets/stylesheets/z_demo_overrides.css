@@ -1481,6 +1481,15 @@ body.room-shell .action-btn.primary {
   color: #ffffff;
 }
 
+body.sidebar .action-btn.primary img,
+body.room-shell .action-btn.primary img {
+  display: block;
+  filter: brightness(0) invert(1);
+  height: 12px;
+  margin-right: 6px;
+  width: 12px;
+}
+
 body.sidebar .action-btn.primary:hover,
 body.room-shell .action-btn.primary:hover {
   background: #111111;
