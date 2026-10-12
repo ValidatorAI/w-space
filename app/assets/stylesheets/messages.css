@@ -520,7 +520,7 @@ img.message__attachment {
     justify-content: start;
 
     @media (min-width: 100ch) {
-      inset-inline-end: auto;
+      inset-inline-end: -2.2rem;
       inset-inline-start: auto;
     }
   }
