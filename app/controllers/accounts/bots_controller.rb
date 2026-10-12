@@ -41,7 +41,7 @@ class Accounts::BotsController < ApplicationController
     end
 
     def bot_params
-      params.require(:user).permit(:name, :avatar, :webhook_url)
+      params.require(:user).permit(:name, :avatar)
     end
 
     def record_bot_event(event_type, bot)

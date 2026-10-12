@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_09_030000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_12_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -699,14 +699,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_09_030000) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
-  create_table "webhooks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "url"
-    t.integer "user_id", null: false
-    t.index ["user_id"], name: "index_webhooks_on_user_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agents", "projects"
@@ -760,7 +752,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_09_030000) do
   add_foreign_key "sessions", "users"
   add_foreign_key "topics", "projects"
   add_foreign_key "topics", "topics", column: "parent_topic_id"
-  add_foreign_key "webhooks", "users"
 
   # Virtual tables defined in this database.
   # Note that virtual tables may not work with other database engines. Be careful if changing database.

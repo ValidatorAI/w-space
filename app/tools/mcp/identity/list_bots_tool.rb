@@ -5,8 +5,7 @@ module Mcp
 
       schema(
         properties: {
-          include_deactivated: { type: "boolean", description: "Include deactivated bots" },
-          include_webhook_url: { type: "boolean", description: "Include webhook URL when available" }
+          include_deactivated: { type: "boolean", description: "Include deactivated bots" }
         },
         required: []
       )
@@ -17,7 +16,6 @@ module Mcp
           return error_response("Not authenticated", code: "unauthorized") unless agent
 
           include_deactivated = params[:include_deactivated] == true
-          include_webhook_url = params[:include_webhook_url] != false
 
           bots = if include_deactivated
             User.where(role: :bot)
@@ -25,18 +23,16 @@ module Mcp
             User.active_bots
           end
 
-          bots = bots.ordered.includes(:webhook)
-
           success_response({
-            bots: bots.map { |bot| serialize_bot(bot, include_webhook_url: include_webhook_url) },
+            bots: bots.ordered.map { |bot| serialize_bot(bot) },
             total: bots.count
           })
         end
 
         private
 
-        def serialize_bot(bot, include_webhook_url:)
-          data = {
+        def serialize_bot(bot)
+          {
             id: bot.id,
             name: bot.name,
             email_address: bot.email_address,
@@ -44,9 +40,6 @@ module Mcp
             created_at: bot.created_at&.iso8601,
             updated_at: bot.updated_at&.iso8601
           }
-
-          data[:webhook_url] = bot.webhook_url if include_webhook_url
-          data
         end
       end
     end

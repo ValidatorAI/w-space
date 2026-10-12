@@ -24,7 +24,6 @@ class MessagesController < ApplicationController
 
     @message.broadcast_create
     record_created_message_events
-    deliver_webhooks_to_bots
   rescue ActiveRecord::RecordNotFound
     render action: :room_not_found
   rescue ActiveRecord::RecordInvalid
@@ -145,14 +144,6 @@ class MessagesController < ApplicationController
       recipients.pluck(:id)
     end
 
-
-    def deliver_webhooks_to_bots
-      bots_eligible_for_webhook.excluding(@message.creator).each { |bot| bot.deliver_webhook_later(@message) }
-    end
-
-    def bots_eligible_for_webhook
-      @room.direct? ? @room.users.active_bots : @message.mentionees.active_bots
-    end
 
     def serialize_message(message)
       {
