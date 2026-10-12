@@ -563,10 +563,15 @@ body.room-shell .workspace-room__main .create-project-feed {
   flex: 1 1 auto;
 }
 
+body.room-shell .workspace-room__main .create-project-message-area {
+  scroll-padding-top: 1rem;
+  padding-top: 0.6rem;
+}
+
 body.room-shell .workspace-room__main .create-project-page {
   width: 100%;
   max-width: none;
-  padding: 1.25rem 1.4rem 2rem;
+  padding: 0.4rem 1.4rem 2rem;
 }
 
 .workspace-room__header {

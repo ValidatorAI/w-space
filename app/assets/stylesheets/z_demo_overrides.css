@@ -253,7 +253,8 @@ body.sidebar .project-settings-actions {
   justify-content: flex-end;
 }
 
-body.sidebar .create-project-feed {
+body.sidebar .create-project-feed,
+body.room-shell .create-project-feed {
   background-color: var(--surface-alt);
   max-block-size: calc(100dvh - 104px);
   min-block-size: calc(100dvh - 104px);
@@ -262,14 +263,16 @@ body.sidebar .create-project-feed {
   width: stretch;
 }
 
-body.sidebar .create-project-page {
+body.sidebar .create-project-page,
+body.room-shell .create-project-page {
   inline-size: 100%;
   margin-inline: 0;
   max-inline-size: none;
   padding: 24px;
 }
 
-body.sidebar .create-project-card {
+body.sidebar .create-project-card,
+body.room-shell .create-project-card {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -277,25 +280,29 @@ body.sidebar .create-project-card {
   padding: 22px;
 }
 
-body.sidebar .create-project-card__header {
+body.sidebar .create-project-card__header,
+body.room-shell .create-project-card__header {
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 16px;
   padding-bottom: 12px;
 }
 
-body.sidebar .create-project-card__title {
+body.sidebar .create-project-card__title,
+body.room-shell .create-project-card__title {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
 }
 
-body.sidebar .create-project-card__subtitle {
+body.sidebar .create-project-card__subtitle,
+body.room-shell .create-project-card__subtitle {
   color: var(--text-secondary);
   font-size: 13px;
   margin: 6px 0 0;
 }
 
-body.sidebar .create-project-errors {
+body.sidebar .create-project-errors,
+body.room-shell .create-project-errors {
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 10px;
@@ -305,56 +312,66 @@ body.sidebar .create-project-errors {
   padding: 10px 12px;
 }
 
-body.sidebar .create-project-errors p {
+body.sidebar .create-project-errors p,
+body.room-shell .create-project-errors p {
   margin: 0 0 4px;
 }
 
-body.sidebar .create-project-errors ul {
+body.sidebar .create-project-errors ul,
+body.room-shell .create-project-errors ul {
   margin: 0;
   padding-inline-start: 1.2rem;
 }
 
-body.sidebar .create-project-form {
+body.sidebar .create-project-form,
+body.room-shell .create-project-form {
   display: grid;
   gap: 16px;
 }
 
-body.sidebar .form-section {
+body.sidebar .form-section,
+body.room-shell .form-section {
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 14px;
 }
 
-body.sidebar .form-section-title {
+body.sidebar .form-section-title,
+body.room-shell .form-section-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 10px;
 }
 
-body.sidebar .form-section-copy {
+body.sidebar .form-section-copy,
+body.room-shell .form-section-copy {
   color: var(--text-secondary);
   font-size: 13px;
   margin: 0 0 12px;
 }
 
-body.sidebar .create-project-error {
+body.sidebar .create-project-error,
+body.room-shell .create-project-error {
   color: #b91c1c;
   font-size: 12px;
   margin: 2px 0 0;
 }
 
-body.sidebar .member-pills {
+body.sidebar .member-pills,
+body.room-shell .member-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-body.sidebar .member-picker {
+body.sidebar .member-picker,
+body.room-shell .member-picker {
   display: grid;
   gap: 10px;
 }
 
-body.sidebar .member-chip {
+body.sidebar .member-chip,
+body.room-shell .member-chip {
   align-items: center;
   background: var(--surface-alt);
   border: 1px solid var(--border-color);
@@ -367,12 +384,14 @@ body.sidebar .member-chip {
   padding: 6px 10px;
 }
 
-body.sidebar .member-chip-role {
+body.sidebar .member-chip-role,
+body.room-shell .member-chip-role {
   color: var(--text-secondary);
   font-size: 11px;
 }
 
-body.sidebar .member-chip-remove {
+body.sidebar .member-chip-remove,
+body.room-shell .member-chip-remove {
   background: transparent;
   border: 0;
   color: var(--text-secondary);
@@ -382,11 +401,13 @@ body.sidebar .member-chip-remove {
   padding: 0;
 }
 
-body.sidebar .member-chip-remove:hover {
+body.sidebar .member-chip-remove:hover,
+body.room-shell .member-chip-remove:hover {
   color: var(--text-primary);
 }
 
-body.sidebar .member-chip-avatar {
+body.sidebar .member-chip-avatar,
+body.room-shell .member-chip-avatar {
   align-items: center;
   background: #111111;
   border-radius: 999px;
@@ -399,37 +420,44 @@ body.sidebar .member-chip-avatar {
   justify-content: center;
 }
 
-body.sidebar .member-picker-controls {
+body.sidebar .member-picker-controls,
+body.room-shell .member-picker-controls {
   display: grid;
   gap: 8px;
   justify-items: start;
 }
 
-body.sidebar .member-picker-row {
+body.sidebar .member-picker-row,
+body.room-shell .member-picker-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-body.sidebar .member-picker-select {
+body.sidebar .member-picker-select,
+body.room-shell .member-picker-select {
   min-inline-size: 220px;
 }
 
-body.sidebar .member-picker-empty {
+body.sidebar .member-picker-empty,
+body.room-shell .member-picker-empty {
   margin: 0;
 }
 
-body.sidebar .member-picker-modal {
+body.sidebar .member-picker-modal,
+body.room-shell .member-picker-modal {
   background: transparent;
   border: 0;
   padding: 0;
 }
 
-body.sidebar .member-picker-modal::backdrop {
+body.sidebar .member-picker-modal::backdrop,
+body.room-shell .member-picker-modal::backdrop {
   background: rgba(0, 0, 0, 0.5);
 }
 
-body.sidebar .member-picker-modal__panel {
+body.sidebar .member-picker-modal__panel,
+body.room-shell .member-picker-modal__panel {
   background: var(--surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -437,32 +465,38 @@ body.sidebar .member-picker-modal__panel {
   padding: 14px;
 }
 
-body.sidebar .member-picker-modal__header {
+body.sidebar .member-picker-modal__header,
+body.room-shell .member-picker-modal__header {
   margin-block-end: 10px;
 }
 
-body.sidebar .member-picker-modal__title {
+body.sidebar .member-picker-modal__title,
+body.room-shell .member-picker-modal__title {
   font-size: 16px;
   margin: 0;
 }
 
-body.sidebar .member-picker-modal__body {
+body.sidebar .member-picker-modal__body,
+body.room-shell .member-picker-modal__body {
   display: grid;
   gap: 8px;
 }
 
-body.sidebar .member-picker-modal__footer {
+body.sidebar .member-picker-modal__footer,
+body.room-shell .member-picker-modal__footer {
   display: flex;
   justify-content: flex-end;
   margin-block-start: 12px;
 }
 
-body.sidebar .channel-checkboxes {
+body.sidebar .channel-checkboxes,
+body.room-shell .channel-checkboxes {
   display: grid;
   gap: 8px;
 }
 
-body.sidebar .checkbox-item {
+body.sidebar .checkbox-item,
+body.room-shell .checkbox-item {
   align-items: center;
   cursor: pointer;
   display: inline-flex;
@@ -470,53 +504,63 @@ body.sidebar .checkbox-item {
   gap: 8px;
 }
 
-body.sidebar .checkbox-item input {
+body.sidebar .checkbox-item input,
+body.room-shell .checkbox-item input {
   appearance: auto;
   block-size: 1rem;
   inline-size: 1rem;
 }
 
-body.sidebar .form-actions {
+body.sidebar .form-actions,
+body.room-shell .form-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
 
-body.sidebar .project-settings-readonly {
+body.sidebar .project-settings-readonly,
+body.room-shell .project-settings-readonly {
   color: var(--text-primary);
   display: grid;
   gap: 8px;
 }
 
-body.sidebar .project-settings-readonly p {
+body.sidebar .project-settings-readonly p,
+body.room-shell .project-settings-readonly p {
   margin: 0;
 }
 
-body.sidebar .project-settings-table-wrap {
+body.sidebar .project-settings-table-wrap,
+body.room-shell .project-settings-table-wrap {
   overflow-x: auto;
 }
 
-body.sidebar .project-settings-table {
+body.sidebar .project-settings-table,
+body.room-shell .project-settings-table {
   border-collapse: collapse;
   inline-size: 100%;
 }
 
 body.sidebar .project-settings-table th,
-body.sidebar .project-settings-table td {
+body.room-shell .project-settings-table th,
+body.sidebar .project-settings-table td,
+body.room-shell .project-settings-table td {
   border-bottom: 1px solid var(--border-color);
   font-size: 13px;
   padding: 10px 8px;
   text-align: left;
 }
 
-body.sidebar .project-settings-table th {
+body.sidebar .project-settings-table th,
+body.room-shell .project-settings-table th {
   color: var(--text-secondary);
   font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
-body.sidebar .project-settings-badge {
+body.sidebar .project-settings-badge,
+body.room-shell .project-settings-badge {
   border-radius: 999px;
   display: inline-flex;
   font-size: 12px;
