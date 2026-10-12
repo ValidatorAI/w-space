@@ -1529,6 +1529,124 @@ body.room-shell .top-avatar {
   justify-content: center;
 }
 
+body.sidebar .account-bots-list,
+body.room-shell .account-bots-list {
+  display: grid;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+}
+
+body.sidebar .account-bots-item,
+body.room-shell .account-bots-item {
+  background: color-mix(in oklab, var(--surface), #000000 3%);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+body.sidebar .account-bots-item__header,
+body.room-shell .account-bots-item__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.sidebar .account-bots-item__identity,
+body.room-shell .account-bots-item__identity {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+body.sidebar .account-bots-item__avatar,
+body.room-shell .account-bots-item__avatar {
+  flex-shrink: 0;
+}
+
+body.sidebar .account-bots-item__meta,
+body.room-shell .account-bots-item__meta {
+  display: grid;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+body.sidebar .account-bots-item__name,
+body.room-shell .account-bots-item__name {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+body.sidebar .account-bots-item__sub,
+body.room-shell .account-bots-item__sub {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+body.sidebar .account-bots-item__actions,
+body.room-shell .account-bots-item__actions {
+  display: flex;
+  gap: 8px;
+}
+
+body.sidebar .account-bots-item__details,
+body.room-shell .account-bots-item__details {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin: 0;
+  padding: 12px;
+}
+
+body.sidebar .account-bots-item__legend,
+body.room-shell .account-bots-item__legend {
+  color: var(--text-primary);
+  font-size: 12px;
+  margin-inline-start: 8px;
+  padding: 0 6px;
+}
+
+body.sidebar .account-bots-item__command-row,
+body.room-shell .account-bots-item__command-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+
+body.sidebar .account-bots-empty,
+body.room-shell .account-bots-empty {
+  background: color-mix(in oklab, var(--surface), #000000 3%);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  padding: 20px;
+}
+
+body.sidebar .account-bot-form-card,
+body.room-shell .account-bot-form-card {
+  display: grid;
+  gap: 18px;
+}
+
+body.sidebar .account-bot-form-grid,
+body.room-shell .account-bot-form-grid {
+  display: grid;
+  gap: 18px;
+}
+
+body.sidebar .account-bot-form-actions,
+body.room-shell .account-bot-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-block-start: 8px;
+}
+
 body.sidebar .bot-selection-grid,
 body.room-shell .bot-selection-grid {
   display: grid;
