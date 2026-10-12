@@ -35,7 +35,15 @@
     <% if @projects.any? %>
       <section class="sidebar-projects" aria-label="Projects">
         <div class="sidebar-section-separator" aria-hidden="true"></div>
-        <h2 class="sidebar-projects__title">Projects</h2>
+        <div class="sidebar-projects__header">
+          <h2 class="sidebar-projects__title">Projects</h2>
+          <%= link_to user_company_project_new_path(user_id: "me"),
+                class: "btn sidebar-projects__add-btn",
+                aria: { label: "New project" },
+                data: { turbo: false, turbo_frame: "_top" } do %>
+            <span aria-hidden="true">+</span>
+          <% end %>
+        </div>
 
         <div class="sidebar-projects__list flex flex-column gap">
           <% project_actions = [

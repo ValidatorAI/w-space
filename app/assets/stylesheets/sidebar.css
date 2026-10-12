@@ -477,6 +477,14 @@
   padding: 0 var(--sidebar-inline-space);
 }
 
+.sidebar-projects__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin: 0;
+}
+
 .sidebar-section-separator {
   block-size: 1px;
   background: color-mix(in oklab, var(--color-text), transparent 85%);
@@ -490,6 +498,37 @@
   letter-spacing: 0.13em;
   margin: 0;
   text-transform: uppercase;
+}
+
+.sidebar-projects__add-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.42em;
+  --btn-height: auto;
+  --btn-line-height: 1;
+
+  align-items: center;
+  color: #adc0d0;
+  display: inline-flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: center;
+  min-inline-size: auto;
+  padding: 0.12em 0.5em;
+  line-height: 1;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-projects__add-btn:hover,
+.sidebar-projects__add-btn:focus,
+.sidebar-projects__add-btn:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
 }
 
 .sidebar-projects__list {
