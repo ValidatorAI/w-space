@@ -549,6 +549,26 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   overflow: hidden;
 }
 
+body.room-shell .workspace-room__main .message-area,
+body.room-shell .workspace-room__main .create-project-message-area,
+body.room-shell .workspace-room__main .create-project-feed,
+body.room-shell .workspace-room__main .create-project-page {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+body.room-shell .workspace-room__main .create-project-message-area,
+body.room-shell .workspace-room__main .create-project-feed {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+body.room-shell .workspace-room__main .create-project-page {
+  width: 100%;
+  max-width: none;
+  padding: 1.25rem 1.4rem 2rem;
+}
+
 .workspace-room__header {
   align-items: flex-start;
   background: var(--color-bg);
