@@ -90,9 +90,8 @@
                   <%= link_to edit_rooms_project_path(project.id, by: "project"),
                         class: "btn sidebar-projects__settings-link",
                         aria: { label: "#{project.display_name} settings" },
-                        style: "display: none;",
                         data: { turbo: false, turbo_frame: "_top" } do %>
-                    <span class="sidebar-projects__gear" aria-hidden="true"></span>
+                    <%= image_tag "pencil.svg", size: 12, aria: { hidden: "true" } %>
                   <% end %>
                 </div>
               </div>

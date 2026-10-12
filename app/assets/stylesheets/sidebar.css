@@ -652,28 +652,44 @@
   --btn-border-color: transparent;
   --btn-border-radius: 999px;
   --btn-border-size: 0;
-  --btn-padding: 0.22em;
+  --btn-padding: 0.08em 0.18em;
 
   align-items: center;
-  color: #adc0d0;
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
   display: inline-flex;
   flex: 0 0 auto;
   justify-content: center;
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
   position: relative;
+  transition: opacity 160ms ease;
+  visibility: hidden;
   z-index: 2;
-
-  border: 0 !important;
-  box-shadow: none !important;
 }
 
+.sidebar-projects__row:hover .sidebar-projects__settings-link,
+.sidebar-projects__row:focus-within .sidebar-projects__settings-link,
 .sidebar-projects__settings-link:hover,
 .sidebar-projects__settings-link:focus,
 .sidebar-projects__settings-link:focus-visible {
-  background: transparent;
+  background: transparent !important;
   border: 0 !important;
+  border-color: transparent !important;
   box-shadow: none !important;
-  color: #adc0d0;
+  color: #adc0d0 !important;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.sidebar-projects__settings-link img {
+  display: block;
+  height: 12px;
+  width: 12px;
 }
 
 .sidebar-projects__settings-link--inactive {
