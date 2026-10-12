@@ -761,11 +761,15 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   position: relative;
 }
 
+.workspace-room__panel--conversation .message__body {
+  padding-inline-end: 2.4rem;
+}
+
 .workspace-room__panel--conversation .message__actions {
   align-items: center;
   display: flex;
   inset-block-start: 0.35rem;
-  inset-inline-end: -0.4rem;
+  inset-inline-end: -2.2rem;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
