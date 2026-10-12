@@ -26,7 +26,7 @@ class SendingMessagesTest < ApplicationSystemTestCase
     assert_message_text "👍👍"
   end
 
-  test "aligns only my messages on the right" do
+  test "keeps my messages visually aligned with the room" do
     project = Project.create!(name: "Alignment test", slug: "alignment-test", path: "/tmp/alignment-test")
     agent = Agent.create!(
       id: users(:jz).id,
@@ -42,6 +42,12 @@ class SendingMessagesTest < ApplicationSystemTestCase
     assert_selector "##{dom_id(messages(:third))}.message--me"
     assert_no_selector "##{dom_id(messages(:first))}.message--me"
     assert_no_selector "##{dom_id(agent_message)}.message--me"
+
+    css = File.read(Rails.root.join("app/assets/stylesheets/messages.css"))
+    assert_includes css, "justify-self: start;"
+    assert_includes css, "flex-direction: row;"
+    assert_not_includes css, "justify-self: end;"
+    assert_not_includes css, "row-reverse;"
   end
 
   test "editing messages" do
