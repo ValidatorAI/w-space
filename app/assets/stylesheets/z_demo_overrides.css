@@ -271,6 +271,11 @@ body.room-shell .create-project-page {
   padding: 24px;
 }
 
+body.sidebar .create-project-page > section,
+body.room-shell .create-project-page > section {
+  margin-block: 18px;
+}
+
 body.sidebar .create-project-card,
 body.room-shell .create-project-card {
   background: var(--surface);
