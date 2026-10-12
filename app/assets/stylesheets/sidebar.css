@@ -458,7 +458,7 @@
   --btn-border-color: transparent;
   --btn-border-radius: 999px;
   --btn-border-size: 0;
-  --btn-padding: 0.18em 0.32em;
+  --btn-padding: 0.08em 0.18em;
 
   background: transparent !important;
   border: 0 !important;
@@ -466,7 +466,16 @@
   box-shadow: none !important;
   color: #adc0d0 !important;
   min-block-size: auto;
-  padding-inline: 0.32em !important;
+  padding-inline: 0.18em !important;
+}
+
+.btn.sidebar-company__settings img,
+.btn.sidebar-projects__settings-link img,
+.btn.sidebar-projects__knowledge-settings-link img,
+.btn.sidebar-projects__knowledge-add-link img {
+  display: block;
+  height: 12px;
+  width: 12px;
 }
 
 .btn.sidebar-company__settings:hover,
