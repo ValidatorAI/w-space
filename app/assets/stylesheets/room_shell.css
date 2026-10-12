@@ -503,6 +503,10 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item--ch
   margin-inline-start: calc(var(--room-depth) * 1.1rem);
 }
 
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room-row--child > .sidebar-projects__knowledge-room {
+  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+}
+
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__actions-btn {
   opacity: 0.55;
 }
