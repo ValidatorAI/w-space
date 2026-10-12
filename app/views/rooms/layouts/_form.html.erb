@@ -1,26 +1,36 @@
-<%= form_with model: room do |form| %>
-  <div class="flex align-center gap">
-    <% if Current.user.can_administer?(room) %>
-      <%= translation_button(:room_name) %>
+<%= form_with model: room, class: "create-project-form" do |form| %>
+  <section class="form-section" aria-label="Room details">
+    <h3 class="form-section-title">📝 Room details</h3>
 
-      <label class="flex-item-grow txt-large">
+    <div class="form-group">
+      <% if Current.user.can_administer?(room) %>
+        <%= translation_button(:room_name) %>
+
+        <%= form.label :name, "Room name", for: "room_name" %>
         <%= form.text_field :name, name: "room[name]", id: "room_name", class: "input full-width",
               required: true, autofocus: true, placeholder: "Name the room",
               data: { turbo_permanent: true, action: "keydown.enter->form#submit:prevent" } %>
         <span class="for-screen-reader">Name this room</span>
-      </label>
-    <% else %>
-      <h1 class="flex-item-grow txt-x-large">
-        <%= room.name %>
-      </h1>
-    <% end %>
-  </div>
-
-  <hr class="margin-block borderless">
-
-  <section class="room-access margin-block pad-inline fill-shade border-radius">
-    <%= yield %>
+      <% else %>
+        <h1 class="flex-item-grow txt-x-large">
+          <%= room.name %>
+        </h1>
+      <% end %>
+    </div>
   </section>
 
-  <%= submit_room_button_tag if Current.user.can_administer?(room) %>
+  <section class="form-section" aria-label="Room access">
+    <h3 class="form-section-title">👥 Access</h3>
+    <p class="form-section-copy">Choose how this room is shared.</p>
+
+    <div class="room-access">
+      <%= yield %>
+    </div>
+  </section>
+
+  <% if Current.user.can_administer?(room) %>
+    <div class="settings-section-actions">
+      <%= submit_room_button_tag %>
+    </div>
+  <% end %>
 <% end %>
