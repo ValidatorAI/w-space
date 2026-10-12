@@ -159,10 +159,12 @@
                           <% end %>
 
                           <div class="sidebar-projects__knowledge-room-actions">
-                            <%= link_to new_rooms_open_path(project_id: project.id, parent_room_id: knowledge_membership.room.id),
-                                  class: "btn sidebar-projects__settings-link sidebar-projects__knowledge-add-link",
-                                  aria: { label: "Create room in #{room_display_name(knowledge_membership.room)}" } do %>
-                              <span class="sidebar-projects__knowledge-plus" aria-hidden="true">+</span>
+                            <% unless depth.positive? %>
+                              <%= link_to new_rooms_open_path(project_id: project.id, parent_room_id: knowledge_membership.room.id),
+                                    class: "btn sidebar-projects__settings-link sidebar-projects__knowledge-add-link",
+                                    aria: { label: "Create room in #{room_display_name(knowledge_membership.room)}" } do %>
+                                <span class="sidebar-projects__knowledge-plus" aria-hidden="true">+</span>
+                              <% end %>
                             <% end %>
 
                             <%= link_to room_settings_url,
