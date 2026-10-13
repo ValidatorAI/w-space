@@ -1,4 +1,6 @@
 class OutputEvent < ApplicationRecord
+  has_many :output_event_dispatch_groups, foreign_key: :lead_output_event_id, dependent: :nullify
+
   validates :event_type, presence: true
   validate :event_data_must_be_an_object
 
