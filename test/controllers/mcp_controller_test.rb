@@ -4,8 +4,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   self.fixture_table_names = []
 
   setup do
-    Mcp::Registry.reset!
-    Mcp::Registry.register(Mcp::Tools::HelloTool.new, scopes: %i[all read action knowledge task])
+    Mcp.load_tools!
   end
 
   test "initialize method returns capabilities and protocolVersion" do

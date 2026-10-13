@@ -18,6 +18,10 @@ class McpRegistryTest < ActiveSupport::TestCase
     @dummy = DummyTool.new
   end
 
+  teardown do
+    Mcp.load_tools!
+  end
+
   test "registers tool and resolves by name and alias" do
     Mcp::Registry.register(@dummy, scopes: %i[action all])
 
