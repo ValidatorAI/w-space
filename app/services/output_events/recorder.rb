@@ -35,7 +35,8 @@ module OutputEvents
         event_data: event_data
       )
 
-      DeliverJob.perform_later(event.id)
+      ProcessAndDispatchJob.perform_later(event.id)
+      DeliverJob.perform_later(event.id) if ENV["OUTPUT_EVENTS_URL"].present?
       event
     end
 
