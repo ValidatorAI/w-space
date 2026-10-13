@@ -1,7 +1,7 @@
 # db/seeds.rb
 # Run with: bin/rails db:seed
 
-puts "Setting up MCP Agent Chat..."
+puts "Setting up Bonfire..."
 
 # This creates:
 # - Account (singleton)
