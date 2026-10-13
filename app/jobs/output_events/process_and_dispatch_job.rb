@@ -50,14 +50,46 @@ module OutputEvents
       sibling_events = resolve_group_events(group, lead_event)
       merged_type, merged_data = PayloadMerger.merge(sibling_events)
 
-      # In Phase 4, we perform the merge and record the dispatch.
-      # When Hermes client is ready in Phase 5, this triggers the LLM completion call.
+      # Resolve attachments directly from ActiveStorage / event payload
+      files, unresolved = Hermes::AttachmentResolver.resolve(merged_data)
+
+      # Build Hermes chat completions payload
+      chat_payload = Hermes::PromptBuilder.build_chat_payload(
+        merged_type,
+        merged_data,
+        unresolved_attachments: unresolved
+      )
+
+      # Determine target profile (fallback to delegator)
+      target_profile = resolve_profile(merged_data)
+
+      # Dispatch to Hermes
+      hermes_response = nil
+      begin
+        hermes_client = Hermes::Client.new
+        hermes_response = hermes_client.chat_completions(
+          chat_payload,
+          profile: target_profile,
+          files: files.presence
+        )
+      rescue StandardError => e
+        Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch failed: #{e.class.name}: #{e.message}")
+        group.update!(
+          status: "failed",
+          result: { error: e.message, backtrace: e.backtrace&.first(10) }.to_json
+        )
+        return
+      end
+
+      # Record success and update dispatch group
       group.update!(
         status: "dispatched",
         dispatched_at: Time.current,
         result: {
           event_type: merged_type,
+          profile: target_profile,
           merged_members: sibling_events.map(&:id),
+          response: hermes_response,
           event_data_summary: merged_data.slice("target_type", "occurred_at", "content", "bot_user_ids")
         }.to_json
       )
@@ -67,7 +99,22 @@ module OutputEvents
         ev.update(synced: true) unless ev.synced?
       end
 
-      Rails.logger.info("[OutputEvents::ProcessAndDispatchJob] Successfully dispatched group #{group.id} (key: #{group.dedupe_key}) with #{sibling_events.size} member(s)")
+      Rails.logger.info("[OutputEvents::ProcessAndDispatchJob] Successfully dispatched group #{group.id} (key: #{group.dedupe_key}) to Hermes profile #{target_profile}")
+    end
+
+    def resolve_profile(event_data)
+      # If bot users were targeted, check if any has an AiProfile with matching bot_name
+      bot_ids = Array(event_data["bot_user_ids"]).compact
+      if bot_ids.any?
+        bot_user = User.bot.find_by(id: bot_ids.first)
+        if bot_user.present?
+          profile = AiProfile.where(bot: true).find_by(bot_name: bot_user.name) ||
+                    AiProfile.where(bot: true).find_by(profile_name: bot_user.name)
+          return profile.profile_name if profile&.profile_name.present?
+        end
+      end
+
+      ENV["HERMES_DEFAULT_PROFILE"] || ENV["BASE_HERMES_PROFILE"] || "delegator"
     end
 
     def resolve_group_events(group, lead_event)

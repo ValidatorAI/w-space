@@ -39,6 +39,13 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
       status: "pending"
     )
 
+    stub_request(:post, "http://127.0.0.1:8642/p/delegator/v1/chat/completions")
+      .to_return(
+        status: 200,
+        body: { choices: [{ message: { content: "Advice recorded" } }] }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
     OutputEvents::ProcessAndDispatchJob.perform_now(
       ev1.id,
       stage: :dispatch,
@@ -54,5 +61,6 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_equal "ai_question_asked", result["event_type"]
     assert_includes result["merged_members"], ev1.id
     assert_includes result["merged_members"], ev2.id
+    assert_equal "Advice recorded", Hermes::PromptBuilder.extract_reply_text(result["response"])
   end
 end
