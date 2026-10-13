@@ -1,7 +1,12 @@
 module Hermes
   class AttachmentResolver
-    MAX_ATTACHMENTS = 5
-    MAX_ATTACHMENT_BYTES = 20.megabytes
+    def self.max_attachments
+      Hermes.configuration.max_attachments
+    end
+
+    def self.max_attachment_bytes
+      Hermes.configuration.max_attachment_bytes
+    end
 
     # Resolves binary file uploads and unresolved URL summaries from event_data
     # Returns [files_hash, unresolved_attachments_array]
@@ -14,7 +19,7 @@ module Hermes
       candidate_rows = collect_candidate_rows(event_data)
 
       candidate_rows.each do |row|
-        break if files.size >= MAX_ATTACHMENTS
+        break if files.size >= max_attachments
 
         message_id = row["message_id"] || row["id"]
         has_attachment = row["has_attachment"] == true
@@ -24,7 +29,7 @@ module Hermes
 
         if message&.attachment&.attached?
           blob = message.attachment.blob
-          if blob.byte_size <= MAX_ATTACHMENT_BYTES
+          if blob.byte_size <= max_attachment_bytes
             filename = blob.filename.to_s
             content_type = blob.content_type || "application/octet-stream"
             bytes = message.attachment.download

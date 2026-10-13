@@ -31,7 +31,7 @@ module OutputEvents
       if Deduplicator.key_needs_settle?(key)
         # Reschedule execution with settle delay to allow sibling deliveries to settle
         group.update!(status: "deferred_merge_window")
-        ProcessAndDispatchJob.set(wait: Deduplicator::SETTLE_DELAY).perform_later(
+        ProcessAndDispatchJob.set(wait: Deduplicator.settle_delay).perform_later(
           event.id,
           stage: :dispatch,
           dispatch_group_id: group.id
@@ -114,7 +114,7 @@ module OutputEvents
         end
       end
 
-      ENV["HERMES_DEFAULT_PROFILE"] || ENV["BASE_HERMES_PROFILE"] || "delegator"
+      Hermes.configuration.default_profile
     end
 
     def resolve_group_events(group, lead_event)

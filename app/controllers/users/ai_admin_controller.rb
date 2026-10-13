@@ -321,27 +321,32 @@ class Users::AiAdminController < ApplicationController
   def restart_w_bridge
     target_url = w_bridge_restart_url
 
-    if target_url.blank?
-      redirect_to ai_admin_index_path, alert: "OUTPUT_EVENTS_URL is not configured"
-      return
-    end
+    if target_url.present?
+      uri = URI.parse(target_url)
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request["Content-Type"] = "application/json"
+      if ENV["OUTPUT_EVENTS_TOKEN"].present?
+        request["Authorization"] = "Bearer #{ENV["OUTPUT_EVENTS_TOKEN"]}"
+      end
 
-    uri = URI.parse(target_url)
-    request = Net::HTTP::Post.new(uri.request_uri)
-    request["Content-Type"] = "application/json"
-    if ENV["OUTPUT_EVENTS_TOKEN"].present?
-      request["Authorization"] = "Bearer #{ENV["OUTPUT_EVENTS_TOKEN"]}"
-    end
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+        http.request(request)
+      end
 
-    response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
-      http.request(request)
-    end
-
-    if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted) || response.code.to_i.between?(200, 299)
-      redirect_to ai_admin_index_path, notice: "W-Bridge restart triggered"
+      if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted) || response.code.to_i.between?(200, 299)
+        redirect_to ai_admin_index_path, notice: "W-Bridge restart triggered"
+      else
+        redirect_to ai_admin_index_path, alert: "W-Bridge restart failed: #{response.code} #{response.message}"
+      end
     else
-      redirect_to ai_admin_index_path, alert: "W-Bridge restart failed: #{response.code} #{response.message}"
+      trigger_path = ENV["RESTART_TRIGGER_PATH"].presence || Hermes.configuration.restart_trigger_path
+      path = Pathname.new(trigger_path)
+      path.dirname.mkpath
+      FileUtils.touch(path)
+      redirect_to ai_admin_index_path, notice: "W-Bridge restart triggered"
     end
+  rescue Errno::EACCES => error
+    redirect_to ai_admin_index_path, alert: "W-Bridge restart trigger failed: #{error.message}"
   rescue URI::InvalidURIError, SocketError, Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, Errno::ECONNRESET => error
     redirect_to ai_admin_index_path, alert: "W-Bridge restart failed: #{error.message}"
   end

@@ -6,7 +6,7 @@ module OutputEvents
     MIN_STALE_AGE = 30.seconds
 
     def perform(max_age: nil)
-      lookback_window = (max_age || ENV["EVENT_RECOVERY_MAX_AGE_SECONDS"]&.to_i&.seconds || DEFAULT_LOOKBACK)
+      lookback_window = (max_age || Hermes.configuration.event_recovery_max_age_seconds.seconds)
       cutoff = Time.current - lookback_window
       stale_threshold = Time.current - MIN_STALE_AGE
 
@@ -16,7 +16,7 @@ module OutputEvents
       Rails.logger.info("[OutputEvents::ReconcileDispatchesJob] Hermes status: #{hermes_status.to_json}")
 
       # Check throttle threshold
-      max_active_agents = (ENV["HERMES_MAX_ACTIVE_AGENTS"] || 2).to_i
+      max_active_agents = Hermes.configuration.max_active_agents
       active_agents = hermes_status["active_agents"].to_i
       if active_agents >= max_active_agents && max_active_agents > 0
         Rails.logger.warn("[OutputEvents::ReconcileDispatchesJob] Skipping dispatch reconciliation: active_agents=#{active_agents} >= threshold=#{max_active_agents}")

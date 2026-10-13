@@ -5,6 +5,10 @@ module OutputEvents
     MESSAGE_EVENT_TYPES = %w[message_created message_attachment_uploaded ai_question_asked].freeze
     SETTLE_DELAY = 1.5.seconds
 
+    def self.settle_delay
+      Hermes.configuration.event_merge_settle_seconds.seconds
+    end
+
     # Result object returned by claim
     ClaimResult = Struct.new(:claim_status, :group, :dedupe_key, keyword_init: true) do
       def claimed?

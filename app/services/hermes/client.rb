@@ -25,12 +25,13 @@ module Hermes
       model: nil,
       timeout: nil
     )
-      @base_uri = (base_uri || ENV["HERMES_BASE_URI"] || ENV["BASE_URI"] || "http://127.0.0.1:8642").chomp("/")
-      @status_base_uri = (status_base_uri || ENV["HERMES_STATUS_URI"] || ENV["STATUS_BASE_URI"] || "http://127.0.0.1:9119").chomp("/")
-      @api_key = api_key || ENV["HERMES_API_KEY"] || ENV["API_SERVER_KEY"] || ENV["API_KEY"]
-      @default_profile = default_profile || ENV["HERMES_DEFAULT_PROFILE"] || ENV["BASE_HERMES_PROFILE"] || "delegator"
-      @model = model || ENV["HERMES_MODEL"] || ENV["MODEL"] || "hermes"
-      @timeout = (timeout || ENV["HERMES_HTTP_TIMEOUT"] || 60).to_f
+      config = Hermes.configuration
+      @base_uri = (base_uri || config.base_uri).chomp("/")
+      @status_base_uri = (status_base_uri || config.status_uri).chomp("/")
+      @api_key = api_key || config.api_key
+      @default_profile = default_profile || config.default_profile
+      @model = model || config.model
+      @timeout = (timeout || config.timeout).to_f
     end
 
     def chat_completions(
