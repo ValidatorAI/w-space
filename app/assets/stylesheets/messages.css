@@ -265,7 +265,7 @@
   position: relative;
 
   .message--me & {
-    flex-direction: row-reverse;
+    flex-direction: row;
   }
 
   @media (max-width: 100ch) {
@@ -493,33 +493,34 @@ img.message__attachment {
 
 /* Me */
 .message--me {
-  grid-auto-columns: min-content 1fr var(--inline-space-double);
+  grid-auto-columns: var(--inline-space-double) 1fr min-content;
   grid-template-areas:
     "sep sep sep"
-    "body body avatar";
+    "avatar body body";
 
   :is(.message__body, .message__meta, .message__heading) {
-    justify-self: end;
+    justify-self: start;
   }
 
   :is(.message__meta, .message__heading) {
-    flex-direction: row-reverse;
-    justify-content: end;
+    flex-direction: row;
+    justify-content: start;
   }
 
   .message__meta {
-    padding-inline: calc(var(--btn-size) / 2) 0;
+    padding-inline-end: calc(var(--btn-size) / 2);
+    padding-inline-start: 0;
   }
 
   .message__avatar {
-    margin-inline: calc(var(--content-padding-inline) * -1) 0;
+    margin-inline: 0;
   }
 
   .message__actions {
-    justify-content: end;
+    justify-content: start;
 
     @media (min-width: 100ch) {
-      inset-inline-end: calc(100% + var(--message-column-gap) / 2);
+      inset-inline-end: -2.2rem;
       inset-inline-start: auto;
     }
   }
@@ -563,8 +564,8 @@ img.message__attachment {
     }
 
     .message--me & {
-      padding: var(--content-padding-block) var(--content-padding-inline) var(--content-padding-block) 0;
-      text-align: right;
+      padding: var(--content-padding-block) 0 var(--content-padding-block) var(--content-padding-inline);
+      text-align: left;
     }
 
     :is(.message--threaded) & {

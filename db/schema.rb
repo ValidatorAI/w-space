@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_12_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -303,6 +303,28 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
     t.index ["room_id"], name: "index_memberships_on_room_id"
   end
 
+  create_table "message_analysis", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "importance_level", null: false
+    t.boolean "is_a_response", default: false, null: false
+    t.text "message_content_summary", null: false
+    t.integer "message_id", null: false
+    t.text "message_type", null: false
+    t.text "tags"
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_message_analysis_on_message_id", unique: true
+  end
+
+  create_table "message_topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.integer "message_id", null: false
+    t.integer "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_message_topics_on_message_id"
+    t.index ["topic_id"], name: "index_message_topics_on_topic_id"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.string "client_message_id", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -554,6 +576,15 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
     t.index ["updated_at"], name: "index_room_ai_activity_states_on_updated_at"
   end
 
+  create_table "room_history_topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.text "last_state"
+    t.integer "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id"], name: "index_room_history_topics_on_room_id"
+  end
+
   create_table "rooms", force: :cascade do |t|
     t.datetime "archived_at"
     t.datetime "created_at", null: false
@@ -601,11 +632,53 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "tasks", force: :cascade do |t|
+    t.boolean "added_to_kanban", default: false, null: false
+    t.text "adder_profile"
+    t.text "assigneee_profile"
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.integer "grand_parent_id"
+    t.integer "importance", default: 0, null: false
+    t.integer "level", default: 0, null: false
+    t.integer "parent_task_id"
+    t.integer "project_id"
+    t.integer "room_id"
+    t.boolean "runned", default: false, null: false
+    t.integer "token_budget"
+    t.integer "token_used"
+    t.datetime "updated_at", null: false
+    t.float "usd_budget"
+    t.float "usd_usage"
+    t.float "usd_used"
+    t.index ["grand_parent_id"], name: "index_tasks_on_grand_parent_id"
+    t.index ["parent_task_id"], name: "index_tasks_on_parent_task_id"
+    t.index ["project_id"], name: "index_tasks_on_project_id"
+    t.index ["room_id"], name: "index_tasks_on_room_id"
+  end
+
   create_table "tools", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "topics", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.integer "importance_level"
+    t.text "memory"
+    t.text "name", null: false
+    t.boolean "need_an_action", default: false, null: false
+    t.integer "parent_topic_id"
+    t.integer "project_id", null: false
+    t.text "related_topics"
+    t.text "required_actions"
+    t.text "state"
+    t.datetime "updated_at", null: false
+    t.index ["parent_topic_id"], name: "index_topics_on_parent_topic_id"
+    t.index ["project_id"], name: "index_topics_on_project_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -624,14 +697,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
     t.datetime "updated_at", null: false
     t.index ["bot_token"], name: "index_users_on_bot_token", unique: true
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
-  end
-
-  create_table "webhooks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "url"
-    t.integer "user_id", null: false
-    t.index ["user_id"], name: "index_webhooks_on_user_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -658,6 +723,9 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
   add_foreign_key "company_status_periods", "accounts"
   add_foreign_key "file_reservations", "agents"
   add_foreign_key "file_reservations", "projects"
+  add_foreign_key "message_analysis", "messages"
+  add_foreign_key "message_topics", "messages"
+  add_foreign_key "message_topics", "topics"
   add_foreign_key "messages", "rooms"
   add_foreign_key "project_adrs", "projects"
   add_foreign_key "project_all_hands_action_items", "projects"
@@ -677,11 +745,13 @@ ActiveRecord::Schema[8.2].define(version: 2026_09_25_130000) do
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "room_ai_activity_states", "agents"
   add_foreign_key "room_ai_activity_states", "rooms"
+  add_foreign_key "room_history_topics", "rooms"
   add_foreign_key "rooms", "projects"
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"
   add_foreign_key "sessions", "users"
-  add_foreign_key "webhooks", "users"
+  add_foreign_key "topics", "projects"
+  add_foreign_key "topics", "topics", column: "parent_topic_id"
 
   # Virtual tables defined in this database.
   # Note that virtual tables may not work with other database engines. Be careful if changing database.

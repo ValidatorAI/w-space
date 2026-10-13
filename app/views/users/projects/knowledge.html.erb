@@ -1,180 +1,207 @@
 <% @page_title = "#{@project.display_name} Knowledge Base" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="project-overview-header-left">
-    <span class="btn btn--reversed btn--faux user-settings-nav__pill">⚡ <%= @project.display_name %></span>
-    <h1 class="user-settings-nav__title txt-large">Knowledge Base</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area" class="message-area project-knowledge-area"
-     data-controller="knowledge-file-viewer"
-     data-knowledge-file-viewer-file-url-value="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id) %>">
-  <div class="project-knowledge-content">
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area project-knowledge-area"
+         data-controller="knowledge-file-viewer"
+         data-knowledge-file-viewer-file-url-value="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id) %>">
+      <div class="project-knowledge-content">
 
-    <%# 1. Networked Notes (Obsidian Sync) %>
-    <% if @primary_note&.html_source_path.present? %>
-      <div>
-        <h2 class="knowledge-section-header">🌌 Networked Notes (Obsidian Sync)</h2>
-        <div id="obsidian-container" class="obsidian-container">
-          <% if @primary_note.external_source? %>
-            <iframe src="<%= @primary_note.html_source_path %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
-          <% else %>
-            <iframe src="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id, path: @primary_note.html_source_path) %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
-          <% end %>
-        </div>
-      </div>
-    <% end %>
-
-    <%# 2. External Assets & Playbooks %>
-    <div>
-      <h2 class="knowledge-section-header">🔗 External Assets &amp; Playbooks</h2>
-      <div class="external-docs-grid">
-        <% if @external_assets.any? %>
-          <% @external_assets.each do |asset| %>
-            <% if asset.external_source? %>
-              <a href="<%= asset.url %>" target="_blank" rel="noopener noreferrer" class="doc-card doc-card--link">
-                <div class="doc-icon"><%= asset.icon.presence || '�' %></div>
-                <div class="doc-info">
-                  <span class="doc-title"><%= asset.title %></span>
-                  <span class="doc-meta"><%= asset.meta_text.presence || asset.doc_type&.upcase || 'External Link' %></span>
-                </div>
-              </a>
-            <% else %>
-              <div class="doc-card"
-                   data-action="click->knowledge-file-viewer#openFile"
-                   data-knowledge-file-viewer-path-param="<%= asset.url %>"
-                   data-knowledge-file-viewer-title-param="<%= asset.title %>">
-                <div class="doc-icon"><%= asset.icon.presence || '📄' %></div>
-                <div class="doc-info">
-                  <span class="doc-title"><%= asset.title %></span>
-                  <span class="doc-meta"><%= asset.meta_text.presence || asset.doc_type&.upcase || 'Internal Doc' %></span>
-                </div>
-              </div>
-            <% end %>
-          <% end %>
-        <% else %>
-          <div class="knowledge-empty-state">
-            <span class="tree-icon" aria-hidden="true">📄</span>
-            <span>No external assets or playbooks found in this project.</span>
+        <%# 1. Networked Notes (Obsidian Sync) %>
+        <% if @primary_note&.html_source_path.present? %>
+          <div>
+            <h2 class="knowledge-section-header">🌌 Networked Notes (Obsidian Sync)</h2>
+            <div id="obsidian-container" class="obsidian-container">
+              <% if @primary_note.external_source? %>
+                <iframe src="<%= @primary_note.html_source_path %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
+              <% else %>
+                <iframe src="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id, path: @primary_note.html_source_path) %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
+              <% end %>
+            </div>
           </div>
         <% end %>
-      </div>
-    </div>
 
-    <%# 3. Bottom Grid: ADRs & Directory + Activity %>
-    <div class="knowledge-bottom-grid">
-      <div class="knowledge-column">
+        <%# 2. External Assets & Playbooks %>
         <div>
-          <h2 class="knowledge-section-header">🏛️ Decision Records</h2>
-          <% if @adrs.any? %>
-            <table class="knowledge-data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @adrs.each do |adr| %>
-                  <tr class="<%= 'knowledge-row--clickable' if adr.file_path.present? %>"
-                      <% if adr.file_path.present? %>
-                        data-action="click->knowledge-file-viewer#openFile"
-                        data-knowledge-file-viewer-path-param="<%= adr.file_path %>"
-                        data-knowledge-file-viewer-title-param="<%= "#{adr.identifier}: #{adr.title}" %>"
-                      <% end %>>
-                    <td><%= adr.identifier %></td>
-                    <td><strong><%= adr.title %></strong></td>
-                    <td><%= adr.formatted_date %></td>
-                    <td><span class="status-badge <%= adr.status %>"><%= adr.status.titleize %></span></td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          <% else %>
-            <div class="knowledge-empty-state">
-              <span class="tree-icon" aria-hidden="true">📄</span>
-              <span>No decision records found in this project.</span>
-            </div>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="knowledge-column">
-        <div>
-          <h2 class="knowledge-section-header">📁 Directory Explorer</h2>
-          <div class="knowledge-folder-tree">
-            <% if @directory_tree.present? %>
-              <%= render "users/projects/knowledge/tree_entries", entries: @directory_tree, depth: 0 %>
-            <% else %>
-              <div class="knowledge-folder-tree-empty">
-                <span class="tree-icon" aria-hidden="true">📁</span>
-                <span>No files or directories found in this project.</span>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <div>
-          <h2 class="knowledge-section-header">⏱️ Recent Knowledge Activity</h2>
-          <div class="knowledge-activity-feed">
-            <% if @knowledge_activities.any? %>
-              <% @knowledge_activities.each do |activity| %>
-                <div class="knowledge-activity-item">
-                  <div class="knowledge-avatar" style="background-color: <%= activity.actor_color.presence || 'var(--accent-blue)' %>;">
-                    <%= activity.actor_initial %>
-                  </div>
-                  <div class="knowledge-activity-content">
-                    <div class="knowledge-activity-text">
-                      <strong><%= activity.actor_name %></strong> <%= activity.formatted_action_html %>
+          <h2 class="knowledge-section-header">🔗 External Assets &amp; Playbooks</h2>
+          <div class="external-docs-grid">
+            <% if @external_assets.any? %>
+              <% @external_assets.each do |asset| %>
+                <% if asset.external_source? %>
+                  <a href="<%= asset.url %>" target="_blank" rel="noopener noreferrer" class="doc-card doc-card--link">
+                    <div class="doc-icon"><%= asset.icon.presence || '�' %></div>
+                    <div class="doc-info">
+                      <span class="doc-title"><%= asset.title %></span>
+                      <span class="doc-meta"><%= asset.meta_text.presence || asset.doc_type&.upcase || 'External Link' %></span>
                     </div>
-                    <div class="knowledge-activity-time"><%= time_ago_in_words(activity.created_at) %> ago</div>
+                  </a>
+                <% else %>
+                  <div class="doc-card"
+                       data-action="click->knowledge-file-viewer#openFile"
+                       data-knowledge-file-viewer-path-param="<%= asset.url %>"
+                       data-knowledge-file-viewer-title-param="<%= asset.title %>">
+                    <div class="doc-icon"><%= asset.icon.presence || '📄' %></div>
+                    <div class="doc-info">
+                      <span class="doc-title"><%= asset.title %></span>
+                      <span class="doc-meta"><%= asset.meta_text.presence || asset.doc_type&.upcase || 'Internal Doc' %></span>
+                    </div>
                   </div>
-                </div>
+                <% end %>
               <% end %>
             <% else %>
               <div class="knowledge-empty-state">
-                <span class="tree-icon" aria-hidden="true">⏱️</span>
-                <span>No recent knowledge activity found in this project.</span>
+                <span class="tree-icon" aria-hidden="true">📄</span>
+                <span>No external assets or playbooks found in this project.</span>
               </div>
             <% end %>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Markdown File Viewer Dialog -->
-  <dialog class="knowledge-file-dialog"
-          aria-label="Markdown File Viewer"
-          data-knowledge-file-viewer-target="dialog"
-          data-action="click->knowledge-file-viewer#closeOnBackdrop">
-    <div class="knowledge-file-panel">
-      <header class="knowledge-file-header">
-        <div class="knowledge-file-header-text">
-          <span class="status-badge proposed" style="align-self: flex-start;">Markdown Document</span>
-          <h3 class="knowledge-file-title" data-knowledge-file-viewer-target="title">Document Title</h3>
-          <span class="knowledge-file-path" data-knowledge-file-viewer-target="path">Path</span>
+        <%# 3. Bottom Grid: ADRs & Directory + Activity %>
+        <div class="knowledge-bottom-grid">
+          <div class="knowledge-column">
+            <div>
+              <h2 class="knowledge-section-header">🏛️ Decision Records</h2>
+              <% if @adrs.any? %>
+                <table class="knowledge-data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Title</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @adrs.each do |adr| %>
+                      <tr class="<%= 'knowledge-row--clickable' if adr.file_path.present? %>"
+                          <% if adr.file_path.present? %>
+                            data-action="click->knowledge-file-viewer#openFile"
+                            data-knowledge-file-viewer-path-param="<%= adr.file_path %>"
+                            data-knowledge-file-viewer-title-param="<%= "#{adr.identifier}: #{adr.title}" %>"
+                          <% end %>>
+                        <td><%= adr.identifier %></td>
+                        <td><strong><%= adr.title %></strong></td>
+                        <td><%= adr.formatted_date %></td>
+                        <td><span class="status-badge <%= adr.status %>"><%= adr.status.titleize %></span></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              <% else %>
+                <div class="knowledge-empty-state">
+                  <span class="tree-icon" aria-hidden="true">📄</span>
+                  <span>No decision records found in this project.</span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="knowledge-column">
+            <div>
+              <h2 class="knowledge-section-header">📁 Directory Explorer</h2>
+              <div class="knowledge-folder-tree">
+                <% if @directory_tree.present? %>
+                  <%= render "users/projects/knowledge/tree_entries", entries: @directory_tree, depth: 0 %>
+                <% else %>
+                  <div class="knowledge-folder-tree-empty">
+                    <span class="tree-icon" aria-hidden="true">📁</span>
+                    <span>No files or directories found in this project.</span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="knowledge-section-header">⏱️ Recent Knowledge Activity</h2>
+              <div class="knowledge-activity-feed">
+                <% if @knowledge_activities.any? %>
+                  <% @knowledge_activities.each do |activity| %>
+                    <div class="knowledge-activity-item">
+                      <div class="knowledge-avatar" style="background-color: <%= activity.actor_color.presence || 'var(--accent-blue)' %>;">
+                        <%= activity.actor_initial %>
+                      </div>
+                      <div class="knowledge-activity-content">
+                        <div class="knowledge-activity-text">
+                          <strong><%= activity.actor_name %></strong> <%= activity.formatted_action_html %>
+                        </div>
+                        <div class="knowledge-activity-time"><%= time_ago_in_words(activity.created_at) %> ago</div>
+                      </div>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="knowledge-empty-state">
+                    <span class="tree-icon" aria-hidden="true">⏱️</span>
+                    <span>No recent knowledge activity found in this project.</span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
         </div>
-        <button class="knowledge-file-close-btn" type="button" aria-label="Close document" data-action="click->knowledge-file-viewer#close">&times;</button>
-      </header>
-
-      <div class="knowledge-file-body">
-        <div class="knowledge-file-loading" data-knowledge-file-viewer-target="loading" hidden>
-          <span>Loading document...</span>
-        </div>
-        <div class="knowledge-file-error" data-knowledge-file-viewer-target="error" hidden></div>
-        <div class="knowledge-file-markdown markdown" data-knowledge-file-viewer-target="content"></div>
       </div>
 
-      <footer class="knowledge-file-footer">
-        <button class="btn btn--secondary" type="button" data-action="click->knowledge-file-viewer#close">Close</button>
-      </footer>
+      <!-- Markdown File Viewer Dialog -->
+      <dialog class="knowledge-file-dialog"
+              aria-label="Markdown File Viewer"
+              data-knowledge-file-viewer-target="dialog"
+              data-action="click->knowledge-file-viewer#closeOnBackdrop">
+        <div class="knowledge-file-panel">
+          <header class="knowledge-file-header">
+            <div class="knowledge-file-header-text">
+              <span class="status-badge proposed" style="align-self: flex-start;">Markdown Document</span>
+              <h3 class="knowledge-file-title" data-knowledge-file-viewer-target="title">Document Title</h3>
+              <span class="knowledge-file-path" data-knowledge-file-viewer-target="path">Path</span>
+            </div>
+            <button class="knowledge-file-close-btn" type="button" aria-label="Close document" data-action="click->knowledge-file-viewer#close">&times;</button>
+          </header>
+
+          <div class="knowledge-file-body">
+            <div class="knowledge-file-loading" data-knowledge-file-viewer-target="loading" hidden>
+              <span>Loading document...</span>
+            </div>
+            <div class="knowledge-file-error" data-knowledge-file-viewer-target="error" hidden></div>
+            <div class="knowledge-file-markdown markdown" data-knowledge-file-viewer-target="content"></div>
+          </div>
+
+          <footer class="knowledge-file-footer">
+            <button class="btn btn--secondary" type="button" data-action="click->knowledge-file-viewer#close">Close</button>
+          </footer>
+        </div>
+      </dialog>
     </div>
-  </dialog>
+  </main>
 </div>

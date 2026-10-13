@@ -1,123 +1,135 @@
 <% @page_title = "Shared Direction & Status" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="company-status-nav-header">
-    <div class="company-status-nav-left">
-      <span class="btn btn--reversed btn--faux user-settings-nav__pill">🏢 Company</span>
-      <h1 class="user-settings-nav__title txt-large">Shared Direction &amp; Status</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
     </div>
-    <div class="company-status-nav-right">
-      <select class="period-selector" id="company-month-selector" aria-label="Select month">
-        <% if @periods.present? %>
-          <% @periods.each do |period| %>
-            <option value="<%= period.slug %>" <%= "selected" if period == @selected_period %>><%= period.name %></option>
-          <% end %>
-        <% else %>
-          <option value="august-2026" selected>August 2026 (Current)</option>
-          <option value="july-2026">July 2026</option>
-          <option value="june-2026">June 2026</option>
-        <% end %>
-      </select>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
     </div>
   </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area"
-     class="message-area company-status-area"
-     data-controller="company-status"
-     data-company-status-periods-value="<%= json_escape((@periods_payload || {}).to_json) %>"
-     data-company-status-selected-period-value="<%= @selected_period&.slug.presence || 'august-2026' %>"
-     data-action="keydown.esc@window->company-status#closeDrawer">
-  <div class="company-status-content" id="company-status-content" data-company-status-target="content">
-    <div class="company-card company-card-full">
-      <div class="company-card-header">
-        <h2 class="company-card-title">🎯 Current Priorities &amp; Intended Outcomes <span class="company-card-hint">(Click any item to view details)</span></h2>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area"
+         class="message-area company-status-area"
+         data-controller="company-status"
+         data-company-status-periods-value="<%= json_escape((@periods_payload || {}).to_json) %>"
+         data-company-status-selected-period-value="<%= @selected_period&.slug.presence || 'august-2026' %>"
+         data-action="keydown.esc@window->company-status#closeDrawer">
+      <div class="company-status-content" id="company-status-content" data-company-status-target="content">
+        <div class="company-card company-card-full">
+          <div class="company-card-header">
+            <h2 class="company-card-title">🎯 Current Priorities &amp; Intended Outcomes <span class="company-card-hint">(Click any item to view details)</span></h2>
+          </div>
+          <div class="company-dynamic-grid" id="company-priorities-container" data-company-status-target="priorities"></div>
+        </div>
+
+        <div class="company-masonry-grid">
+          <div class="company-dynamic-container">
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">📈 Progress Supported by Evidence</h2>
+              </div>
+              <div class="company-dynamic-container" id="company-progress-container" data-company-status-target="progress"></div>
+            </div>
+
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">🛑 Risks &amp; Blockers</h2>
+              </div>
+              <div class="company-dynamic-container" id="company-risks-container" data-company-status-target="risks"></div>
+            </div>
+
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">🔗 Cross-Project Dependencies</h2>
+              </div>
+              <div class="company-dynamic-container" id="company-dependencies-container" data-company-status-target="dependencies"></div>
+            </div>
+          </div>
+
+          <div class="company-dynamic-container">
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">🔄 Material Changes</h2>
+              </div>
+              <ul class="company-bullet-list" id="company-changes-container" data-company-status-target="changes"></ul>
+            </div>
+
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">⚖️ Important Decisions</h2>
+              </div>
+              <ul class="company-bullet-list" id="company-decisions-container" data-company-status-target="decisions"></ul>
+            </div>
+
+            <div class="company-card">
+              <div class="company-card-header">
+                <h2 class="company-card-title">🧠 Learning That Changed Future Work</h2>
+              </div>
+              <ul class="company-bullet-list" id="company-learnings-container" data-company-status-target="learnings"></ul>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="company-dynamic-grid" id="company-priorities-container" data-company-status-target="priorities"></div>
+
+      <div class="company-drawer-overlay" id="company-drawer-overlay" data-company-status-target="overlay" data-action="click->company-status#closeDrawerOnBackdrop">
+        <div class="company-detail-drawer" id="company-detail-drawer" data-company-status-target="drawer">
+          <div class="company-drawer-header">
+            <div>
+              <span class="company-drawer-tag" id="company-drawer-category" data-company-status-target="drawerCategory">DETAIL</span>
+              <h2 class="company-drawer-title" id="company-drawer-title" data-company-status-target="drawerTitle">Title Goes Here</h2>
+            </div>
+            <button class="company-drawer-close-btn" id="company-drawer-close" type="button" aria-label="Close status detail" data-action="click->company-status#closeDrawer">&times;</button>
+          </div>
+          <div class="company-drawer-body">
+            <div class="company-drawer-section">
+              <span class="company-drawer-section-title">Overview &amp; Context</span>
+              <p class="company-drawer-text" id="company-drawer-description" data-company-status-target="drawerDescription">Detailed overview narrative...</p>
+            </div>
+
+            <div class="company-drawer-section">
+              <span class="company-drawer-section-title">Metadata &amp; Ownership</span>
+              <div class="company-meta-pill-group" id="company-drawer-meta" data-company-status-target="drawerMeta"></div>
+            </div>
+
+            <div class="company-drawer-section">
+              <span class="company-drawer-section-title">Impact &amp; Why It Matters</span>
+              <p class="company-drawer-text" id="company-drawer-impact" data-company-status-target="drawerImpact">Impact details...</p>
+            </div>
+
+            <div class="company-drawer-section">
+              <span class="company-drawer-section-title">Active Action Items</span>
+              <ul class="company-action-list" id="company-drawer-actions" data-company-status-target="drawerActions"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div class="company-masonry-grid">
-      <div class="company-dynamic-container">
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">📈 Progress Supported by Evidence</h2>
-          </div>
-          <div class="company-dynamic-container" id="company-progress-container" data-company-status-target="progress"></div>
-        </div>
-
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">🛑 Risks &amp; Blockers</h2>
-          </div>
-          <div class="company-dynamic-container" id="company-risks-container" data-company-status-target="risks"></div>
-        </div>
-
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">🔗 Cross-Project Dependencies</h2>
-          </div>
-          <div class="company-dynamic-container" id="company-dependencies-container" data-company-status-target="dependencies"></div>
-        </div>
-      </div>
-
-      <div class="company-dynamic-container">
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">🔄 Material Changes</h2>
-          </div>
-          <ul class="company-bullet-list" id="company-changes-container" data-company-status-target="changes"></ul>
-        </div>
-
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">⚖️ Important Decisions</h2>
-          </div>
-          <ul class="company-bullet-list" id="company-decisions-container" data-company-status-target="decisions"></ul>
-        </div>
-
-        <div class="company-card">
-          <div class="company-card-header">
-            <h2 class="company-card-title">🧠 Learning That Changed Future Work</h2>
-          </div>
-          <ul class="company-bullet-list" id="company-learnings-container" data-company-status-target="learnings"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="company-drawer-overlay" id="company-drawer-overlay" data-company-status-target="overlay" data-action="click->company-status#closeDrawerOnBackdrop">
-    <div class="company-detail-drawer" id="company-detail-drawer" data-company-status-target="drawer">
-      <div class="company-drawer-header">
-        <div>
-          <span class="company-drawer-tag" id="company-drawer-category" data-company-status-target="drawerCategory">DETAIL</span>
-          <h2 class="company-drawer-title" id="company-drawer-title" data-company-status-target="drawerTitle">Title Goes Here</h2>
-        </div>
-        <button class="company-drawer-close-btn" id="company-drawer-close" type="button" aria-label="Close status detail" data-action="click->company-status#closeDrawer">&times;</button>
-      </div>
-      <div class="company-drawer-body">
-        <div class="company-drawer-section">
-          <span class="company-drawer-section-title">Overview &amp; Context</span>
-          <p class="company-drawer-text" id="company-drawer-description" data-company-status-target="drawerDescription">Detailed overview narrative...</p>
-        </div>
-
-        <div class="company-drawer-section">
-          <span class="company-drawer-section-title">Metadata &amp; Ownership</span>
-          <div class="company-meta-pill-group" id="company-drawer-meta" data-company-status-target="drawerMeta"></div>
-        </div>
-
-        <div class="company-drawer-section">
-          <span class="company-drawer-section-title">Impact &amp; Why It Matters</span>
-          <p class="company-drawer-text" id="company-drawer-impact" data-company-status-target="drawerImpact">Impact details...</p>
-        </div>
-
-        <div class="company-drawer-section">
-          <span class="company-drawer-section-title">Active Action Items</span>
-          <ul class="company-action-list" id="company-drawer-actions" data-company-status-target="drawerActions"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  </main>
 </div>

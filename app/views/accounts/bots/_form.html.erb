@@ -21,12 +21,4 @@
   </label>
 </div>
 
-<div class="flex align-center gap">
-  <%= translation_button(:webhook_url) %>
-  <label class="flex align-center gap flex-item-grow input input--actor">
-    <%= form.url_field :webhook_url, class: "input txt-large", placeholder: "Webhook URL" %>
-    <%= image_tag "web.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-  </label>
-</div>
-
 <%= profile_form_submit_button %>

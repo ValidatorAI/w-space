@@ -1,37 +1,405 @@
 <% @page_title = "Sign in" %>
 <% turbo_page_requires_reload %>
 
-<section class="txt-align-center">
-  <div class="panel <%= "shake" if flash[:alert] %>">
-    <%= account_logo_tag style: "center margin-block-end txt-xx-large" %>
+<style>
+  .w-login-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(110, 168, 255, 0.17), transparent 22%),
+      linear-gradient(135deg, #091827 0%, #0d1d2f 38%, #091827 100%);
+    color: #edf5ff;
+    font-family: Inter, "Segoe UI", sans-serif;
+  }
 
-    <%= form_with url: session_url, class: "flex flex-column gap" do |form| %>
-      <fieldset class="flex flex-column gap center-block upad">
-        <legend class="txt-large txt-align-center"><strong><%= Current.account.name %></strong></legend>
+  .w-login {
+    width: min(1120px, 100%);
+    min-height: 720px;
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    background: rgba(11, 20, 31, 0.68);
+    border: 1px solid rgba(159, 180, 203, 0.22);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 28px 60px rgba(1, 8, 18, 0.55);
+    backdrop-filter: blur(10px);
+  }
 
-        <div class="flex align-center gap">
-          <%= translation_button(:email_address) %>
-          <label class="flex align-center gap input input--actor txt-large">
-            <%= form.email_field :email_address, required: true, class: "input", autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %>
-            <%= image_tag "email.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-          </label>
+  .w-login-intro {
+    position: relative;
+    padding: 22px 28px 20px;
+    background: linear-gradient(160deg, rgba(16, 29, 45, 0.96), rgba(8, 18, 30, 0.96));
+    border-right: 1px solid rgba(159, 180, 203, 0.22);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .w-login-intro::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 14%, rgba(233, 201, 138, 0.16), transparent 14%),
+      radial-gradient(circle at 80% 28%, rgba(110, 168, 255, 0.12), transparent 17%),
+      linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    pointer-events: none;
+  }
+
+  .w-login-intro > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .w-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .w-brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(246, 229, 187, 0.75);
+    background: linear-gradient(135deg, #f4dda6, #bb7f2f);
+    color: #0c1a28;
+    border-radius: 12px;
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 1000;
+    transform: skew(-8deg);
+  }
+
+  .w-brand-name {
+    font-size: 1rem;
+    color: #edf5ff;
+  }
+
+  .w-brand-name strong {
+    font-size: 1.04rem;
+  }
+
+  .w-hero {
+    max-width: 480px;
+    margin-top: 6px;
+  }
+
+  .w-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid rgba(110, 168, 255, 0.28);
+    background: rgba(110, 168, 255, 0.08);
+    border-radius: 999px;
+    color: #6ea8ff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .w-eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #78d9b1;
+    box-shadow: 0 0 0 4px rgba(120, 217, 177, 0.18);
+  }
+
+  .w-hero h1 {
+    margin: 10px 0 12px;
+    font-size: clamp(2.6rem, 4vw, 4rem);
+    letter-spacing: -0.06em;
+    line-height: 1.04;
+    color: #edf5ff;
+  }
+
+  .w-lead {
+    margin: 0;
+    max-width: 38ch;
+    font-size: 1.06rem;
+    line-height: 1.7;
+    color: #a8bfd8;
+  }
+
+  .w-login-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 28px;
+    background: linear-gradient(180deg, rgba(15, 27, 39, 0.92), rgba(10, 20, 31, 0.92));
+  }
+
+  .w-card {
+    width: min(100%, 420px);
+    padding: 28px 26px 24px;
+    background: rgba(18, 31, 46, 0.96);
+    border: 1px solid rgba(162, 186, 212, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 18px 34px rgba(1, 8, 18, 0.25);
+  }
+
+  .w-header {
+    margin-bottom: 22px;
+  }
+
+  .w-header h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 2vw, 2.25rem);
+    letter-spacing: -0.05em;
+    color: #edf5ff;
+  }
+
+  .w-header p {
+    margin: 10px 0 0;
+    color: #a8bfd8;
+    font-size: 0.95rem;
+  }
+
+  .w-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .w-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .w-field label {
+    color: #7d93ad;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .w-input-wrap {
+    position: relative;
+  }
+
+  .w-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    opacity: 0.75;
+    pointer-events: none;
+    color: #dfeaf5;
+  }
+
+  .w-input-wrap input {
+    width: 100%;
+    border: 1px solid rgba(150, 169, 188, 0.28);
+    background: rgba(7, 17, 28, 0.86);
+    border-radius: 12px;
+    color: #edf5ff;
+    padding: 14px 16px 14px 46px;
+    font-size: 0.98rem;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  }
+
+  .w-input-wrap input::placeholder {
+    color: #7d93ad;
+  }
+
+  .w-input-wrap input:focus {
+    outline: none;
+    border-color: rgba(110, 168, 255, 0.9);
+    box-shadow: 0 0 0 4px rgba(110, 168, 255, 0.14);
+    background: rgba(10, 20, 31, 0.96);
+  }
+
+  .w-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #a8bfd8;
+    font-size: 0.85rem;
+  }
+
+  .w-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #a8bfd8;
+  }
+
+  .w-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: #407ce5;
+  }
+
+  .w-button {
+    width: 100%;
+    border: 1px solid rgba(91, 128, 196, 0.7);
+    background: linear-gradient(135deg, #407ce5, #3a7ce4 52%, #2c5bb2);
+    color: white;
+    border-radius: 12px;
+    padding: 15px 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(45, 101, 214, 0.28);
+    transition: transform 0.16s ease, filter 0.16s ease;
+  }
+
+  .w-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+  }
+
+  .w-button:active {
+    transform: translateY(0);
+  }
+
+  .w-meta {
+    margin-top: 14px;
+    color: #a8bfd8;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .w-meta a {
+    color: #edf5ff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .w-meta a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 920px) {
+    .w-login {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .w-login-intro {
+      border-right: 0;
+      border-bottom: 1px solid rgba(159, 180, 203, 0.22);
+      gap: 14px;
+    }
+
+    .w-hero {
+      margin-top: 0;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .w-login-shell {
+      padding: 14px;
+    }
+
+    .w-login-intro,
+    .w-login-panel {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .w-card {
+      padding: 22px 18px 18px;
+    }
+
+    .w-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+
+<section class="w-login-shell">
+  <main class="w-login" aria-label="PWR Work sign in">
+    <section class="w-login-intro" aria-label="Workspace overview">
+      <div class="w-brand-row" aria-label="PWR Work brand">
+        <span class="w-brand-mark" aria-hidden="true">W</span>
+        <span class="w-brand-name">PWR <strong>WORK</strong></span>
+      </div>
+
+      <div class="w-hero">
+        <span class="w-eyebrow">Workspace access</span>
+        <h1>Stay aligned with the work that matters.</h1>
+        <p class="w-lead">
+          Track decisions, review context, and keep the right people informed without losing the thread of the project.
+        </p>
+      </div>
+    </section>
+
+    <section class="w-login-panel" aria-label="Sign in form">
+      <div class="w-card">
+        <div class="w-header">
+          <h2>Welcome back</h2>
+          <p>Sign in to continue to your workspace.</p>
         </div>
 
-        <div class="flex align-center gap">
-          <%= translation_button(:password) %>
-          <label class="flex align-center gap input input--actor txt-large">
-            <%= form.password_field :password, required: true, class: "input", autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %>
-            <%= image_tag "password.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-          </label>
-        </div>
+        <%= form_with url: session_url, class: "w-form", method: :post do |form| %>
+          <div class="w-field">
+            <%= form.label :email_address, "Email address" %>
+            <div class="w-input-wrap">
+              <svg class="w-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"/>
+                <path d="m5 7 7 6 7-6"/>
+              </svg>
+              <%= form.email_field :email_address,
+                required: true,
+                autofocus: true,
+                autocomplete: "username",
+                placeholder: "name@company.com",
+                value: params[:email_address] %>
+            </div>
+          </div>
 
-        <%= form.button class: "btn btn--reversed bg-white center txt-large", type: "submit", name: "log_in" do %>
-          <%= image_tag "arrow-right.svg", aria: { hidden: "true" } %>
-          <span class="for-screen-reader">Go</span>
+          <div class="w-field">
+            <%= form.label :password, "Password" %>
+            <div class="w-input-wrap">
+              <svg class="w-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="11" width="16" height="9" rx="2"/>
+                <path d="M8 11V8a4 4 0 1 1 8 0v3"/>
+              </svg>
+              <%= form.password_field :password,
+                required: true,
+                autocomplete: "current-password",
+                placeholder: "Enter your password",
+                maxlength: 72 %>
+            </div>
+          </div>
+
+          <div class="w-row">
+            <label class="w-checkbox" for="remember_me">
+              <%= check_box_tag :remember_me, "1", false, id: "remember_me" %>
+              <span>Remember me</span>
+            </label>
+          </div>
+
+          <%= form.button "Sign in",
+            type: "submit",
+            name: "log_in",
+            class: "w-button" %>
         <% end %>
-      </fieldset>
-    <% end %>
-  </div>
 
-  <%= render "accounts/help_contact" %>
+        <div class="w-meta">
+          Need an account?
+          <%= link_to "Request access", "#" %>
+        </div>
+      </div>
+    </section>
+  </main>
 </section>

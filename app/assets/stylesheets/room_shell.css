@@ -15,12 +15,32 @@
   --workspace-room-context-width: clamp(17.5rem, 23vw, 23rem);
 }
 
+html,
+body {
+  overflow-x: hidden !important;
+}
+
 body.room-shell {
   --navbar-height: 4.125rem;
+  overflow: hidden !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body.room-shell::-webkit-scrollbar,
+body.room-shell #main-content::-webkit-scrollbar,
+body.room-shell #sidebar::-webkit-scrollbar,
+body.room-shell .workspace-room__panel-content::-webkit-scrollbar,
+body.room-shell .workspace-room__context::-webkit-scrollbar,
+body.room-shell .overflow-y::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 body.room-shell #sidebar {
   display: block;
+  overflow: hidden;
 }
 
 body.room-shell #nav {
@@ -43,6 +63,12 @@ body.room-shell #main-content {
   background: var(--workspace-room-bg);
   overflow: hidden;
   padding-top: 0;
+}
+
+body.room-shell .workspace-room__panel-content,
+body.room-shell .workspace-room__context {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body.room-shell #footer {
@@ -305,13 +331,19 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link::before,
-body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room::before {
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room:not(.sidebar-projects__knowledge-room--child)::before {
   color: #a6bdd8;
   content: "#";
   display: inline-block;
   font-weight: 700;
   line-height: 1;
   width: 0.8rem;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room--child::before {
+  content: "";
+  display: none;
+  width: 0;
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__link:where(:not(:active):hover),
@@ -348,7 +380,17 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-compa
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__settings-link {
   --btn-background: transparent;
   --btn-border-color: transparent;
-  --btn-color: #9cb3c8;
+  --btn-color: #adc0d0;
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-company__settings:hover,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-company__settings:focus-visible,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__settings-link:hover,
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__settings-link:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-section-separator {
@@ -464,7 +506,11 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-proje
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room--child,
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item--child {
-  margin-inline-start: calc(var(--room-depth) * 1.1rem);
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
+}
+
+body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar-projects__knowledge-room-row--child > .sidebar-projects__knowledge-room {
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
 }
 
 body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__actions-btn {
@@ -521,6 +567,31 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+}
+
+body.room-shell .workspace-room__main .message-area,
+body.room-shell .workspace-room__main .create-project-message-area,
+body.room-shell .workspace-room__main .create-project-feed,
+body.room-shell .workspace-room__main .create-project-page {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+body.room-shell .workspace-room__main .create-project-message-area,
+body.room-shell .workspace-room__main .create-project-feed {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+body.room-shell .workspace-room__main .create-project-message-area {
+  scroll-padding-top: 1rem;
+  padding-top: 0.6rem;
+}
+
+body.room-shell .workspace-room__main .create-project-page {
+  width: 100%;
+  max-width: none;
+  padding: 0.4rem 1.4rem 2rem;
 }
 
 .workspace-room__header {
@@ -647,8 +718,223 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   overflow: hidden;
 }
 
+.workspace-room__panel--conversation {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.workspace-room__panel--conversation .message-area {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .workspace-room__panel--conversation .messages {
-  padding-block-start: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1.1rem 1.3rem 0;
+  row-gap: 1.35rem;
+}
+
+.workspace-room__panel--conversation .message {
+  --message-column-gap: 0.6rem;
+
+  column-gap: 0.75rem;
+  grid-auto-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "sep sep sep"
+    "avatar body body";
+  padding-inline: 0;
+  row-gap: 0.25rem;
+}
+
+.workspace-room__panel--conversation .message__day-separator {
+  align-items: center;
+  color: #8b98a5;
+  display: none;
+  font-size: 0.63rem;
+  font-weight: 700;
+  grid-area: sep;
+  grid-column: 1 / -1;
+  inline-size: 100%;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  margin: 0.3rem 0 0.2rem;
+  text-transform: none;
+  visibility: hidden;
+}
+
+.workspace-room__panel--conversation .message__day-separator::before,
+.workspace-room__panel--conversation .message__day-separator::after {
+  background: #dce2e6;
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+
+.workspace-room__panel--conversation .message__day-separator > span {
+  align-items: center;
+  background: transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-inline: 0.75rem;
+  padding: 0;
+}
+
+.workspace-room__panel--conversation .message__day-separator-dot {
+  font-size: 0.72rem;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.workspace-room__panel--conversation .message--first-of-day .message__day-separator {
+  display: flex;
+  visibility: visible;
+}
+
+.workspace-room__panel--conversation .message__avatar {
+  --avatar-size: 2.2rem;
+  --avatar-border-radius: 0.6rem;
+
+  margin-inline: 0;
+}
+
+.workspace-room__panel--conversation .message__avatar .avatar {
+  --avatar-size: 2.2rem;
+  --avatar-border-radius: 0.6rem;
+
+  border-radius: var(--avatar-border-radius);
+  box-shadow: none;
+}
+
+.workspace-room__panel--conversation .message__body {
+  justify-content: flex-start;
+  margin-inline-start: 0;
+  max-inline-size: min(84ch, 100%);
+  position: relative;
+}
+
+.workspace-room__panel--conversation .message__meta {
+  position: relative;
+}
+
+.workspace-room__panel--conversation .message__body {
+  padding-inline-end: 2.4rem;
+}
+
+.workspace-room__panel--conversation .message__actions {
+  align-items: center;
+  display: flex;
+  inset-block-start: 0.35rem;
+  inset-inline-end: -2.2rem;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 120ms ease;
+  z-index: 2;
+}
+
+.workspace-room__panel--conversation .message:hover .message__actions,
+.workspace-room__panel--conversation .message:focus-within .message__actions,
+.workspace-room__panel--conversation .message .message__actions:has(details[open]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn,
+.workspace-room__panel--conversation .message__actions .message__edit-btn {
+  --btn-background: transparent !important;
+  --btn-border-color: transparent !important;
+  --btn-color: color-mix(in oklab, var(--color-text), transparent 42%) !important;
+  --btn-padding: 0.28rem 0.42rem;
+
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-block-size: auto;
+  opacity: 1;
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn:hover,
+.workspace-room__panel--conversation .message__actions .message__edit-btn:hover,
+.workspace-room__panel--conversation .message__actions .message__options-btn:focus-visible,
+.workspace-room__panel--conversation .message__actions .message__edit-btn:focus-visible {
+  --btn-background: color-mix(in oklab, var(--color-text), transparent 92%) !important;
+  --btn-color: var(--color-text) !important;
+}
+
+.workspace-room__panel--conversation .message__actions .message__options-btn img,
+.workspace-room__panel--conversation .message__actions .message__edit-btn img {
+  filter: grayscale(1) brightness(0.45) opacity(0.8);
+  opacity: 0.7;
+}
+
+.workspace-room__panel--conversation .message--me .message__body,
+.workspace-room__panel--conversation .message--me :is(.message__meta, .message__heading) {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.workspace-room__panel--conversation .message--me {
+  grid-template-areas:
+    "sep sep sep"
+    "avatar body body";
+}
+
+.workspace-room__panel--conversation .message__meta {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  line-height: 1.2;
+  margin-block-end: 0.18rem;
+  padding-inline-end: 2.1rem;
+}
+
+.workspace-room__panel--conversation .message__heading {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.workspace-room__panel--conversation .message__author,
+.workspace-room__panel--conversation .message__permalink {
+  font-size: 0.73rem;
+}
+
+.workspace-room__panel--conversation .message__author {
+  color: #20364b;
+  font-weight: 700;
+}
+
+.workspace-room__panel--conversation .message__permalink {
+  color: var(--workspace-room-muted);
+  opacity: 1;
+}
+
+.workspace-room__panel--conversation .message__body-content {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #1f2d3a;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin-block-end: 0;
+  max-inline-size: 100%;
+  padding: 0;
+  padding-inline-start: 0;
+}
+
+.workspace-room__panel--conversation .message__body-content p,
+.workspace-room__panel--conversation .message__body-content li,
+.workspace-room__panel--conversation .message__body-content span,
+.workspace-room__panel--conversation .message__body-content div {
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 .workspace-room__panel-content {

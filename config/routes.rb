@@ -213,6 +213,18 @@ Rails.application.routes.draw do
     resources :ai_profile_skills, only: %i[ index show ]
     resources :ai_profile_mcps, only: %i[ index show ]
 
+    resources :topics, only: %i[ index show create update destroy ]
+    resources :message_analysis, only: %i[ index show create update destroy ], controller: "message_analysis"
+    resources :room_history_topics, only: %i[ index show create update destroy ]
+    resources :room_history, only: %i[ index show create update destroy ], controller: "room_history_topics"
+    resources :message_topics, only: %i[ index show create update destroy ]
+    post "tasks/task_cost", to: "tasks#task_cost", as: :task_cost
+    patch "tasks/task_cost", to: "tasks#task_cost"
+    resources :tasks, only: %i[ index show create update destroy ] do
+      get :children, on: :member
+      get :parents, on: :member
+    end
+
     resources :attention_items, only: %i[ index show create update destroy ]
 
     # Flat routes since message ids are globally unique; no project/room scoping required.
@@ -254,27 +266,6 @@ Rails.application.routes.draw do
       resources :milestones, only: %i[ index show create update destroy ], controller: "project_milestones"
     end
   end
-
-  # MCP Agent Chat API (Streamable HTTP transport)
-  namespace :mcp do
-    post "/", to: "endpoint#handle"
-    get "/", to: "endpoint#handle_get"
-    delete "/", to: "endpoint#handle_delete"
-    get "/health", to: "endpoint#health"
-    get "/setup", to: "setup#index"
-    get "/setup/instructions", to: "setup#instructions"
-  end
-
-  # OAuth discovery endpoints - signal no auth required for MCP
-  scope "/.well-known" do
-    get "oauth-protected-resource", to: "well_known#oauth_protected_resource"
-    get "oauth-protected-resource/*path", to: "well_known#oauth_protected_resource"
-    get "oauth-authorization-server", to: "well_known#not_implemented"
-    get "oauth-authorization-server/*path", to: "well_known#not_implemented"
-    get "openid-configuration", to: "well_known#not_implemented"
-    get "openid-configuration/*path", to: "well_known#not_implemented"
-  end
-  post "/register", to: "well_known#not_implemented"
 
   get "up" => "rails/health#show", as: :rails_health_check
 end

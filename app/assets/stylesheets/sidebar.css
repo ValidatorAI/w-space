@@ -450,12 +450,51 @@
   text-transform: uppercase;
 }
 
-.sidebar-company__settings {
+.btn.sidebar-company__settings,
+.btn.sidebar-projects__settings-link,
+.btn.sidebar-projects__knowledge-settings-link,
+.btn.sidebar-projects__knowledge-add-link {
   --btn-background: transparent;
   --btn-border-color: transparent;
-  --btn-padding: 0.2em;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.18em;
 
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
   min-block-size: auto;
+  padding-inline: 0.18em !important;
+}
+
+.btn.sidebar-company__settings img,
+.btn.sidebar-projects__settings-link img,
+.btn.sidebar-projects__knowledge-settings-link img,
+.btn.sidebar-projects__knowledge-add-link img {
+  display: block;
+  height: 12px;
+  width: 12px;
+}
+
+.btn.sidebar-company__settings:hover,
+.btn.sidebar-company__settings:focus,
+.btn.sidebar-company__settings:focus-visible,
+.btn.sidebar-projects__settings-link:hover,
+.btn.sidebar-projects__settings-link:focus,
+.btn.sidebar-projects__settings-link:focus-visible,
+.btn.sidebar-projects__knowledge-settings-link:hover,
+.btn.sidebar-projects__knowledge-settings-link:focus,
+.btn.sidebar-projects__knowledge-settings-link:focus-visible,
+.btn.sidebar-projects__knowledge-add-link:hover,
+.btn.sidebar-projects__knowledge-add-link:focus,
+.btn.sidebar-projects__knowledge-add-link:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
 }
 
 .sidebar-company__buttons {
@@ -477,6 +516,14 @@
   padding: 0 var(--sidebar-inline-space);
 }
 
+.sidebar-projects__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin: 0;
+}
+
 .sidebar-section-separator {
   block-size: 1px;
   background: color-mix(in oklab, var(--color-text), transparent 85%);
@@ -490,6 +537,37 @@
   letter-spacing: 0.13em;
   margin: 0;
   text-transform: uppercase;
+}
+
+.sidebar-projects__add-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.42em;
+  --btn-height: auto;
+  --btn-line-height: 1;
+
+  align-items: center;
+  color: #adc0d0;
+  display: inline-flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: center;
+  min-inline-size: auto;
+  padding: 0.12em 0.5em;
+  line-height: 1;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-projects__add-btn:hover,
+.sidebar-projects__add-btn:focus,
+.sidebar-projects__add-btn:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
 }
 
 .sidebar-projects__list {
@@ -571,20 +649,51 @@
 
 .sidebar-projects__settings-link {
   --btn-background: transparent;
-  --btn-border-color: color-mix(in oklab, var(--color-text), transparent 78%);
+  --btn-border-color: transparent;
   --btn-border-radius: 999px;
-  --btn-border-size: 1px;
-  --btn-padding: 0.42em;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.18em;
 
   align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
   display: inline-flex;
   flex: 0 0 auto;
   justify-content: center;
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
   position: relative;
+  transition: opacity 160ms ease;
+  visibility: hidden;
   z-index: 2;
+}
 
-  border: 0px !important;
+.sidebar-projects__row:hover .sidebar-projects__settings-link,
+.sidebar-projects__row:focus-within .sidebar-projects__settings-link,
+.sidebar-projects__settings-link:hover,
+.sidebar-projects__settings-link:focus,
+.sidebar-projects__settings-link:focus-visible,
+.sidebar-projects__knowledge-room-row:hover .sidebar-projects__settings-link,
+.sidebar-projects__knowledge-room-row:focus-within .sidebar-projects__settings-link,
+.sidebar-projects__knowledge-room-row--child:hover .sidebar-projects__settings-link,
+.sidebar-projects__knowledge-room-row--child:focus-within .sidebar-projects__settings-link {
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.sidebar-projects__settings-link img {
+  display: block;
+  height: 12px;
+  width: 12px;
 }
 
 .sidebar-projects__settings-link--inactive {
@@ -633,10 +742,61 @@
   --row-gap: 0.35em;
 }
 
+.sidebar-projects__knowledge-rooms-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+.sidebar-projects__knowledge-rooms-label {
+  color: color-mix(in oklab, var(--color-text), transparent 65%);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+.sidebar-projects__knowledge-add-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.04em 0.32em;
+
+  align-items: center;
+  color: #adc0d0;
+  display: inline-flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  margin-inline-start: auto;
+  min-inline-size: auto;
+  padding: 0.08em 0.32em;
+
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-projects__knowledge-add-btn:hover,
+.sidebar-projects__knowledge-add-btn:focus,
+.sidebar-projects__knowledge-add-btn:focus-visible {
+  background: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0;
+}
+
 .sidebar-projects__knowledge-room-row {
   align-items: center;
   display: flex;
   gap: 0.35em;
+}
+
+.sidebar-projects__knowledge-room-row--child {
+  margin-inline-start: calc(var(--room-depth) * 0.8rem);
 }
 
 .sidebar-projects__knowledge-room-row > .sidebar-projects__knowledge-room {
@@ -644,6 +804,101 @@
   margin-inline-end: 0;
   max-inline-size: none;
   min-inline-size: 0;
+}
+
+.sidebar-projects__knowledge-room-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.2em;
+  margin-inline-start: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+  visibility: hidden;
+}
+
+.sidebar-projects__knowledge-room-row:hover .sidebar-projects__knowledge-room-actions,
+.sidebar-projects__knowledge-room-row:focus-within .sidebar-projects__knowledge-room-actions,
+.sidebar-projects__knowledge-room-row--child:hover .sidebar-projects__knowledge-room-actions,
+.sidebar-projects__knowledge-room-row--child:focus-within .sidebar-projects__knowledge-room-actions {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.room-item__row {
+  align-items: center;
+  display: flex;
+  gap: 0.2em;
+  inline-size: 100%;
+}
+
+.room-item__row > .room-item__link {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.room-item__row-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.2em;
+  margin-inline-start: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+  visibility: hidden;
+}
+
+.room-item:hover .room-item__row-actions,
+.room-item:focus-within .room-item__row-actions,
+.room-item__row:hover .room-item__row-actions,
+.room-item__row:focus-within .room-item__row-actions {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.room-item__row-action {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.18em;
+
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-inline-size: auto;
+  padding: 0.08em 0.18em !important;
+}
+
+.room-item__row-action span,
+.room-item__row-action img {
+  display: block;
+}
+
+.room-item__row-action span {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.room-item__row-action img {
+  block-size: 12px;
+  inline-size: 12px;
+}
+
+.room-item__row-action:hover,
+.room-item__row-action:focus,
+.room-item__row-action:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
 }
 
 .sidebar-projects__knowledge-room {

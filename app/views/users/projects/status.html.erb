@@ -1,29 +1,56 @@
 <% @page_title = "#{@project.display_name} Project Status & Alignment" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="project-overview-header-left">
-    <span class="btn btn--reversed btn--faux user-settings-nav__pill">⚡ <%= @project.display_name %></span>
-    <h1 class="user-settings-nav__title txt-large">Project Status &amp; Alignment</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area" class="message-area project-status-area">
-  <div class="project-status-content">
-    <%= render "users/projects/status/progress_section", project: @project %>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area project-status-area">
+      <div class="project-status-content">
+        <%= render "users/projects/status/progress_section", project: @project %>
 
-    <div class="status-grid">
-      <div class="status-column">
-        <%= render "users/projects/status/bottlenecks_card", bottlenecks: @bottlenecks %>
-        <%= render "users/projects/status/todos_card", todos: @todos, project: @project %>
-      </div>
+        <div class="status-grid">
+          <div class="status-column">
+            <%= render "users/projects/status/bottlenecks_card", bottlenecks: @bottlenecks %>
+            <%= render "users/projects/status/todos_card", todos: @todos, project: @project %>
+          </div>
 
-      <div class="status-column">
-        <%= render "users/projects/status/knowledge_card", knowledge_items: @knowledge_items %>
+          <div class="status-column">
+            <%= render "users/projects/status/knowledge_card", knowledge_items: @knowledge_items %>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
 

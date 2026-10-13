@@ -195,22 +195,14 @@
   --hover-filter: brightness(0.7);
 
   img:not(.avatar) {
-    filter: invert(100%);
-
-    @media (prefers-color-scheme: dark) {
-      filter: invert(0%);
-    }
+    filter: brightness(0) invert(1);
   }
 }
 
 /* Keep icons legible on dark filled buttons across browsers. */
 .btn.btn--reversed img:not(.avatar),
 .btn.btn--negative img:not(.avatar) {
-  filter: invert(100%);
-
-  @media (prefers-color-scheme: dark) {
-    filter: invert(0%);
-  }
+  filter: brightness(0) invert(1);
 }
 
 .btn--success {

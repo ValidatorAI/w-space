@@ -11,7 +11,7 @@
       <div class="sidebar-company__header">
         <h2 class="sidebar-company__title">Company</h2>
         <%= link_to user_company_settings_path(user_id: "me"), class: "btn sidebar-company__settings", aria: { label: "Company settings" } do %>
-          <span aria-hidden="true">⚙️</span>
+          <%= image_tag "pencil.svg", size: 16, aria: { hidden: "true" } %>
         <% end %>
       </div>
 
@@ -35,7 +35,15 @@
     <% if @projects.any? %>
       <section class="sidebar-projects" aria-label="Projects">
         <div class="sidebar-section-separator" aria-hidden="true"></div>
-        <h2 class="sidebar-projects__title">Projects</h2>
+        <div class="sidebar-projects__header">
+          <h2 class="sidebar-projects__title">Projects</h2>
+          <%= link_to user_company_project_new_path(user_id: "me"),
+                class: "btn sidebar-projects__add-btn",
+                aria: { label: "New project" },
+                data: { turbo: false, turbo_frame: "_top" } do %>
+            <span aria-hidden="true">+</span>
+          <% end %>
+        </div>
 
         <div class="sidebar-projects__list flex flex-column gap">
           <% project_actions = [
@@ -82,9 +90,8 @@
                   <%= link_to edit_rooms_project_path(project.id, by: "project"),
                         class: "btn sidebar-projects__settings-link",
                         aria: { label: "#{project.display_name} settings" },
-                        style: "display: none;",
                         data: { turbo: false, turbo_frame: "_top" } do %>
-                    <span class="sidebar-projects__gear" aria-hidden="true"></span>
+                    <%= image_tag "pencil.svg", size: 12, aria: { hidden: "true" } %>
                   <% end %>
                 </div>
               </div>
@@ -132,43 +139,45 @@
                   <% knowledge_memberships = @project_memberships_by_project_id.fetch(project.id, []) %>
                   <% if knowledge_memberships.any? %>
                     <div class="sidebar-projects__knowledge-rooms flex flex-column gap">
-                      <div class="sidebar-projects__knowledge-rooms-label">rooms</div>
+                      <div class="sidebar-projects__knowledge-rooms-header">
+                        <div class="sidebar-projects__knowledge-rooms-label">rooms</div>
+                        <%= link_to new_rooms_open_path(project_id: project.id),
+                              class: "btn sidebar-projects__add-btn sidebar-projects__knowledge-add-btn",
+                              aria: { label: "Add room to #{project.display_name}" },
+                              data: { turbo: false, turbo_frame: "_top" } do %>
+                          <span aria-hidden="true">+</span>
+                        <% end %>
+                      </div>
 
                       <% each_membership_in_room_tree(knowledge_memberships) do |knowledge_membership, depth| %>
-                        <% if depth.zero? %>
-                          <div class="sidebar-projects__knowledge-room-row">
-                            <%= link_to_room knowledge_membership.room,
-                                  class: [ "room btn txt-nowrap sidebar-projects__knowledge-room", "unread": knowledge_membership.unread? ] do %>
-                              <span class="overflow-ellipsis"><%= room_display_name(knowledge_membership.room) %></span>
-                            <% end %>
+                        <% room_settings_url = room_settings_path(knowledge_membership.room) %>
+                        <div class="sidebar-projects__knowledge-room-row <%= "sidebar-projects__knowledge-room-row--child" if depth.positive? %>" style="--room-depth: <%= depth %>">
+                          <%= link_to_room knowledge_membership.room,
+                                class: [ "room btn txt-nowrap sidebar-projects__knowledge-room", (depth.positive? ? "sidebar-projects__knowledge-room--child" : nil), "unread": knowledge_membership.unread? ],
+                                style: depth.positive? ? "--room-depth: #{depth}" : nil do %>
+                            <span class="overflow-ellipsis"><%= room_display_name(knowledge_membership.room) %></span>
+                          <% end %>
 
-                            <% room_settings_url = room_settings_path(knowledge_membership.room) %>
-
-                            <%= link_to new_rooms_open_path(project_id: project.id, parent_room_id: knowledge_membership.room.id),
-                                  class: "btn sidebar-projects__settings-link sidebar-projects__knowledge-add-link",
-                                  aria: { label: "Create room in #{room_display_name(knowledge_membership.room)}" },
-                                  style: "display: none;" do %>
-                              <span class="sidebar-projects__knowledge-plus" aria-hidden="true"></span>
+                          <div class="sidebar-projects__knowledge-room-actions">
+                            <% unless depth.positive? %>
+                              <%= link_to new_rooms_open_path(project_id: project.id, parent_room_id: knowledge_membership.room.id),
+                                    class: "btn sidebar-projects__settings-link sidebar-projects__knowledge-add-link",
+                                    aria: { label: "Create room in #{room_display_name(knowledge_membership.room)}" } do %>
+                                <span class="sidebar-projects__knowledge-plus" aria-hidden="true">+</span>
+                              <% end %>
                             <% end %>
 
                             <%= link_to room_settings_url,
                                   class: "btn sidebar-projects__settings-link sidebar-projects__knowledge-settings-link",
                                   aria: { label: "#{room_display_name(knowledge_membership.room)} settings" },
-                                  style: "display: none;",
                                   data: {
                                     action: "click->room-settings-modal#open",
                                     room_settings_modal_url_param: room_settings_url
                                   } do %>
-                              <span class="sidebar-projects__knowledge-gear" aria-hidden="true"></span>
+                              <%= image_tag "pencil.svg", size: 12, aria: { hidden: "true" } %>
                             <% end %>
                           </div>
-                        <% else %>
-                          <%= link_to_room knowledge_membership.room,
-                                class: [ "room btn txt-nowrap sidebar-projects__knowledge-room", "sidebar-projects__knowledge-room--child", "unread": knowledge_membership.unread? ],
-                                style: "--room-depth: #{depth}" do %>
-                            <span class="overflow-ellipsis"><%= room_display_name(knowledge_membership.room) %></span>
-                          <% end %>
-                        <% end %>
+                        </div>
                       <% end %>
                     </div>
                   <% else %>

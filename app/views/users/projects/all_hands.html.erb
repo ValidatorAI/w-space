@@ -1,61 +1,88 @@
 <% @page_title = "#{@project.display_name} All-Hands Hub" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="project-overview-header-left">
-    <span class="btn btn--reversed btn--faux user-settings-nav__pill">⚡ <%= @project.display_name %></span>
-    <h1 class="user-settings-nav__title txt-large">All-Hands Hub</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<%= turbo_stream_from @project, :all_hands %>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <%= turbo_stream_from @project, :all_hands %>
 
-<div id="message-area" class="message-area project-all-hands-area" data-controller="all-hands-notes">
-  <div class="project-all-hands-content">
-    <div class="all-hands-grid">
-      <div class="all-hands-card">
-        <h3 class="all-hands-card-title">✨ AI Summary &amp; Key Takeaways</h3>
-        <% if @takeaways.any? %>
-          <ul class="all-hands-bullet-list">
-            <% @takeaways.each do |takeaway| %>
-              <li><strong><%= takeaway.category %>:</strong> <%= takeaway.content %></li>
+    <div id="message-area" class="message-area project-all-hands-area" data-controller="all-hands-notes">
+      <div class="project-all-hands-content">
+        <div class="all-hands-grid">
+          <div class="all-hands-card">
+            <h3 class="all-hands-card-title">✨ AI Summary &amp; Key Takeaways</h3>
+            <% if @takeaways.any? %>
+              <ul class="all-hands-bullet-list">
+                <% @takeaways.each do |takeaway| %>
+                  <li><strong><%= takeaway.category %>:</strong> <%= takeaway.content %></li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">No active takeaways recorded for this project.</p>
             <% end %>
-          </ul>
+          </div>
+
+          <%= render "users/projects/all_hands/action_items_card", action_items: @action_items, project: @project %>
+        </div>
+
+        <% if @decisions.any? %>
+          <div class="all-hands-card">
+            <h3 class="all-hands-card-title">Decisions Logged</h3>
+            <% @decisions.each do |decision| %>
+              <div class="all-hands-list-item all-hands-list-item--row">
+                <div>
+                  <div class="all-hands-item-title"><%= decision.title %></div>
+                  <% dec_parts = [] %>
+                  <% dec_parts << decision.basis if decision.basis.present? %>
+                  <% dec_parts << "Impact: #{decision.impact}" if decision.impact.present? %>
+                  <% if dec_parts.any? %>
+                    <div class="all-hands-item-meta"><%= dec_parts.join(" • ") %></div>
+                  <% end %>
+                </div>
+                <% if decision.badge.present? %>
+                  <span class="all-hands-badge all-hands-badge--blue"><%= decision.badge %></span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         <% else %>
-          <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">No active takeaways recorded for this project.</p>
-        <% end %>
-      </div>
-
-      <%= render "users/projects/all_hands/action_items_card", action_items: @action_items, project: @project %>
-    </div>
-
-    <% if @decisions.any? %>
-      <div class="all-hands-card">
-        <h3 class="all-hands-card-title">Decisions Logged</h3>
-        <% @decisions.each do |decision| %>
-          <div class="all-hands-list-item all-hands-list-item--row">
-            <div>
-              <div class="all-hands-item-title"><%= decision.title %></div>
-              <% dec_parts = [] %>
-              <% dec_parts << decision.basis if decision.basis.present? %>
-              <% dec_parts << "Impact: #{decision.impact}" if decision.impact.present? %>
-              <% if dec_parts.any? %>
-                <div class="all-hands-item-meta"><%= dec_parts.join(" • ") %></div>
-              <% end %>
-            </div>
-            <% if decision.badge.present? %>
-              <span class="all-hands-badge all-hands-badge--blue"><%= decision.badge %></span>
-            <% end %>
+          <div class="all-hands-card" style="text-align: center; padding: 48px 24px;">
+            <h3 class="all-hands-card-title" style="justify-content: center; margin-bottom: 8px;">No Active All-Hands Items</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">This project does not currently have any active takeaways, action items, or decisions.</p>
           </div>
         <% end %>
       </div>
-    <% else %>
-      <div class="all-hands-card" style="text-align: center; padding: 48px 24px;">
-        <h3 class="all-hands-card-title" style="justify-content: center; margin-bottom: 8px;">No Active All-Hands Items</h3>
-        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">This project does not currently have any active takeaways, action items, or decisions.</p>
-      </div>
-    <% end %>
-  </div>
+    </div>
+  </main>
 </div>

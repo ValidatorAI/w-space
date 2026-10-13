@@ -1,14 +1,41 @@
 <% @page_title = "AI Config - Add MCP" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
-  <h1 class="user-settings-nav__title txt-large">Add MCP</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
+  </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area" class="message-area">
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area">
   <div class="feed-container company-settings-feed">
     <div class="settings-container">
       <%= render "users/ai_admin/top_links", active_tab: :mcps %>
@@ -27,4 +54,6 @@
       </section>
     </div>
   </div>
+</div>
+  </main>
 </div>

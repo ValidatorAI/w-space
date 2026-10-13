@@ -1,30 +1,68 @@
 <% @page_title = "Chat bots" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="flex-item-justify-start">
-    <%= link_back_to(params[:return_to] == "company_settings" ? user_company_settings_path(user_id: "me") : edit_account_path) %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <%= link_to searches_path, class: "btn room-shell-topbar__search", aria: { label: "Search or ask" } do %>
+      <span aria-hidden="true">⌕</span>
+      <span>Search or ask W</span>
+      <kbd>⌘K</kbd>
+    <% end %>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<section class="panel panel--wide txt-align-center flex flex-column position-relative" style="view-transition-name: chat-bots">
-  <div class="flex align-center gap">
-    <div class="panel__button">
-      <%= translation_button(:chat_bots) %>
-    </div>
-    <div class="pad-inline-double center">
-      <h1 class="margin-none">Chat bots</h1>
-      <p class="margin-none-block-start">With Chat bots, other sites and services can post updates directly to W space.</p>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-      <%= link_to new_account_bot_path(return_to: params[:return_to]), class: "btn btn--reversed bg-white txt-large", aria: { label: "Add a chat bot" } do %>
-        <%= image_tag "bot.svg", aria: { hidden: "true" }, size: 20 %>
-        <%= image_tag "add.svg", aria: { hidden: "true" }, size: 20 %>
-      <% end %>
-    </div>
-  </div>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area company-settings-area">
+      <div class="company-settings-feed">
+        <div class="settings-container">
+          <section class="settings-card" aria-label="Chat bots">
+            <div class="settings-section-title settings-section-title--spread">
+              <span>🤖 Chat bots</span>
+              <%= link_to new_account_bot_path(return_to: params[:return_to]), class: "action-btn primary action-btn--small", aria: { label: "Add a chat bot" } do %>
+                <%= image_tag "add.svg", aria: { hidden: "true" }, size: 16 %>
+                <span>Add bot</span>
+              <% end %>
+            </div>
 
-  <div class="pad-inline pad-block-start ">
-    <menu class="flex flex-column gap margin-none pad">
-      <%= render partial: "accounts/bots/bot", collection: @bots, locals: { return_to: params[:return_to] } %>
-    </menu>
-  </div>
-</section>
+            <p class="settings-section-copy">
+              Chat bots can be mentioned in rooms to assist with tasks and conversations.
+            </p>
+
+            <% if @bots.any? %>
+              <menu class="account-bots-list margin-none pad-none">
+                <%= render partial: "accounts/bots/bot", collection: @bots, locals: { return_to: params[:return_to] } %>
+              </menu>
+            <% else %>
+              <div class="account-bots-empty">
+                No chat bots yet. Add your first bot.
+              </div>
+            <% end %>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
