@@ -190,8 +190,8 @@ export default class extends Controller {
     this.resultsTarget.innerHTML = items
       .slice(0, 5)
       .map((item) => {
-        const title = this.truncateText(item.title || "Result", 20)
-        const snippet = this.truncateText(item.snippet || "", 20)
+        const title = this.truncateText(item.title || "Result", 40)
+        const snippet = this.truncateText(item.snippet || "", 40)
         const project = item.project_name ? `<span class="room-shell-topbar__search-project">${this.escapeHtml(item.project_name)}</span>` : ""
         const type = item.type ? `<span class="room-shell-topbar__search-type">${this.escapeHtml(item.type.toUpperCase())}</span>` : ""
         const date = item.created_at ? `<span class="room-shell-topbar__search-date">${this.escapeHtml(this.formatDate(item.created_at))}</span>` : ""
@@ -226,7 +226,7 @@ export default class extends Controller {
     })
   }
 
-  truncateText(value, maxLength = 20) {
+  truncateText(value, maxLength = 40) {
     const clean = String(value ?? "").replace(/\s+/g, " ").trim()
     if (!clean) return ""
     if (clean.length <= maxLength) return clean
