@@ -1,12 +1,18 @@
 module Searches
   class WorkspaceSearchService
-    DEFAULT_LIMIT = 5
+    DEFAULT_LIMIT = 8
 
     def initialize(user:, query:, page: 1, per_page: DEFAULT_LIMIT)
       @user = user
       @query = query.to_s.strip
       @page = [page.to_i, 1].max
       @per_page = [per_page.to_i, 1].max
+    end
+
+    def total_count
+      return 0 if @query.blank?
+
+      build_results.count
     end
 
     def call

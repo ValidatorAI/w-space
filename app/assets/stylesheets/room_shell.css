@@ -1395,21 +1395,47 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__ac
 
 .search-page__pagination {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding-block: 0.1rem;
+  gap: 0.55rem;
+  padding: 1rem 0 0.25rem;
 }
 
 .search-page__page-btn {
-  color: #7b8898;
-  font-size: 0.76rem;
+  align-items: center;
+  background: #f5f7fb;
+  border: 1px solid #dfe7ef;
+  border-radius: 0.65rem;
+  color: #53677c;
+  display: inline-flex;
+  font-size: 0.8rem;
   font-weight: 700;
+  height: 2.15rem;
+  justify-content: center;
+  min-width: 2.15rem;
+  padding: 0 0.7rem;
   text-decoration: none;
+  transition: all 0.15s ease;
 }
 
 .search-page__page-btn:hover,
 .search-page__page-btn:focus-visible {
-  color: #485d72;
-  text-decoration: underline;
+  background: #edf2f9;
+  color: #2b3d52;
+  text-decoration: none;
+}
+
+.search-page__page-btn--active {
+  background: #2b3d52;
+  border-color: #2b3d52;
+  color: #ffffff;
+}
+
+.search-page__page-btn--muted {
+  background: #f1f3f7;
+  border-color: #e3e8ef;
+  color: #a0acba;
+  pointer-events: none;
 }
 
 .search-page__empty-state {

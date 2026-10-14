@@ -2,15 +2,20 @@ class SearchesController < ApplicationController
   def index
     @query = params[:q].to_s.strip
     @page = [params[:page].to_i, 1].max
-    @per_page = [params[:per_page].to_i, 5].max
+    @per_page = [params[:per_page].presence&.to_i || 8, 1].max
     @recent_searches = Current.user.searches.ordered
     @return_to_room = last_room_visited
 
     if @query.present?
-      @results = Searches::WorkspaceSearchService.new(user: Current.user, query: @query, page: @page, per_page: @per_page).call
-      @has_more = @results.size == @per_page
+      service = Searches::WorkspaceSearchService.new(user: Current.user, query: @query, page: @page, per_page: @per_page)
+      @results = service.call
+      @total_results = service.total_count
+      @total_pages = [(@total_results.to_f / @per_page).ceil, 1].max
+      @has_more = @page < @total_pages
     else
       @results = []
+      @total_results = 0
+      @total_pages = 1
       @has_more = false
     end
 

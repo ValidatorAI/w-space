@@ -78,10 +78,12 @@
             <button type="button" class="search-page__clear-link">Clear all</button>
           </div>
 
-          <div class="search-page__project-list">
+          <div class="search-page__project-list" data-project-filter-list>
             <% if Current.user.projects.any? %>
               <% Current.user.projects.order(:name).each do |project| %>
-                <button type="button" class="search-page__project-pill <%= 'search-page__project-pill--active' if project.display_name.to_s == (params[:project_name].to_s.presence || Current.user.projects.first&.display_name.to_s) %>">
+                <button type="button"
+                        class="search-page__project-pill <%= 'search-page__project-pill--active' if project.display_name.to_s == (params[:project_name].to_s.presence || Current.user.projects.first&.display_name.to_s) %>"
+                        data-project-filter="<%= project.display_name %>">
                   <span class="search-page__project-dot"></span><%= project.display_name %>
                 </button>
               <% end %>
@@ -97,11 +99,11 @@
           </div>
 
           <div class="search-page__checkbox-list">
-            <label class="search-page__filter-option"><input type="checkbox" checked>Messages</label>
-            <label class="search-page__filter-option"><input type="checkbox" checked>ADRs</label>
-            <label class="search-page__filter-option"><input type="checkbox" checked>Decisions</label>
-            <label class="search-page__filter-option"><input type="checkbox" checked>Knowledge</label>
-            <label class="search-page__filter-option"><input type="checkbox" checked>Artifacts</label>
+            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="message" checked>Messages</label>
+            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="adr" checked>ADRs</label>
+            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="decision" checked>Decisions</label>
+            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="knowledge" checked>Knowledge</label>
+            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="artifact" checked>Artifacts</label>
           </div>
         </div>
       </aside>
@@ -113,7 +115,10 @@
             <% result_label = result[:type].to_s.humanize %>
             <% result_time = result[:created_at].present? ? result[:created_at].strftime("%b %d, %Y") : "Today" %>
 
-            <article class="search-page__result-card">
+            <article class="search-page__result-card"
+                     data-result-card
+                     data-project="<%= (result[:project_name].to_s.presence || "Workspace").to_s %>"
+                     data-type="<%= result[:type].to_s.downcase %>">
               <div class="search-page__result-main">
                 <div class="search-page__result-meta">
                   <span class="search-page__result-type search-page__result-type--<%= result_type %>"><%= result_label %></span>
@@ -140,9 +145,27 @@
             </article>
           <% end %>
 
-          <% if @has_more %>
-            <div class="search-page__pagination">
-              <%= link_to "Search more", searches_path(q: @query, page: @page + 1), class: "search-page__page-btn" %>
+          <% if @total_pages.to_i > 1 %>
+            <div class="search-page__pagination" aria-label="Search results pagination">
+              <% if @page > 1 %>
+                <%= link_to "←", searches_path(q: @query, page: @page - 1, per_page: @per_page), class: "search-page__page-btn" %>
+              <% else %>
+                <span class="search-page__page-btn search-page__page-btn--muted" aria-hidden="true">←</span>
+              <% end %>
+
+              <% (1..@total_pages).each do |page_number| %>
+                <% if page_number == @page %>
+                  <span class="search-page__page-btn search-page__page-btn--active" aria-current="page"><%= page_number %></span>
+                <% else %>
+                  <%= link_to page_number, searches_path(q: @query, page: page_number, per_page: @per_page), class: "search-page__page-btn" %>
+                <% end %>
+              <% end %>
+
+              <% if @page < @total_pages %>
+                <%= link_to "→", searches_path(q: @query, page: @page + 1, per_page: @per_page), class: "search-page__page-btn" %>
+              <% else %>
+                <span class="search-page__page-btn search-page__page-btn--muted" aria-hidden="true">→</span>
+              <% end %>
             </div>
           <% end %>
         <% else %>
@@ -177,4 +200,54 @@
     </div>
   </main>
 </div>
+
+<script>
+  (function () {
+    const projectButtons = document.querySelectorAll('[data-project-filter]');
+    const typeChecks = document.querySelectorAll('[data-type-filter]');
+    const resultCards = document.querySelectorAll('[data-result-card]');
+    const countLabel = document.querySelector('.search-page__toolbar-meta > span');
+    const clearProjectsButton = document.querySelector('.search-page__clear-link');
+
+    function applyFilters() {
+      const selectedProjects = [...projectButtons].filter((button) => button.classList.contains('search-page__project-pill--active')).map((button) => button.dataset.projectFilter);
+      const selectedTypes = [...typeChecks].filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.dataset.typeFilter);
+
+      let visibleCount = 0;
+
+      resultCards.forEach((card) => {
+        const matchesProject = selectedProjects.length === 0 || selectedProjects.includes(card.dataset.project || 'Workspace');
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(card.dataset.type || '');
+        const isVisible = matchesProject && matchesType;
+
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `Showing ${visibleCount} result${visibleCount === 1 ? '' : 's'}`;
+      }
+    }
+
+    projectButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('search-page__project-pill--active');
+        applyFilters();
+      });
+    });
+
+    typeChecks.forEach((checkbox) => {
+      checkbox.addEventListener('change', applyFilters);
+    });
+
+    if (clearProjectsButton) {
+      clearProjectsButton.addEventListener('click', () => {
+        projectButtons.forEach((button) => button.classList.remove('search-page__project-pill--active'));
+        applyFilters();
+      });
+    }
+
+    applyFilters();
+  })();
+</script>
 
