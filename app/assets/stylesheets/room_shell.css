@@ -147,9 +147,9 @@ body.room-shell #footer .composer {
 }
 
 .room-shell-topbar__search-wrap {
-  flex: 1 1 28rem;
-  max-inline-size: 31rem;
-  min-inline-size: 18rem;
+  flex: 0 0 540px;
+  max-inline-size: 540px;
+  min-inline-size: 540px;
   position: relative;
 }
 
@@ -162,7 +162,7 @@ body.room-shell #footer .composer {
   gap: 0.55rem;
   min-block-size: 2.35rem;
   padding: 0.4rem 0.7rem 0.4rem 0.8rem;
-  width: 100%;
+  width: 540px;
 }
 
 .room-shell-topbar__search-form-icon {
@@ -200,13 +200,12 @@ body.room-shell #footer .composer {
   border-radius: 0.7rem;
   box-shadow: 0 18px 40px rgb(11 23 40 / 0.2), 0 4px 12px rgb(11 23 40 / 0.08);
   inset-inline-start: 0;
-  max-inline-size: 42rem;
   overflow: hidden;
   padding: 0;
   position: absolute;
   right: 0;
   top: calc(100% + 0.4rem);
-  width: min(100%, 42rem);
+  width: 540px;
   z-index: 50;
 }
 
