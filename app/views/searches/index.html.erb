@@ -1,112 +1,176 @@
 <% @page_title = "Search" %>
-<% @body_class = "sidebar searches" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <% if @query.present? %>
-    <div class="searches__query flex align-center gap pad-block-start-half">
-      <%= tag.div class: "btn btn--reversed btn--faux align-center gap txt-nowrap" do %>
-        <span class="overflow-ellipsis">“<%= @query %>”</span>
-        <span class="flex-item-no-shrink"><%= @results.count %></span>
+  <div class="room-shell-topbar search-page-topbar">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span><%= Current.account&.name || "Workspace" %></span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap search-page__search-wrap">
+      <%= form_with url: searches_path, method: :get, class: "room-shell-topbar__search-bar search-page__top-search" do |form| %>
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <%= form.search_field :q, value: @query, class: "room-shell-topbar__search-input", placeholder: "Search or ask PWR", autocomplete: "off", spellcheck: false %>
+        <kbd>⌘K</kbd>
       <% end %>
     </div>
-  <% end %>
 
-  <div class="searches__recents align-center gap pad-block-half overflow-y overflow-hide-scrollbar">
-    <% @recent_searches.each do |search| %>
-      <%= link_to searches_path(q: search.query), class: "align-center gap room btn txt-nowrap" do %>
-        <span class="overflow-ellipsis">“<%= search.query %>”</span>
-      <% end %>
-    <% end %>
-
-    <% if @recent_searches.any? %>
-      <%= button_to clear_searches_url, method: :delete, class: "btn searches__btn",
-              data: { turbo_confirm: "Are you sure you want to clear your recent searches?" } do %>
-        <%= image_tag "broom.svg", aria: { hidden: "true" } %>
-        <span class="for-screen-reader">Clear recent searches</span>
-      <% end %>
-    <% end %>
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated a moment ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<% content_for :sidebar do %>
-  <div class="rooms position-relative flex flex-column gap overflow-y overflow-hide-scrollbar">
-    <% @recent_searches.each do |search| %>
-      <%= link_to searches_path(q: search.query), class: "align-center gap room btn txt-nowrap" do %>
-        <span class="overflow-ellipsis">“<%= search.query %>”</span>
-      <% end %>
-    <% end %>
+<div class="workspace-room search-page-shell">
+  <aside id="workspace-navigation" class="workspace-room__workspace search-page__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-    <% if @recent_searches.any? %>
-      <%= button_to clear_searches_url, method: :delete, class: "btn searches__btn",
-              data: { turbo_confirm: "Are you sure you want to clear your recent searches?" } do %>
-        <%= image_tag "broom.svg", aria: { hidden: "true" } %>
-        <span class="for-screen-reader">Clear recent searches</span>
-      <% end %>
-    <% end %>
-  </div>
-<% end %>
-
-<div id="message-area" class="message-area">
-  <% if @results.any? %>
-    <% @results.each do |result| %>
-      <article class="search-result pad">
-        <div class="search-result__meta flex align-center gap txt-small">
-          <span class="search-result__type"><%= result[:type].to_s.humanize %></span>
-          <span class="bullet">•</span>
-          <span><%= result[:project_name] %></span>
-          <span class="bullet">•</span>
-          <time><%= result[:created_at].strftime("%b %d, %Y") %></time>
-        </div>
-        <h3 class="search-result__title"><%= link_to result[:title], result[:url] %></h3>
-        <p class="search-result__snippet"><%= result[:snippet] %></p>
-      </article>
-    <% end %>
-
-    <% if @has_more %>
-      <div class="search-result__more pad">
-        <%= link_to "Search more", searches_path(q: @query, page: @page + 1), class: "btn" %>
+  <main class="workspace-room__main search-page__main">
+    <header class="search-page__header">
+      <div>
+        <p class="search-page__eyebrow">Search results</p>
+        <h1><%= @query.present? ? "Search results for “#{@query}”" : "Search workspace" %></h1>
       </div>
-    <% end %>
 
-    <div class="search-result__more pad">
-      <%= button_to ask_searches_path(q: @query), method: :post, class: "btn btn--reversed" do %>
-        Ask From W
-      <% end %>
+      <div class="search-page__header-actions">
+        <button type="button" class="search-page__button search-page__button--secondary">Share search</button>
+        <%= button_to "Ask PWR", ask_searches_path(q: @query), method: :post, class: "search-page__button search-page__button--primary" %>
+      </div>
+    </header>
+
+    <div class="search-page__toolbar">
+      <div class="search-page__filters-row" aria-label="Result type filters">
+        <button type="button" class="search-page__chip search-page__chip--active">All</button>
+        <button type="button" class="search-page__chip">Messages</button>
+        <button type="button" class="search-page__chip">ADRs</button>
+        <button type="button" class="search-page__chip">Decisions</button>
+        <button type="button" class="search-page__chip">Knowledge</button>
+        <button type="button" class="search-page__chip">Artifacts</button>
+      </div>
+
+      <div class="search-page__toolbar-meta">
+        <span>Showing <%= @results.size %> result<%= "s" unless @results.size == 1 %></span>
+        <label>
+          Sort by
+          <select aria-label="Sort search results">
+            <option>Most relevant</option>
+            <option>Newest</option>
+            <option>Oldest</option>
+          </select>
+        </label>
+      </div>
     </div>
-  <% else %>
-    <div class="message-area--empty min-width center">
-      <figure class="center pad">
-        <%= image_tag "search.svg", aria: { hidden: "true" }, class: "colorize--black translucent" %>
-      </figure>
+
+    <div class="search-page__body">
+      <aside class="search-page__filters" aria-label="Search filters">
+        <div class="search-page__panel">
+          <div class="search-page__panel-header">
+            <h2>Projects</h2>
+            <button type="button" class="search-page__clear-link">Clear all</button>
+          </div>
+
+          <div class="search-page__project-list">
+            <% if Current.user.projects.any? %>
+              <% Current.user.projects.order(:name).each do |project| %>
+                <button type="button" class="search-page__project-pill <%= 'search-page__project-pill--active' if project.display_name.to_s == (params[:project_name].to_s.presence || Current.user.projects.first&.display_name.to_s) %>">
+                  <span class="search-page__project-dot"></span><%= project.display_name %>
+                </button>
+              <% end %>
+            <% else %>
+              <span class="search-page__project-pill search-page__project-pill--disabled">No projects</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="search-page__panel">
+          <div class="search-page__panel-header">
+            <h2>Item type</h2>
+          </div>
+
+          <div class="search-page__checkbox-list">
+            <label class="search-page__filter-option"><input type="checkbox" checked>Messages</label>
+            <label class="search-page__filter-option"><input type="checkbox" checked>ADRs</label>
+            <label class="search-page__filter-option"><input type="checkbox" checked>Decisions</label>
+            <label class="search-page__filter-option"><input type="checkbox" checked>Knowledge</label>
+            <label class="search-page__filter-option"><input type="checkbox" checked>Artifacts</label>
+          </div>
+        </div>
+      </aside>
+
+      <section class="search-page__results" aria-live="polite">
+        <% if @results.any? %>
+          <% @results.each do |result| %>
+            <% result_type = result[:type].to_s.downcase %>
+            <% result_label = result[:type].to_s.humanize %>
+            <% result_time = result[:created_at].present? ? result[:created_at].strftime("%b %d, %Y") : "Today" %>
+
+            <article class="search-page__result-card">
+              <div class="search-page__result-main">
+                <div class="search-page__result-meta">
+                  <span class="search-page__result-type search-page__result-type--<%= result_type %>"><%= result_label %></span>
+                  <span class="search-page__project-badge"><span class="search-page__project-dot"></span><%= result[:project_name].to_s.presence || "Workspace" %></span>
+                  <time><%= result_time %></time>
+                </div>
+
+                <h3><%= link_to result[:title].to_s, result[:url].to_s %></h3>
+                <p><%= result[:snippet].to_s %></p>
+                <div class="search-page__result-footer">
+                  <span><%= result_label %></span>
+                  <span>•</span>
+                  <span>Relevant match</span>
+                </div>
+              </div>
+
+              <div class="search-page__result-actions">
+                <button type="button" class="search-page__button search-page__button--ghost">Open</button>
+              </div>
+            </article>
+          <% end %>
+
+          <% if @has_more %>
+            <div class="search-page__pagination">
+              <%= link_to "Search more", searches_path(q: @query, page: @page + 1), class: "search-page__page-btn" %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="search-page__empty-state">
+            <div class="search-page__empty-icon" aria-hidden="true">⌕</div>
+            <h2>No results found</h2>
+            <p>Try a different keyword or use Ask PWR to synthesize an answer from the workspace context.</p>
+            <%= button_to "Ask PWR", ask_searches_path(q: @query), method: :post, class: "search-page__button search-page__button--primary" %>
+          </div>
+        <% end %>
+      </section>
+
+      <aside class="search-page__context" aria-label="Search context">
+        <div class="search-page__context-header">
+          <h2>Search insights</h2>
+        </div>
+
+        <section class="search-page__context-section">
+          <span class="search-page__context-label">Top matches</span>
+          <h3>Most relevant items</h3>
+          <p>Pilot onboarding, current decisions, and the most relevant knowledge items in the workspace.</p>
+        </section>
+
+        <section class="search-page__context-section">
+          <span class="search-page__context-label">Active filters</span>
+          <div class="search-page__active-filters">
+            <span>Project: Pilot onboarding</span>
+            <span>Type: All</span>
+          </div>
+        </section>
+      </aside>
     </div>
-  <% end %>
+  </main>
 </div>
 
-<% content_for :footer do %>
-  <div class="composer flex align-end gap">
-    <%= link_to room_path(@return_to_room),
-            class: "btn flex-item-no-shrink margin-block-end", style: "view-transition-name: input-switcher; --btn-border-radius: 0.5em" do %>
-      <%= image_tag "arrow-left.svg", aria: { hidden: "true" } %>
-      <span class="for-screen-reader">Exit search </span>
-    <% end %>
-
-    <%= form_with url: searches_path, class: "margin-block flex-item-grow contain flex align-center gap",
-          data: { controller: "form", action: "keydown.esc->form#cancel" } do |form| %>
-      <div class="composer__input flex align-center flex-item-grow gap full-width input input--actor min-width">
-        <%= image_tag "search.svg", size: 20, aria: { hidden: "true" }, class: "composer__input-hint colorize--black", style: "view-transition-name: input-btn;" %>
-
-        <%= form.text_field :q, value: params[:q], class: "searches__input input flex-item-grow", role: "searchbox", aria: { label: "search" }, autofocus: true, required: true %>
-
-        <%= link_to searches_path, data: { form_target: "cancel" }, role: "button", class: "searches__reset" do %>
-          <%= image_tag "remove.svg", aria: { hidden: "true" }, size: 14, class: "colorize--black" %>
-          <span class="for-screen-reader">Clear search field</span>
-        <% end %>
-
-        <%= form.button type: "submit", class: "btn btn--reversed flex-item-no-shrink txt-small", style: "--btn-border-radius: 0.5em" do %>
-          <%= image_tag "arrow-up.svg", aria: { hidden: "true" } %>
-          <span class="for-screen-reader">Search</span>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
-<% end %>
