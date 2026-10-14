@@ -1,4 +1,4 @@
-module Search
+module Searches
   class WorkspaceSearchService
     DEFAULT_LIMIT = 5
 

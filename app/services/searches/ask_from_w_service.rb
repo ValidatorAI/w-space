@@ -1,4 +1,4 @@
-module Search
+module Searches
   class AskFromWService
     def initialize(user:, query:)
       @user = user

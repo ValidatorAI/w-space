@@ -7,7 +7,7 @@ class SearchesController < ApplicationController
     @return_to_room = last_room_visited
 
     if @query.present?
-      @results = Search::WorkspaceSearchService.new(user: Current.user, query: @query, page: @page, per_page: @per_page).call
+      @results = Searches::WorkspaceSearchService.new(user: Current.user, query: @query, page: @page, per_page: @per_page).call
       @has_more = @results.size == @per_page
     else
       @results = []
@@ -47,7 +47,7 @@ class SearchesController < ApplicationController
 
   def ask
     query = params[:q].to_s.strip
-    room = Search::AskFromWService.new(user: Current.user, query: query).call
+    room = Searches::AskFromWService.new(user: Current.user, query: query).call
     redirect_to room_url(room)
   end
 
