@@ -19,7 +19,7 @@ module Searches
 
     private
       def build_results
-        message_results + room_results
+        (message_results + room_results + project_results + project_entity_results)
           .sort_by { |result| [result[:score], result[:created_at]] }
           .reverse
       end
@@ -36,7 +36,64 @@ module Searches
             project_name: room.project&.name || "General",
             created_at: room.created_at,
             score: score,
-            url: Rails.application.routes.url_helpers.room_path(room)
+            url: room_search_url(room)
+          }
+        end
+      end
+
+      def project_results
+        @user.projects.includes(:project_users).filter_map do |project|
+          score = score_for(project.name, project.description.to_s, project.path.to_s)
+          next if score.zero?
+
+          {
+            type: "project",
+            title: project.name,
+            snippet: project.description.presence || project.path,
+            project_name: project.name,
+            created_at: project.created_at,
+            score: score,
+            url: project_search_url(project)
+          }
+        end
+      end
+
+      def project_entity_results
+        return [] if @user.projects.none?
+
+        @user.projects.includes(:adrs, :knowledge_items, :todos, :milestones, :obsidian_notes, :bottlenecks).flat_map do |project|
+          [
+            entity_results(project, project.adrs.active, "adr", :title, :identifier, :status),
+            entity_results(project, project.knowledge_items.active, "knowledge", :title, :description, :badge),
+            entity_results(project, project.todos, "todo", :title, :meta_text),
+            entity_results(project, project.milestones.active, "milestone", :title, :description),
+            entity_results(project, project.obsidian_notes.active, "note", :title, :content, :tags),
+            entity_results(project, project.bottlenecks, "bottleneck", :title, :description, :severity)
+          ].flatten
+        end
+      end
+
+      def entity_results(project, records, type, *fields)
+        records.filter_map do |record|
+          title = record.respond_to?(:title) ? record.title.to_s.strip.presence : record.class.name.demodulize.titleize
+          next if title.blank?
+
+          searchable_text = fields.filter_map do |field|
+            value = record.public_send(field) if record.respond_to?(field)
+            value.to_s.strip.presence
+          end.join(" ")
+
+          score = score_for(title, searchable_text, project.name)
+          next if score.zero?
+
+          {
+            type: type,
+            title: title,
+            snippet: searchable_text.presence || title,
+            project_name: project.name,
+            created_at: record.try(:created_at) || project.created_at,
+            score: score,
+            url: project_search_url(project)
           }
         end
       end
@@ -54,9 +111,19 @@ module Searches
             project_name: room&.project&.name || "General",
             created_at: message.created_at,
             score: score,
-            url: Rails.application.routes.url_helpers.room_path(room)
+            url: room_search_url(room)
           }
         end
+      end
+
+      def room_search_url(room)
+        routes = Rails.application.routes.url_helpers
+        routes.respond_to?(:room_path) ? routes.room_path(room) : "#"
+      end
+
+      def project_search_url(project)
+        routes = Rails.application.routes.url_helpers
+        routes.respond_to?(:project_path) ? routes.project_path(project) : "#"
       end
 
       def score_for(*fields)

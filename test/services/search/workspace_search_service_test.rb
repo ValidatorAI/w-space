@@ -27,4 +27,17 @@ class Searches::WorkspaceSearchServiceTest < ActiveSupport::TestCase
 
     assert_equal 5, results.size
   end
+
+  test "search includes project-backed knowledge and ADR entities" do
+    project = Project.create!(name: "Platform rollout", path: "/tmp/platform-rollout", slug: "platform-rollout", short_code: "PR")
+    users(:david).projects << project
+    project.knowledge_items.create!(title: "Launch checklist", description: "Review rollout readiness and customer comms")
+    project.adrs.create!(identifier: "ADR-120", title: "Rollout approach", status: "proposed")
+
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "rollout", page: 1, per_page: 10).call
+
+    assert_operator results.size, :>=, 2
+    assert_includes results.map { |result| result[:title] }, "Launch checklist"
+    assert_includes results.map { |result| result[:title] }, "Rollout approach"
+  end
 end
