@@ -63,10 +63,26 @@ module OutputEvents
       # Determine target profile (fallback to delegator)
       target_profile = resolve_profile(merged_data)
 
+      # Check Hermes gateway concurrency throttle before dispatching
+      hermes_client = Hermes::Client.new
+      max_active_agents = Hermes.configuration.max_active_agents
+      if max_active_agents.positive?
+        hermes_status = hermes_client.api_status_summary
+        active_agents = hermes_status["active_agents"]
+        if active_agents.nil? || active_agents.to_i >= max_active_agents
+          Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable (active_agents=#{active_agents.inspect} >= threshold=#{max_active_agents}). Rescheduling group #{group.id}.")
+          ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+            lead_event.id,
+            stage: :dispatch,
+            dispatch_group_id: group.id
+          )
+          return
+        end
+      end
+
       # Dispatch to Hermes
       hermes_response = nil
       begin
-        hermes_client = Hermes::Client.new
         hermes_response = hermes_client.chat_completions(
           chat_payload,
           profile: target_profile,

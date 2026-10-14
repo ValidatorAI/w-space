@@ -145,12 +145,25 @@ module Mcp
       # Hierarchy
       class GetTaskChildrenTool < Mcp::BaseTool
         def name = "get_task_children"
-        def description = "Get direct children of a task"
+        def description = "Get all descendant children of a task (recursively)"
         def aliases = %w[get_all_children_tasks GetTaskChildren]
         def input_schema = { type: "object", properties: { task_id: { type: %w[string integer] } }, required: ["task_id"] }
+
         def execute(args)
           task = Task.find(args[:task_id])
-          success(task.child_tasks.map(&:as_json))
+          descendants = collect_descendants(task)
+          success(descendants.map(&:as_json))
+        end
+
+        private
+
+        def collect_descendants(task, visited = Set.new)
+          return [] if visited.include?(task.id)
+
+          visited << task.id
+          task.child_tasks.flat_map do |child|
+            [ child ] + collect_descendants(child, visited)
+          end
         end
       end
 
