@@ -121,8 +121,8 @@
                   <time><%= result_time %></time>
                 </div>
 
-                <h3><%= link_to result[:title].to_s, result[:url].to_s %></h3>
-                <p><%= result[:snippet].to_s %></p>
+                <h3><%= link_to char_truncate(result[:title].to_s, 60), result[:url].to_s %></h3>
+                <p><%= char_truncate(result[:snippet].to_s, 400) %></p>
                 <div class="search-page__result-footer">
                   <span><%= result_label %></span>
                   <span>•</span>
