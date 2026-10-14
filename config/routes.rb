@@ -168,6 +168,7 @@ Rails.application.routes.draw do
   end
 
   resources :searches, only: %i[ index create ] do
+    post :ask, on: :collection
     delete :clear, on: :collection
   end
 

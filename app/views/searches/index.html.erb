@@ -2,11 +2,11 @@
 <% @body_class = "sidebar searches" %>
 
 <% content_for :nav do %>
-  <% if @query %>
+  <% if @query.present? %>
     <div class="searches__query flex align-center gap pad-block-start-half">
       <%= tag.div class: "btn btn--reversed btn--faux align-center gap txt-nowrap" do %>
         <span class="overflow-ellipsis">“<%= @query %>”</span>
-        <span class="flex-item-no-shrink"><%= @messages.count %></span>
+        <span class="flex-item-no-shrink"><%= @results.count %></span>
       <% end %>
     </div>
   <% end %>
@@ -47,14 +47,38 @@
 <% end %>
 
 <div id="message-area" class="message-area">
-  <div class="message-area--empty min-width center">
-    <figure class="center pad">
-      <%= image_tag "search.svg", aria: { hidden: "true" }, class: "colorize--black translucent" %>
-    </figure>
-  </div>
+  <% if @results.any? %>
+    <% @results.each do |result| %>
+      <article class="search-result pad">
+        <div class="search-result__meta flex align-center gap txt-small">
+          <span class="search-result__type"><%= result[:type].to_s.humanize %></span>
+          <span class="bullet">•</span>
+          <span><%= result[:project_name] %></span>
+          <span class="bullet">•</span>
+          <time><%= result[:created_at].strftime("%b %d, %Y") %></time>
+        </div>
+        <h3 class="search-result__title"><%= link_to result[:title], result[:url] %></h3>
+        <p class="search-result__snippet"><%= result[:snippet] %></p>
+      </article>
+    <% end %>
 
-  <%= search_results_tag do %>
-    <%= render @messages %>
+    <% if @has_more %>
+      <div class="search-result__more pad">
+        <%= link_to "Search more", searches_path(q: @query, page: @page + 1), class: "btn" %>
+      </div>
+    <% end %>
+
+    <div class="search-result__more pad">
+      <%= button_to ask_searches_path(q: @query), method: :post, class: "btn btn--reversed" do %>
+        Ask From W
+      <% end %>
+    </div>
+  <% else %>
+    <div class="message-area--empty min-width center">
+      <figure class="center pad">
+        <%= image_tag "search.svg", aria: { hidden: "true" }, class: "colorize--black translucent" %>
+      </figure>
+    </div>
   <% end %>
 </div>
 
