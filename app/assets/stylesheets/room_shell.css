@@ -493,6 +493,22 @@ body.room-shell #footer .composer {
   margin-inline-start: auto;
 }
 
+.room-shell-topbar__search-more-link {
+  align-self: end;
+  color: #8a97a8;
+  display: inline-flex;
+  font-size: 0.7rem;
+  justify-self: end;
+  margin: 0.12rem 0.2rem 0.55rem;
+  text-decoration: none;
+}
+
+.room-shell-topbar__search-more-link:hover,
+.room-shell-topbar__search-more-link:focus-visible {
+  color: #5c6a7c;
+  text-decoration: underline;
+}
+
 .room-shell-topbar__search-actions {
   display: none;
 }

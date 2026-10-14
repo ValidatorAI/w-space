@@ -189,11 +189,16 @@ export default class extends Controller {
       </button>
     `
 
+    const searchMoreLink = query
+      ? `<a href="/searches?q=${encodeURIComponent(query)}" class="room-shell-topbar__search-more-link" data-action="click->search-dropdown#closeSearch">Search more</a>`
+      : ""
+
     if (!items.length) {
       this.resultsTarget.innerHTML = `
         <div class="room-shell-topbar__search-empty">
           <span>No results for “${this.escapeHtml(query)}”</span>
         </div>
+        ${searchMoreLink}
         ${askCard}
       `
       return
@@ -225,7 +230,7 @@ export default class extends Controller {
           </a>
         `
       })
-      .join("") + askCard
+      .join("") + searchMoreLink + askCard
   }
 
   handleAskButtonClick(event) {
