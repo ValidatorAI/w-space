@@ -13,25 +13,22 @@
     </div>
 
     <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
-      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask PWR">
         <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
         <input
           type="search"
           class="room-shell-topbar__search-input"
-          placeholder="Search or ask W"
+          placeholder="Search or ask PWR"
           autocomplete="off"
           spellcheck="false"
-          aria-label="Search or ask W"
+          aria-label="Search or ask PWR"
           data-search-dropdown-target="input"
         >
         <kbd>⌘K</kbd>
       </div>
 
-      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask PWR">
         <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
-        <div class="room-shell-topbar__search-actions">
-          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
-        </div>
       </div>
     </div>
 

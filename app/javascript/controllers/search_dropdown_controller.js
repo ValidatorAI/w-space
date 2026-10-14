@@ -165,11 +165,24 @@ export default class extends Controller {
   renderResults(items, query) {
     if (!this.resultsTarget) return
 
+    const askHref = `/searches?q=${encodeURIComponent(query || "")}`
+    const askCard = `
+      <a href="${askHref}" class="room-shell-topbar__search-ask-card" data-action="click->search-dropdown#closeSearch">
+        <span class="room-shell-topbar__search-ask-icon" aria-hidden="true">W</span>
+        <span class="room-shell-topbar__search-ask-copy">
+          <span class="room-shell-topbar__search-ask-title">Ask PWR about workspace context</span>
+          <span class="room-shell-topbar__search-ask-subtitle">Could not find the answer above? Ask W to synthesize an answer from all workspace context.</span>
+        </span>
+        <span class="room-shell-topbar__search-ask-arrow" aria-hidden="true">→</span>
+      </a>
+    `
+
     if (!items.length) {
       this.resultsTarget.innerHTML = `
         <div class="room-shell-topbar__search-empty">
           <span>No results for “${this.escapeHtml(query)}”</span>
         </div>
+        ${askCard}
       `
       return
     }
@@ -191,11 +204,7 @@ export default class extends Controller {
           </a>
         `
       })
-      .join("") + `
-        <div class="room-shell-topbar__search-ask">
-          <a href="/searches?q=${encodeURIComponent(query)}" class="room-shell-topbar__search-ask-link">Ask from W</a>
-        </div>
-      `
+      .join("") + askCard
   }
 
   escapeHtml(value) {
