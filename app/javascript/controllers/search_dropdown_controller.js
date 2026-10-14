@@ -10,8 +10,10 @@ export default class extends Controller {
     this._boundKeydown = this.handleGlobalKeydown.bind(this)
     this._boundInput = this.handleInput.bind(this)
     this._boundFocus = this.handleFocus.bind(this)
+    this._boundAskButtonClick = this.handleAskButtonClick.bind(this)
     this.inputTarget.addEventListener("input", this._boundInput)
     this.inputTarget.addEventListener("focus", this._boundFocus)
+    this.element.addEventListener("click", this._boundAskButtonClick)
     document.addEventListener("keydown", this._boundKeydown)
   }
 
@@ -19,6 +21,7 @@ export default class extends Controller {
     this.cancelPendingRequest()
     this.inputTarget?.removeEventListener("input", this._boundInput)
     this.inputTarget?.removeEventListener("focus", this._boundFocus)
+    this.element.removeEventListener("click", this._boundAskButtonClick)
     document.removeEventListener("keydown", this._boundKeydown)
   }
 
@@ -175,16 +178,15 @@ export default class extends Controller {
   renderResults(items, query) {
     if (!this.resultsTarget) return
 
-    const askHref = `/searches?q=${encodeURIComponent(query || "")}`
     const askCard = `
-      <a href="${askHref}" class="room-shell-topbar__search-ask-card" data-action="click->search-dropdown#closeSearch">
+      <button type="button" class="room-shell-topbar__search-ask-card" data-action="click->search-dropdown#askFromW" data-query="${this.escapeHtml(query || "")}">
         <span class="room-shell-topbar__search-ask-icon" aria-hidden="true">W</span>
         <span class="room-shell-topbar__search-ask-copy">
           <span class="room-shell-topbar__search-ask-title">Ask PWR about workspace context</span>
           <span class="room-shell-topbar__search-ask-subtitle">Could not find the answer above? Ask W to synthesize an answer from all workspace context.</span>
         </span>
         <span class="room-shell-topbar__search-ask-arrow" aria-hidden="true">→</span>
-      </a>
+      </button>
     `
 
     if (!items.length) {
@@ -224,6 +226,66 @@ export default class extends Controller {
         `
       })
       .join("") + askCard
+  }
+
+  handleAskButtonClick(event) {
+    const askButton = event.target.closest(".room-shell-topbar__ask-button")
+    if (!askButton) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const query = (this.inputTarget?.value || "").trim()
+    if (!query) {
+      return
+    }
+
+    this.closeSearch()
+    this.postAskToBot(query)
+  }
+
+  askFromW(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const query = (event.currentTarget.dataset.query || this.inputTarget?.value || "").trim()
+    if (!query) {
+      return
+    }
+
+    this.closeSearch()
+    this.postAskToBot(query)
+  }
+
+  postAskToBot(query) {
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
+    const params = new URLSearchParams({ q: query })
+
+    fetch("/searches/ask", {
+      method: "POST",
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "X-CSRF-Token": csrfToken || "",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+      },
+      body: params.toString(),
+      credentials: "same-origin"
+    })
+      .then((response) => {
+        if (!response.redirected && response.url) {
+          window.location.href = response.url
+          return
+        }
+
+        if (response.redirected && response.url) {
+          window.location.href = response.url
+        }
+      })
+      .catch((error) => {
+        console.error("Ask W failed", error)
+      })
   }
 
   typeBadgeClass(type) {
