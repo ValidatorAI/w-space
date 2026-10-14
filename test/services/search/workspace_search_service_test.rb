@@ -40,4 +40,17 @@ class Searches::WorkspaceSearchServiceTest < ActiveSupport::TestCase
     assert_includes results.map { |result| result[:title] }, "Launch checklist"
     assert_includes results.map { |result| result[:title] }, "Rollout approach"
   end
+
+  test "project-backed results include real navigation links" do
+    project = Project.create!(name: "Platform rollout", path: "/tmp/platform-rollout", slug: "platform-rollout", short_code: "PR")
+    users(:david).projects << project
+    project.todos.create!(title: "Ship launch checklist", meta_text: "Due this week")
+
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "launch", page: 1, per_page: 10).call
+    todo_result = results.find { |result| result[:type] == "todo" }
+
+    assert_not_nil todo_result
+    assert_not_equal "#", todo_result[:url]
+    assert_match %r{/company/projects/#{project.id}/status$}, todo_result[:url]
+  end
 end

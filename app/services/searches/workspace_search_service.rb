@@ -118,7 +118,7 @@ module Searches
             project_name: record.project&.name || "General",
             created_at: record.created_at,
             score: score,
-            url: project_search_url(record.project)
+            url: project_search_url(record.project, "attention_item")
           }
         end
       end
@@ -151,7 +151,7 @@ module Searches
             project_name: project.name,
             created_at: record.try(:created_at) || project.created_at,
             score: score,
-            url: project_search_url(project)
+            url: project_search_url(project, type)
           }
         end
       end
@@ -179,9 +179,37 @@ module Searches
         routes.respond_to?(:room_path) ? routes.room_path(room) : "#"
       end
 
-      def project_search_url(project)
+      def project_search_url(project, type = nil)
+        return "#" if project.blank?
+
         routes = Rails.application.routes.url_helpers
-        routes.respond_to?(:project_path) ? routes.project_path(project) : "#"
+        type_name = type.to_s
+
+        route_map = {
+          "project" => :user_company_project_overview_path,
+          "todo" => :user_company_project_status_path,
+          "task" => :user_company_project_status_path,
+          "milestone" => :user_company_project_status_path,
+          "all_hands_decision" => :user_company_project_all_hands_path,
+          "all_hands_action_item" => :user_company_project_all_hands_path,
+          "all_hands_takeaway" => :user_company_project_all_hands_path,
+          "knowledge" => :user_company_project_knowledge_path,
+          "knowledge_activity" => :user_company_project_knowledge_path,
+          "note" => :user_company_project_knowledge_path,
+          "directory_item" => :user_company_project_knowledge_path,
+          "external_asset" => :user_company_project_knowledge_path,
+          "adr" => :user_company_project_knowledge_path,
+          "attention_item" => :user_company_project_status_path,
+          "room" => nil,
+          "message" => nil
+        }
+
+        helper = route_map[type_name] || :user_company_project_overview_path
+        if routes.respond_to?(helper)
+          routes.public_send(helper, user_id: "me", id: project.id)
+        else
+          routes.respond_to?(:user_company_project_overview_path) ? routes.user_company_project_overview_path(user_id: "me", id: project.id) : "#"
+        end
       end
 
       def score_for(*fields)
