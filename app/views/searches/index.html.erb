@@ -131,7 +131,11 @@
               </div>
 
               <div class="search-page__result-actions">
-                <button type="button" class="search-page__button search-page__button--ghost">Open</button>
+                <% if result[:url].to_s.present? %>
+                  <%= link_to "Open", result[:url].to_s, class: "search-page__button search-page__button--ghost" %>
+                <% else %>
+                  <button type="button" class="search-page__button search-page__button--ghost" disabled>Open</button>
+                <% end %>
               </div>
             </article>
           <% end %>
