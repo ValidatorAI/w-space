@@ -9,7 +9,7 @@ export default class extends Controller {
     this._debounceTimer = null
     this._boundKeydown = this.handleGlobalKeydown.bind(this)
     this._boundInput = this.handleInput.bind(this)
-    this._boundFocus = this.openSearch.bind(this)
+    this._boundFocus = this.handleFocus.bind(this)
     this.inputTarget.addEventListener("input", this._boundInput)
     this.inputTarget.addEventListener("focus", this._boundFocus)
     document.addEventListener("keydown", this._boundKeydown)
@@ -22,23 +22,33 @@ export default class extends Controller {
     document.removeEventListener("keydown", this._boundKeydown)
   }
 
+  handleFocus() {
+    const query = this.inputTarget.value.trim()
+
+    if (query.length > 3) {
+      this.openSearch()
+      return
+    }
+
+    this.closeSearch()
+  }
+
   handleInput(event) {
     const query = event.target.value.trim()
 
-    this.openSearch()
-
     if (!query) {
       this.cancelPendingRequest()
-      this.renderDefaultState()
+      this.closeSearch()
       return
     }
 
     if (query.length < 4) {
       this.cancelPendingRequest()
-      this.renderHint("Type at least 4 characters to search")
+      this.closeSearch()
       return
     }
 
+    this.openSearch()
     clearTimeout(this._debounceTimer)
     this._debounceTimer = setTimeout(() => this.fetchResults(query), 250)
   }
