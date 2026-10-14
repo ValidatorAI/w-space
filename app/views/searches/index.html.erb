@@ -49,12 +49,12 @@
 
     <div class="search-page__toolbar">
       <div class="search-page__filters-row" aria-label="Result type filters">
-        <button type="button" class="search-page__chip search-page__chip--active">All</button>
-        <button type="button" class="search-page__chip">Messages</button>
-        <button type="button" class="search-page__chip">ADRs</button>
-        <button type="button" class="search-page__chip">Decisions</button>
-        <button type="button" class="search-page__chip">Knowledge</button>
-        <button type="button" class="search-page__chip">Artifacts</button>
+        <button type="button" class="search-page__chip search-page__chip--active" data-type-filter="all">All</button>
+        <button type="button" class="search-page__chip" data-type-filter="message">Messages</button>
+        <button type="button" class="search-page__chip" data-type-filter="adr">ADRs</button>
+        <button type="button" class="search-page__chip" data-type-filter="decision">Decisions</button>
+        <button type="button" class="search-page__chip" data-type-filter="knowledge">Knowledge</button>
+        <button type="button" class="search-page__chip" data-type-filter="artifact">Artifacts</button>
       </div>
 
       <div class="search-page__toolbar-meta">
@@ -93,19 +93,6 @@
           </div>
         </div>
 
-        <div class="search-page__panel">
-          <div class="search-page__panel-header">
-            <h2>Item type</h2>
-          </div>
-
-          <div class="search-page__checkbox-list">
-            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="message" checked>Messages</label>
-            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="adr" checked>ADRs</label>
-            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="decision" checked>Decisions</label>
-            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="knowledge" checked>Knowledge</label>
-            <label class="search-page__filter-option"><input type="checkbox" data-type-filter="artifact" checked>Artifacts</label>
-          </div>
-        </div>
       </aside>
 
       <section class="search-page__results" aria-live="polite">
@@ -115,10 +102,19 @@
             <% result_label = result[:type].to_s.humanize %>
             <% result_time = result[:created_at].present? ? result[:created_at].strftime("%b %d, %Y") : "Today" %>
 
+            <% normalized_type = case result[:type].to_s.downcase
+                                 when "message" then "message"
+                                 when "adr" then "adr"
+                                 when "decision", "all_hands_decision" then "decision"
+                                 when "knowledge", "knowledge_item", "note", "knowledge_activity" then "knowledge"
+                                 when "artifact", "external_asset", "directory_item" then "artifact"
+                                 else result[:type].to_s.downcase
+                                 end %>
+
             <article class="search-page__result-card"
                      data-result-card
                      data-project="<%= (result[:project_name].to_s.presence || "Workspace").to_s %>"
-                     data-type="<%= result[:type].to_s.downcase %>">
+                     data-type="<%= normalized_type %>">
               <div class="search-page__result-main">
                 <div class="search-page__result-meta">
                   <span class="search-page__result-type search-page__result-type--<%= result_type %>"><%= result_label %></span>
@@ -204,14 +200,26 @@
 <script>
   (function () {
     const projectButtons = document.querySelectorAll('[data-project-filter]');
-    const typeChecks = document.querySelectorAll('[data-type-filter]');
+    const typeChips = document.querySelectorAll('.search-page__chip[data-type-filter]');
+    const typeChecks = document.querySelectorAll('[data-type-filter]:not(.search-page__chip)');
     const resultCards = document.querySelectorAll('[data-result-card]');
     const countLabel = document.querySelector('.search-page__toolbar-meta > span');
     const clearProjectsButton = document.querySelector('.search-page__clear-link');
 
+    function getActiveTypeFilter() {
+      const activeChip = [...typeChips].find((chip) => chip.classList.contains('search-page__chip--active'));
+      if (activeChip) {
+        return activeChip.dataset.typeFilter === 'all' ? null : activeChip.dataset.typeFilter;
+      }
+
+      const checkedTypes = [...typeChecks].filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.dataset.typeFilter);
+      return checkedTypes.length === 0 ? null : checkedTypes;
+    }
+
     function applyFilters() {
       const selectedProjects = [...projectButtons].filter((button) => button.classList.contains('search-page__project-pill--active')).map((button) => button.dataset.projectFilter);
-      const selectedTypes = [...typeChecks].filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.dataset.typeFilter);
+      const activeTypeFilter = getActiveTypeFilter();
+      const selectedTypes = Array.isArray(activeTypeFilter) ? activeTypeFilter : (activeTypeFilter ? [activeTypeFilter] : []);
 
       let visibleCount = 0;
 
@@ -232,6 +240,13 @@
     projectButtons.forEach((button) => {
       button.addEventListener('click', () => {
         button.classList.toggle('search-page__project-pill--active');
+        applyFilters();
+      });
+    });
+
+    typeChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        typeChips.forEach((item) => item.classList.toggle('search-page__chip--active', item === chip));
         applyFilters();
       });
     });
