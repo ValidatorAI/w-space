@@ -201,10 +201,10 @@ export default class extends Controller {
             <div class="room-shell-topbar__search-result-header">
               ${type}
               <span class="room-shell-topbar__search-result-title">${this.escapeHtml(title)}</span>
-            </div>
-            <div class="room-shell-topbar__search-meta-row">
-              ${project}
-              ${date}
+              <span class="room-shell-topbar__search-meta-block">
+                ${project}
+                ${date}
+              </span>
             </div>
             <div class="room-shell-topbar__search-result-snippet">${this.escapeHtml(snippet)}</div>
           </a>

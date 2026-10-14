@@ -246,7 +246,7 @@ body.room-shell #footer .composer {
 .room-shell-topbar__search-result-header {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   margin-block-end: 0.35rem;
 }
@@ -256,18 +256,20 @@ body.room-shell #footer .composer {
   border: 1px solid #dccaf5;
   border-radius: 0.38rem;
   color: #5d3bb3;
+  flex-shrink: 0;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   padding: 0.18rem 0.42rem;
 }
 
-.room-shell-topbar__search-meta-row {
+.room-shell-topbar__search-meta-block {
   align-items: center;
-  display: flex;
+  display: inline-flex;
+  flex-shrink: 0;
   gap: 0.5rem;
   justify-content: flex-end;
-  margin-block-end: 0.25rem;
+  margin-inline-start: auto;
 }
 
 .room-shell-topbar__search-project {
@@ -287,6 +289,7 @@ body.room-shell #footer .composer {
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .room-shell-topbar__search-result-title {
@@ -296,6 +299,10 @@ body.room-shell #footer .composer {
   font-size: 0.94rem;
   font-weight: 700;
   line-height: 1.35;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .room-shell-topbar__search-result-snippet {
