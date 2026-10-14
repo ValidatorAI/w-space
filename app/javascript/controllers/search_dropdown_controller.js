@@ -190,21 +190,47 @@ export default class extends Controller {
     this.resultsTarget.innerHTML = items
       .slice(0, 5)
       .map((item) => {
+        const title = this.truncateText(item.title || "Result", 20)
+        const snippet = this.truncateText(item.snippet || "", 20)
         const project = item.project_name ? `<span class="room-shell-topbar__search-project">${this.escapeHtml(item.project_name)}</span>` : ""
-        const type = item.type ? `<span class="room-shell-topbar__search-type">${this.escapeHtml(item.type)}</span>` : ""
+        const type = item.type ? `<span class="room-shell-topbar__search-type">${this.escapeHtml(item.type.toUpperCase())}</span>` : ""
+        const date = item.created_at ? `<span class="room-shell-topbar__search-date">${this.escapeHtml(this.formatDate(item.created_at))}</span>` : ""
 
         return `
           <a href="${this.escapeHtml(item.url || "#")}" class="room-shell-topbar__search-result" data-action="click->search-dropdown#closeSearch">
             <div class="room-shell-topbar__search-result-header">
               ${type}
-              <span class="room-shell-topbar__search-result-title">${this.escapeHtml(item.title || "Result")}</span>
-              ${project}
+              <span class="room-shell-topbar__search-result-title">${this.escapeHtml(title)}</span>
             </div>
-            <div class="room-shell-topbar__search-result-snippet">${this.escapeHtml(item.snippet || "")}</div>
+            <div class="room-shell-topbar__search-meta-row">
+              ${project}
+              ${date}
+            </div>
+            <div class="room-shell-topbar__search-result-snippet">${this.escapeHtml(snippet)}</div>
           </a>
         `
       })
       .join("") + askCard
+  }
+
+  formatDate(value) {
+    if (!value) return ""
+
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ""
+
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    })
+  }
+
+  truncateText(value, maxLength = 20) {
+    const clean = String(value ?? "").replace(/\s+/g, " ").trim()
+    if (!clean) return ""
+    if (clean.length <= maxLength) return clean
+    return `${clean.slice(0, Math.max(0, maxLength - 1)).trim()}…`
   }
 
   escapeHtml(value) {
