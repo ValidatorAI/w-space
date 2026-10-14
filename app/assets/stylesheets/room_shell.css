@@ -281,6 +281,81 @@ body.room-shell #footer .composer {
   padding: 0.18rem 0.42rem;
 }
 
+.type-room {
+  background: #eaf1fb;
+  border-color: #c9d7f0;
+  color: #244d8f;
+}
+
+.type-message {
+  background: #eaf3ff;
+  border-color: #c7daf7;
+  color: #194d8d;
+}
+
+.type-project {
+  background: #eaf8f1;
+  border-color: #bfe7d3;
+  color: #1d6a53;
+}
+
+.type-decision {
+  background: #fff2d8;
+  border-color: #f0d7a2;
+  color: #895d11;
+}
+
+.type-adr {
+  background: #f1ebff;
+  border-color: #d9c9f5;
+  color: #552d97;
+}
+
+.type-knowledge {
+  background: #e5f6ef;
+  border-color: #bfe7d7;
+  color: #185d49;
+}
+
+.type-todo {
+  background: #fff0e8;
+  border-color: #f7cdb8;
+  color: #9a4d1a;
+}
+
+.type-task {
+  background: #f3f1ff;
+  border-color: #d7d0ff;
+  color: #5245b9;
+}
+
+.type-milestone {
+  background: #fdf4db;
+  border-color: #efdca5;
+  color: #7e5c19;
+}
+
+.type-directory,
+.type-asset,
+.type-bottleneck,
+.type-artifact {
+  background: #edf2f7;
+  border-color: #d5dde6;
+  color: #455768;
+}
+
+.type-attention {
+  background: #fdf0f4;
+  border-color: #efc9d6;
+  color: #9b2d55;
+}
+
+.type-note {
+  background: #f2f5ff;
+  border-color: #d7dff8;
+  color: #334c9e;
+}
+
 .room-shell-topbar__search-meta-block {
   align-items: center;
   display: inline-flex;

@@ -203,7 +203,10 @@ export default class extends Controller {
         const title = this.truncateText(item.title || "Result", 40)
         const snippet = this.truncateText(item.snippet || "", 100)
         const project = item.project_name ? `<span class="room-shell-topbar__search-project">${this.escapeHtml(item.project_name)}</span>` : ""
-        const type = item.type ? `<span class="room-shell-topbar__search-type">${this.escapeHtml(item.type.toUpperCase())}</span>` : ""
+        const typeKey = item.type || "message"
+        const typeClass = this.typeBadgeClass(typeKey)
+        const typeLabel = this.typeBadgeLabel(typeKey)
+        const type = item.type ? `<span class="room-shell-topbar__search-type ${typeClass}">${this.escapeHtml(typeLabel)}</span>` : ""
         const date = item.created_at ? `<span class="room-shell-topbar__search-date">${this.escapeHtml(this.formatDate(item.created_at))}</span>` : ""
 
         return `
@@ -221,6 +224,58 @@ export default class extends Controller {
         `
       })
       .join("") + askCard
+  }
+
+  typeBadgeClass(type) {
+    const map = {
+      room: "type-room",
+      message: "type-message",
+      project: "type-project",
+      decision: "type-decision",
+      all_hands_decision: "type-decision",
+      adr: "type-adr",
+      knowledge: "type-knowledge",
+      knowledge_activity: "type-knowledge",
+      todo: "type-todo",
+      task: "type-task",
+      milestone: "type-milestone",
+      all_hands_action_item: "type-task",
+      directory_item: "type-directory",
+      external_asset: "type-asset",
+      attention_item: "type-attention",
+      all_hands_takeaway: "type-note",
+      note: "type-note",
+      bottleneck: "type-bottleneck",
+      artifact: "type-artifact"
+    }
+
+    return map[type] || "type-message"
+  }
+
+  typeBadgeLabel(type) {
+    const map = {
+      room: "ROOM",
+      message: "MESSAGE",
+      project: "PROJECT",
+      decision: "DECISION",
+      all_hands_decision: "DECISION",
+      adr: "ADR",
+      knowledge: "KNOWLEDGE",
+      knowledge_activity: "KNOWLEDGE",
+      todo: "TODO",
+      task: "TASK",
+      milestone: "MILESTONE",
+      all_hands_action_item: "TASK",
+      directory_item: "FILE",
+      external_asset: "ASSET",
+      attention_item: "ATTENTION",
+      all_hands_takeaway: "NOTE",
+      note: "NOTE",
+      bottleneck: "BOTTLENECK",
+      artifact: "ARTIFACT"
+    }
+
+    return map[type] || "RESULT"
   }
 
   formatDate(value) {
