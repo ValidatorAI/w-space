@@ -61,7 +61,8 @@ body.room-shell #nav::before {
 
 body.room-shell #main-content {
   background: var(--workspace-room-bg);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-top: 0;
 }
 
@@ -534,6 +535,7 @@ body.room-shell #footer .composer {
   display: grid;
   flex: 1 1 auto;
   grid-template-columns: var(--workspace-room-workspace-width) minmax(0, 1fr) var(--workspace-room-context-width);
+  height: calc(100dvh - var(--navbar-height));
   min-height: 0;
 }
 
@@ -999,7 +1001,9 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__ac
 
 .search-page__main {
   flex: 1 1 auto;
+  height: 100%;
   min-width: 0;
+  overflow-y: auto !important;
   padding: 1.4rem 1.4rem 0;
 }
 
@@ -1128,6 +1132,7 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .room-item__ac
   display: grid;
   grid-template-columns: 15.5rem minmax(0, 1fr) 17rem;
   gap: 1.25rem;
+  min-height: 0;
   padding-block: 1rem 1.5rem;
 }
 
