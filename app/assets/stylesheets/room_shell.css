@@ -213,6 +213,25 @@ body.room-shell #footer .composer {
   display: none;
 }
 
+.room-shell-topbar__search-header {
+  align-items: center;
+  background: #f5f7fa;
+  border-block-end: 1px solid #dfe7ef;
+  color: #4a5c72;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  justify-content: space-between;
+  letter-spacing: 0.01em;
+  padding: 0.7rem 0.9rem 0.65rem;
+}
+
+.room-shell-topbar__search-close-hint {
+  color: #7a8898;
+  font-size: 0.73rem;
+  font-weight: 500;
+}
+
 .room-shell-topbar__search-results {
   color: #172332;
   display: grid;
