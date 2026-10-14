@@ -61,21 +61,79 @@ module Searches
       def project_entity_results
         return [] if @user.projects.none?
 
-        @user.projects.includes(:adrs, :knowledge_items, :todos, :milestones, :obsidian_notes, :bottlenecks).flat_map do |project|
+        @user.projects.includes(
+          :adrs,
+          :knowledge_items,
+          :todos,
+          :milestones,
+          :obsidian_notes,
+          :bottlenecks,
+          :project_all_hands_decisions,
+          :project_all_hands_action_items,
+          :project_all_hands_takeaways,
+          :tasks,
+          :topics,
+          :directory_items,
+          :external_assets,
+          :knowledge_activities,
+          :attention_items
+        ).flat_map do |project|
           [
             entity_results(project, project.adrs.active, "adr", :title, :identifier, :status),
             entity_results(project, project.knowledge_items.active, "knowledge", :title, :description, :badge),
             entity_results(project, project.todos, "todo", :title, :meta_text),
             entity_results(project, project.milestones.active, "milestone", :title, :description),
             entity_results(project, project.obsidian_notes.active, "note", :title, :content, :tags),
-            entity_results(project, project.bottlenecks, "bottleneck", :title, :description, :severity)
+            entity_results(project, project.bottlenecks, "bottleneck", :title, :description, :severity),
+            entity_results(project, project.project_all_hands_decisions.active, "all_hands_decision", :title, :impact, :basis),
+            entity_results(project, project.project_all_hands_action_items.active, "all_hands_action_item", :title, :assignee_name),
+            entity_results(project, project.project_all_hands_takeaways.active, "all_hands_takeaway", :category, :content),
+            entity_results(project, project.tasks, "task", :description, :status, :priority),
+            entity_results(project, project.topics, "topic", :name, :description),
+            entity_results(project, project.directory_items.active, "directory_item", :name, :file_path, :content),
+            entity_results(project, project.external_assets.active, "external_asset", :title, :meta_text, :url),
+            entity_results(project, project.knowledge_activities.active, "knowledge_activity", :action_text, :target_path, :target_url),
+            entity_results(project, project.attention_items.recent, "attention_item", :title, :category, :action_label),
           ].flatten
+        end + attention_item_results
+      end
+
+      def attention_item_results
+        AttentionItem.for_user(@user).recent.filter_map do |record|
+          title = record.title.to_s.strip.presence || "Attention item"
+          searchable_text = [
+            record.category,
+            record.action_label,
+            record.title,
+            record.respond_to?(:description) ? record.description : nil,
+            record.respond_to?(:body) ? record.body : nil
+          ].filter_map { |value| value.to_s.strip.presence }.join(" ")
+          score = score_for(title, searchable_text, record.project&.name.to_s)
+          next if score.zero?
+
+          {
+            type: "attention_item",
+            title: title,
+            snippet: searchable_text.presence || title,
+            project_name: record.project&.name || "General",
+            created_at: record.created_at,
+            score: score,
+            url: project_search_url(record.project)
+          }
         end
       end
 
       def entity_results(project, records, type, *fields)
         records.filter_map do |record|
-          title = record.respond_to?(:title) ? record.title.to_s.strip.presence : record.class.name.demodulize.titleize
+          title = if record.respond_to?(:title)
+            record.title.to_s.strip.presence
+          elsif record.respond_to?(:name)
+            record.name.to_s.strip.presence
+          elsif record.respond_to?(:description)
+            record.description.to_s.strip.presence
+          else
+            record.class.name.demodulize.titleize
+          end
           next if title.blank?
 
           searchable_text = fields.filter_map do |field|
