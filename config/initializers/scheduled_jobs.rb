@@ -11,6 +11,9 @@
 #   # Every 5 minutes - cleanup expired reservations
 #   */5 * * * * cd /path/to/app && bin/rails runner "FileReservationCleanupJob.perform_later"
 #
+#   # Every minute - reconcile stale event dispatches & query Hermes health
+#   * * * * * cd /path/to/app && bin/rails runner "OutputEvents::ReconcileDispatchesJob.perform_later"
+#
 # == Resque Scheduler ==
 #
 #   # config/resque_schedule.yml
@@ -26,6 +29,12 @@
 #     queue: default
 #     description: "Cleanup expired file reservations"
 #
+#   output_events_reconcile_dispatches:
+#     cron: "* * * * *"
+#     class: OutputEvents::ReconcileDispatchesJob
+#     queue: default
+#     description: "Reconcile stale output event dispatch groups and query Hermes status"
+#
 # == Solid Queue (Rails 8+) ==
 #
 #   # config/recurring.yml
@@ -36,3 +45,7 @@
 #   file_reservation_cleanup:
 #     schedule: every 5 minutes
 #     class: FileReservationCleanupJob
+#
+#   output_events_reconcile_dispatches:
+#     schedule: every minute
+#     class: OutputEvents::ReconcileDispatchesJob

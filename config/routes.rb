@@ -267,5 +267,12 @@ Rails.application.routes.draw do
     end
   end
 
+  # Native MCP endpoints (JSON-RPC 2.0)
+  post "mcp", to: "mcp#handle"
+  post "action-mcp", to: "mcp#action"
+  post "read-mcp", to: "mcp#read"
+  post "knowledge-mcp", to: "mcp#knowledge"
+  post "task-mcp", to: "mcp#task"
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_12_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_13_100001) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -269,6 +269,34 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_12_000000) do
     t.index ["project_id"], name: "index_file_reservations_on_project_id"
   end
 
+  create_table "mcp_call_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "duration_ms"
+    t.text "error_message"
+    t.boolean "is_error", default: false, null: false
+    t.string "jsonrpc_id"
+    t.json "params_sanitized"
+    t.text "result_preview"
+    t.integer "result_size"
+    t.string "tool_call_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_mcp_call_logs_on_created_at"
+    t.index ["is_error"], name: "index_mcp_call_logs_on_is_error"
+    t.index ["tool_call_name"], name: "index_mcp_call_logs_on_tool_call_name"
+  end
+
+  create_table "mcp_exceptions", force: :cascade do |t|
+    t.text "backtrace"
+    t.datetime "created_at", null: false
+    t.text "error_message", null: false
+    t.string "exception_class", null: false
+    t.json "params_sanitized"
+    t.string "tool_call_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_mcp_exceptions_on_created_at"
+    t.index ["tool_call_name"], name: "index_mcp_exceptions_on_tool_call_name"
+  end
+
   create_table "mcps", force: :cascade do |t|
     t.text "args"
     t.string "authentication", null: false
@@ -336,6 +364,19 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_12_000000) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["creator_type", "creator_id"], name: "index_messages_on_creator_type_and_creator_id"
     t.index ["room_id"], name: "index_messages_on_room_id"
+  end
+
+  create_table "output_event_dispatch_groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "dedupe_key", null: false
+    t.datetime "dispatched_at"
+    t.bigint "lead_output_event_id"
+    t.text "result"
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["dedupe_key"], name: "index_output_event_dispatch_groups_on_dedupe_key", unique: true
+    t.index ["lead_output_event_id"], name: "index_output_event_dispatch_groups_on_lead_output_event_id"
+    t.index ["status"], name: "index_output_event_dispatch_groups_on_status"
   end
 
   create_table "output_events", force: :cascade do |t|
