@@ -23,6 +23,11 @@
         <strong><%= next_decision.decision_text.presence || "Decision request pending" %></strong>
         <span>Requested <%= time_ago_in_words(next_decision.requested_at) %> ago</span>
       </div>
+      <button type="button"
+              class="action-btn secondary"
+              onclick="document.getElementById('review_decision_modal_<%= next_decision.id %>').showModal();">
+        Review decision
+      </button>
     <% else %>
       <p>No pending decision approval in this room.</p>
     <% end %>

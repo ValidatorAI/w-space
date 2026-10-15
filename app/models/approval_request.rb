@@ -24,6 +24,46 @@ class ApprovalRequest < ApplicationRecord
     payload["decision"] || payload["title"] || payload["summary"] || payload["text"]
   end
 
+  def review_title
+    return request_type.to_s.humanize if payload.blank?
+
+    decision_text.presence || (payload.is_a?(Hash) ? payload["title"].presence : nil) || request_type.to_s.humanize
+  end
+
+  def review_summary
+    return unless payload.is_a?(Hash)
+
+    payload["summary"] || payload["rationale"] || payload["description"] || payload["reason"] || payload["text"] || payload["decision"]
+  end
+
+  def review_options
+    return [] unless payload.is_a?(Hash)
+
+    options = payload["options"]
+
+    case options
+    when Array
+      options.filter_map do |option|
+        normalize_option(option)
+      end
+    when Hash
+      option_entries = []
+      if options["option_a"].present? || options["a"].present?
+        option_entries << { label: "Option A", value: options["option_a"] || options["a"] }
+      end
+      if options["option_b"].present? || options["b"].present?
+        option_entries << { label: "Option B", value: options["option_b"] || options["b"] }
+      end
+      option_entries
+    else
+      []
+    end
+  end
+
+  def review_owner_name
+    agent&.name.presence || room&.creator&.name.presence || "Room owner"
+  end
+
   def approve!(actor = Current.user, note: nil)
     record_transition!(new_status: :approved, action: "approve", actor: actor, note: note)
   end
@@ -140,5 +180,18 @@ class ApprovalRequest < ApplicationRecord
     return if payload.blank? || payload.is_a?(Hash)
 
     errors.add(:payload, "must be a JSON object")
+  end
+
+  def normalize_option(option)
+    case option
+    when Hash
+      label = option["label"].presence || option["title"].presence || option["name"].presence
+      value = option["value"].presence || option["decision"].presence || option["text"].presence
+      return if label.blank? && value.blank?
+
+      { label: label.presence || "Option", value: value.presence || label }
+    when String
+      { label: "Option", value: option }
+    end
   end
 end

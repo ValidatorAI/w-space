@@ -1,0 +1,51 @@
+<dialog id="review_decision_modal_<%= approval_request.id %>" aria-label="Review decision" class="approval-review-modal">
+  <div class="approval-review-modal__content">
+    <header class="approval-review-modal__header">
+      <div>
+        <span class="room-context-rail__eyebrow">DECISION REVIEW</span>
+        <h3><%= approval_request.review_title %></h3>
+      </div>
+      <button type="button" class="btn room-context-rail__close" aria-label="Close decision review" onclick="document.getElementById('review_decision_modal_<%= approval_request.id %>').close();">
+        ×
+      </button>
+    </header>
+
+    <div class="approval-review-modal__body">
+      <p class="approval-review-modal__meta">
+        <strong>Proposal by:</strong> <%= approval_request.review_owner_name %>
+      </p>
+      <p class="approval-review-modal__meta approval-review-modal__meta--warn">
+        <strong>Authority:</strong> Human decision required
+      </p>
+
+      <% if approval_request.review_summary.present? %>
+        <div class="approval-review-modal__summary">
+          <h4>Rationale</h4>
+          <p><%= approval_request.review_summary %></p>
+        </div>
+      <% end %>
+
+      <% if approval_request.review_options.any? %>
+        <div class="approval-review-modal__options">
+          <h4>Options</h4>
+          <ul>
+            <% approval_request.review_options.each do |option| %>
+              <li>
+                <strong><%= option[:label] %>:</strong>
+                <span><%= option[:value] %></span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+
+    <footer class="approval-review-modal__actions action-btn-group">
+      <button type="button" class="action-btn secondary" onclick="document.getElementById('review_decision_modal_<%= approval_request.id %>').close();">
+        Close
+      </button>
+      <%= button_to "Confirm", confirm_approval_request_path(approval_request), method: :patch, class: "action-btn primary" %>
+      <%= button_to "Deny", deny_approval_request_path(approval_request), method: :patch, class: "action-btn secondary" %>
+    </footer>
+  </div>
+</dialog>

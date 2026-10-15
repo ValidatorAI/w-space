@@ -15,6 +15,33 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "show renders a review modal for pending room decisions" do
+    project = Project.create!(path: "/tmp/room-review-modal-project-#{SecureRandom.uuid}", name: "Review Modal Project")
+    agent = project.agents.create!(name: "Room Bot", program: "assistant", model: "gpt-4o-mini")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Decision Review", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+    room.approval_requests.create!(
+      request_type: "decision",
+      payload: {
+        "decision" => "Ship the onboarding flow",
+        "summary" => "This reduces user churn by removing friction before first value.",
+        "options" => [
+          { "label" => "Option A", "value" => "Ship the onboarding flow" },
+          { "label" => "Option B", "value" => "Keep the current flow" }
+        ]
+      },
+      status: :pending,
+      agent: agent
+    )
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select "dialog[aria-label='Review decision']", 1
+    assert_select "button", text: "Review decision"
+    assert_select "dialog", text: /Human decision required/i
+  end
+
   test "shows records the last room visited in a cookie" do
     get room_url(users(:david).rooms.last)
     assert response.cookies[:last_room] = users(:david).rooms.last.id
