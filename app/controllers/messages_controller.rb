@@ -144,7 +144,6 @@ class MessagesController < ApplicationController
       recipients.pluck(:id)
     end
 
-
     def serialize_message(message)
       {
         id: message.id,

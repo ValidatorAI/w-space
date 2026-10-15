@@ -12,7 +12,12 @@ module OutputEvents
 
       # 1. Query Hermes Gateway health status
       hermes_client = Hermes::Client.new
-      hermes_status = hermes_client.api_status_summary
+      hermes_status = begin
+        hermes_client.api_status_summary
+      rescue Exception => e
+        Rails.logger.warn("[OutputEvents::ReconcileDispatchesJob] Hermes status check failed: #{e.class.name}: #{e.message}")
+        { "active_agents" => Hermes.configuration.max_active_agents, "gateway_busy" => true, "overall" => "unavailable" }
+      end
       Rails.logger.info("[OutputEvents::ReconcileDispatchesJob] Hermes status: #{hermes_status.to_json}")
 
       # Check throttle threshold

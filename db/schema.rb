@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_13_100001) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -252,6 +252,16 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_13_100001) do
     t.index ["current"], name: "index_company_status_periods_on_current"
     t.index ["position"], name: "index_company_status_periods_on_position"
     t.index ["slug"], name: "index_company_status_periods_on_slug", unique: true
+  end
+
+  create_table "decision_rooms", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "project_adr_id", null: false
+    t.integer "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_adr_id"], name: "index_decision_rooms_on_project_adr_id"
+    t.index ["room_id", "project_adr_id"], name: "index_decision_rooms_on_room_id_and_project_adr_id", unique: true
+    t.index ["room_id"], name: "index_decision_rooms_on_room_id"
   end
 
   create_table "file_reservations", force: :cascade do |t|
@@ -762,6 +772,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_13_100001) do
   add_foreign_key "boosts", "messages"
   add_foreign_key "company_status_items", "company_status_periods"
   add_foreign_key "company_status_periods", "accounts"
+  add_foreign_key "decision_rooms", "project_adrs"
+  add_foreign_key "decision_rooms", "rooms"
   add_foreign_key "file_reservations", "agents"
   add_foreign_key "file_reservations", "projects"
   add_foreign_key "message_analysis", "messages"

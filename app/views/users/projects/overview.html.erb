@@ -54,6 +54,11 @@
   <main class="workspace-room__main" id="conversation" style="width: 80vw;">
     <div id="message-area" class="message-area project-overview-area">
       <div class="project-overview-content">
+        <% if Current.user.can_administer?(@project) %>
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <%= link_to "Edit Project Details", edit_rooms_project_path(@project.project_room, by: "project"), class: "btn btn--ghost" %>
+          </div>
+        <% end %>
         <div class="project-overview-metrics-grid">
           <div class="project-overview-metric-card">
             <span class="project-overview-metric-title">Project Code</span>

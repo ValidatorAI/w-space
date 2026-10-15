@@ -46,6 +46,8 @@ class Room < ApplicationRecord
   has_many :room_ai_activity_states, dependent: :delete_all
   has_many :attention_items, dependent: :nullify
   has_many :approval_requests, dependent: :nullify
+  has_many :decision_rooms, dependent: :destroy
+  has_many :project_adrs, through: :decision_rooms
 
   belongs_to :creator, class_name: "User", default: -> { Current.user }
 

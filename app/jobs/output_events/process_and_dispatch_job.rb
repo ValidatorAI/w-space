@@ -67,10 +67,28 @@ module OutputEvents
       hermes_client = Hermes::Client.new
       max_active_agents = Hermes.configuration.max_active_agents
       if max_active_agents.positive?
-        hermes_status = hermes_client.api_status_summary
+        hermes_status = begin
+          hermes_client.api_status_summary
+        rescue Exception => e
+          Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes status check failed: #{e.class.name}: #{e.message}")
+          { "active_agents" => max_active_agents, "gateway_busy" => true, "overall" => "unavailable" }
+        end
+
         active_agents = hermes_status["active_agents"]
         if active_agents.nil? || active_agents.to_i >= max_active_agents
+          retry_meta = begin
+            group.result.present? ? JSON.parse(group.result) : {}
+          rescue JSON::ParserError
+            {}
+          end
+
+          if retry_meta.is_a?(Hash) && retry_meta["retry_reason"] == "hermes_busy"
+            Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable and retry already queued for group #{group.id}; skipping duplicate reschedule.")
+            return
+          end
+
           Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable (active_agents=#{active_agents.inspect} >= threshold=#{max_active_agents}). Rescheduling group #{group.id}.")
+          group.update!(status: "pending", result: { retry_reason: "hermes_busy", scheduled_at: Time.current.iso8601 }.to_json)
           ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
             lead_event.id,
             stage: :dispatch,

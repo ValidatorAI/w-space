@@ -21,6 +21,10 @@ class ProjectExternalAsset < ApplicationRecord
   end
 
   def display_meta
-    [meta_text.presence, display_type].compact.join(" • ")
+    meta = meta_text.to_s.strip
+    type = display_type.to_s.strip
+    return meta if meta.present? && type.present? && meta.downcase.include?(type.downcase)
+
+    [meta.presence, type].compact.join(" • ")
   end
 end

@@ -74,8 +74,8 @@ module Hermes
       req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
       response = execute_http(url, req, timeout: @timeout)
       parse_json(response)
-    rescue StandardError => e
-      { "overall" => "unavailable", "error" => e.message }
+    rescue Exception => e
+      { "overall" => "unavailable", "error" => e.message, "gateway_busy" => true, "active_agents" => nil, "active_sessions" => nil }
     end
 
     def api_status_summary

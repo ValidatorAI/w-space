@@ -111,7 +111,7 @@
                                  else result[:type].to_s.downcase
                                  end %>
 
-            <article class="search-page__result-card"
+            <article class="search-page__result-card message"
                      data-result-card
                      data-project="<%= (result[:project_name].to_s.presence || "Workspace").to_s %>"
                      data-type="<%= normalized_type %>">

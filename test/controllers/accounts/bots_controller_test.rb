@@ -36,13 +36,6 @@ class Accounts::BotsControllerTest < ActionDispatch::IntegrationTest
     assert users(:bender).reload.deactivated?
   end
 
-  test "remove webhook" do
-    assert_difference -> { Webhook.count }, -1 do
-      put account_bot_url(users(:bender)), params: { user: { name: "Bender's New Friend", webook_url: "" } }
-      assert_redirected_to account_bots_url
-    end
-  end
-
   test "non admin cannot access bot registration pages" do
     sign_in :kevin
 

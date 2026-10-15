@@ -95,4 +95,24 @@ class ApprovalRequestTest < ActiveSupport::TestCase
     assert attention_item.resolved?
     assert_equal @user, attention_item.resolved_by
   end
+
+  test "approve! creates a project adr and links it to the originating room" do
+    project = Project.create!(path: "/tmp/approval-request-room-decision-#{SecureRandom.uuid}", name: "Room Decision Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "General", creator: @user)
+    request = ApprovalRequest.create!(
+      room: room,
+      message: @message,
+      request_type: "decision",
+      payload: { "decision" => "Ship the W-space beta" },
+      status: :pending
+    )
+
+    request.approve!(@user, note: "Approved")
+
+    adr = project.adrs.order(:created_at).last
+    assert_not_nil adr
+    assert_equal "Ship the W-space beta", adr.title
+    assert_includes room.project_adrs, adr
+    assert_equal 1, DecisionRoom.where(room: room, project_adr: adr).count
+  end
 end

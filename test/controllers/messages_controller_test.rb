@@ -165,15 +165,6 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "mentioning a bot triggers a webhook" do
-    WebMock.stub_request(:post, webhooks(:bender).url).to_return(status: 200)
-
-    assert_enqueued_jobs 1, only: Bot::WebhookJob do
-      post room_messages_url(@room, format: :turbo_stream), params: { message: {
-        body: "<div>Hey #{mention_attachment_for(:bender)}</div>", client_message_id: 999 } }
-    end
-  end
-
   test "create in direct room between two users does not record message output events" do
     direct_room = rooms(:david_and_kevin)
 

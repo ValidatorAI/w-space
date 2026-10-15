@@ -16,6 +16,7 @@ class Project < ApplicationRecord
   has_many :obsidian_notes, class_name: "ProjectObsidianNote", dependent: :destroy
   has_many :external_assets, class_name: "ProjectExternalAsset", dependent: :destroy
   has_many :adrs, class_name: "ProjectAdr", dependent: :destroy
+  has_many :decision_rooms, through: :rooms
   has_many :knowledge_activities, class_name: "ProjectKnowledgeActivity", dependent: :destroy
   has_many :directory_items, class_name: "ProjectDirectoryItem", dependent: :destroy
   has_many :project_milestones, dependent: :destroy

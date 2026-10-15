@@ -90,15 +90,22 @@ class ApprovalRequest < ApplicationRecord
     title = decision_text.presence || "Decision from #{room.name}"
     identifier = "ADR-#{Time.current.strftime('%Y%m%d%H%M%S')}"
 
-    ProjectAdr.create!(
+    decision_adr = ProjectAdr.create!(
       project: project,
       identifier: identifier,
       title: title.to_s.truncate(255),
       status: "accepted",
       decision_date: Date.current
     )
+
+    if room.present?
+      DecisionRoom.find_or_create_by!(room: room, project_adr: decision_adr)
+    end
+
+    decision_adr
   rescue StandardError => e
     Rails.logger.error("Failed to auto-record decision from approval request #{id}: #{e.message}")
+    nil
   end
 
   def record_output_event(action, actor, decision_adr)
