@@ -78,6 +78,16 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "creating an AI room question records the room ask event" do
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+        post room_messages_url(@room, format: :turbo_stream), params: { message: { body: "Summarize the room status", client_message_id: 998, mode: "ask" } }
+      end
+    end
+
+    assert_response :success
+  end
+
   test "creating a message in child room broadcasts to parent room stream as well" do
     child_room = Rooms::Open.create_for({ name: "Child Topic", creator: users(:david), parent: @room }, users: [ users(:david) ])
 

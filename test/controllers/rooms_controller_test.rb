@@ -15,6 +15,18 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "show renders room composer mode selector for message and AI ask actions" do
+    room = users(:david).rooms.last
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select ".composer__mode-toggle", text: /Message to room/i
+    assert_select ".composer__mode-toggle", text: /Ask PWR about this room/i
+    assert_select "input[name='message[mode]'][value='message']", 1
+    assert_select "input[name='message[mode]'][value='ask']", 1
+  end
+
   test "show renders a review modal for pending room decisions" do
     project = Project.create!(path: "/tmp/room-review-modal-project-#{SecureRandom.uuid}", name: "Review Modal Project")
     agent = project.agents.create!(name: "Room Bot", program: "assistant", model: "gpt-4o-mini")

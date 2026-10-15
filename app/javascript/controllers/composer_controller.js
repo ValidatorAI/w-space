@@ -5,7 +5,7 @@ import { escapeHTML } from "helpers/dom_helpers"
 
 export default class extends Controller {
   static classes = ["toolbar"]
-  static targets = [ "clientid", "fields", "fileList", "text" ]
+  static targets = [ "clientid", "fields", "fileList", "text", "modeField" ]
   static values = { roomId: Number }
   static outlets = [ "messages" ]
 
@@ -37,6 +37,22 @@ export default class extends Controller {
   toggleToolbar() {
     this.element.classList.toggle(this.toolbarClass)
     this.textTarget.focus()
+  }
+
+  selectMode(event) {
+    const mode = event.currentTarget.dataset.modeValue
+    const buttons = this.element.querySelectorAll(".composer__mode-toggle")
+    const radioButtons = this.element.querySelectorAll("input[name='message[mode]']")
+
+    buttons.forEach((button) => {
+      const isActive = button === event.currentTarget
+      button.classList.toggle("is-active", isActive)
+      button.setAttribute("aria-pressed", String(isActive))
+    })
+
+    radioButtons.forEach((radio) => {
+      radio.checked = radio.value === mode
+    })
   }
 
   collapseToolbar() {
