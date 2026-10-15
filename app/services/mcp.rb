@@ -133,6 +133,10 @@ module Mcp
     # Messaging & Rooms
     Registry.register(Tools::Messaging::ListRoomsTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::SearchRoomsTool.new, scopes: %i[all read action])
+    Registry.register(Tools::RoomContext::RoomDecisionContextTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomEvidenceTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomEconomicsTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomContextSummaryTool.new, scopes: %i[all read])
     Registry.register(Tools::Messaging::AddMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::DeleteMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::AddLoadingMessageTool.new, scopes: %i[all action])
