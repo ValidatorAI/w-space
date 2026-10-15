@@ -77,7 +77,10 @@
               target: ("_blank" if asset.external_source?),
               rel: ("noopener noreferrer" if asset.external_source?),
               data: { turbo: false } do %>
-          <%= asset.title %>
+          <span><%= asset.title %></span>
+          <% if asset.display_meta.present? %>
+            <small><%= asset.display_meta %></small>
+          <% end %>
         <% end %>
       <% end %>
     <% elsif @room_project.present? %>

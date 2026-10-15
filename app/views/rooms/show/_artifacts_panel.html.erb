@@ -21,7 +21,12 @@
                 rel: ("noopener noreferrer" if asset.external_source?),
                 data: turbo_options do %>
             <strong><%= asset.title %></strong>
-            <span><%= asset.doc_type.presence || "Reference" %></span>
+            <span><%= asset.display_type %></span>
+            <% if asset.meta_text.present? %>
+              <small><%= asset.display_meta %></small>
+            <% else %>
+              <small><%= asset.external_source? ? "External source" : "Project source" %></small>
+            <% end %>
           <% end %>
         <% end %>
       </div>
@@ -35,7 +40,8 @@
         <% @artifact_knowledge_items.each do |item| %>
           <li>
             <strong><%= item.title %></strong>
-            <span><%= item.description.truncate(180) %></span>
+            <span class="workspace-room__knowledge-badge"><%= item.display_badge %></span>
+            <span><%= item.summary_text.truncate(180) %></span>
           </li>
         <% end %>
       </ul>

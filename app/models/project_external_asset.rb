@@ -15,4 +15,12 @@ class ProjectExternalAsset < ApplicationRecord
   def internal_source?
     source_type == "internal_file"
   end
+
+  def display_type
+    doc_type.presence || (external_source? ? "External source" : "Project file")
+  end
+
+  def display_meta
+    [meta_text.presence, display_type].compact.join(" • ")
+  end
 end

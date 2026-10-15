@@ -38,6 +38,8 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_equal 1, @project.external_assets.count
     assert asset.active
     assert asset.external_source?
+    assert_equal "pdf", asset.display_type
+    assert_equal "PDF • Validated", asset.display_meta
   end
 
   test "creates and associates ADRs" do
