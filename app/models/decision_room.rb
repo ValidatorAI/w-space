@@ -1,6 +1,7 @@
 class DecisionRoom < ApplicationRecord
   belongs_to :room
   belongs_to :project_adr
+  has_many :decision_room_economics, class_name: "DecisionRoomEconomics", dependent: :destroy
 
   validates :room, presence: true
   validates :project_adr, presence: true

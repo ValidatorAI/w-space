@@ -73,6 +73,7 @@ class RoomsController < ApplicationController
 
       if @room_project
         @recent_decision_records = @room_project.adrs.active.ordered.limit(5)
+        @room_economics = @room.decision_room_economics.order(:created_at).last
 
         room_asset_links = @room.room_evidences.active.ordered.where.not(project_external_asset_id: nil).includes(:project_external_asset)
         if room_asset_links.exists?
@@ -91,6 +92,7 @@ class RoomsController < ApplicationController
         @room_outcome = @room_project.description.presence || @artifact_knowledge_items.first&.description
       else
         @recent_decision_records = []
+        @room_economics = nil
         @artifact_assets = []
         @artifact_knowledge_items = []
         @room_outcome = nil

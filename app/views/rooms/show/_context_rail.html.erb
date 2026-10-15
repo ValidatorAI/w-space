@@ -34,6 +34,29 @@
   </section>
 
   <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">ECONOMICS &amp; RISK</span>
+    <% if @room_economics.present? %>
+      <div class="room-context-rail__metrics">
+        <div>
+          <span>Research round effort</span>
+          <strong><%= @room_economics.research_effort.presence || "-" %></strong>
+        </div>
+        <div>
+          <span>Guided build effort</span>
+          <strong><%= @room_economics.guided_build_effort.presence || "-" %></strong>
+        </div>
+        <div>
+          <span>Expected learning value</span>
+          <strong><%= @room_economics.expected_learning_value.presence || "-" %></strong>
+        </div>
+      </div>
+      <p><strong><%= @room_economics.risk_label %></strong> — <%= @room_economics.risk_note.presence || "Uncertainty remains but the room has a clear path to decide." %></p>
+    <% else %>
+      <p>No decision trade-off framing has been recorded for this room yet.</p>
+    <% end %>
+  </section>
+
+  <section class="room-context-rail__section">
     <span class="room-context-rail__eyebrow">ROOM ACTIVITY</span>
     <div class="room-context-rail__metrics">
       <div>

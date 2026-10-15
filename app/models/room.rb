@@ -47,6 +47,7 @@ class Room < ApplicationRecord
   has_many :attention_items, dependent: :nullify
   has_many :approval_requests, dependent: :nullify
   has_many :decision_rooms, dependent: :destroy
+  has_many :decision_room_economics, through: :decision_rooms, class_name: "DecisionRoomEconomics"
   has_many :project_adrs, through: :decision_rooms
   has_many :room_evidences, dependent: :destroy
   has_many :project_external_assets, through: :room_evidences, source: :project_external_asset

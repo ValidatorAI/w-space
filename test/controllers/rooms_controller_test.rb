@@ -70,6 +70,30 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".workspace-room__artifact-card", text: /Relevant to this room decision/i
   end
 
+  test "show renders room economics and risk framing for active decision rooms" do
+    project = Project.create!(path: "/tmp/room-economics-project-#{SecureRandom.uuid}", name: "Economics Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Economics Room", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+    decision = project.adrs.create!(identifier: "ADR-ECON-001", title: "Use a guided build", decision_date: Date.current, status: "accepted")
+    decision_room = DecisionRoom.create!(room: room, project_adr: decision)
+    DecisionRoomEconomics.create!(
+      decision_room: decision_room,
+      research_effort: 3,
+      guided_build_effort: 1,
+      expected_learning_value: 8,
+      risk_level: "medium",
+      risk_note: "Shallow validation risk remains if the user flow is wrong."
+    )
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select ".room-context-rail__section", text: /ECONOMICS & RISK/i
+    assert_select ".room-context-rail__section", text: /Research round effort/i
+    assert_select ".room-context-rail__section", text: /Guided build effort/i
+    assert_select ".room-context-rail__section", text: /Medium risk/i
+  end
+
   test "shows records the last room visited in a cookie" do
     get room_url(users(:david).rooms.last)
     assert response.cookies[:last_room] = users(:david).rooms.last.id
