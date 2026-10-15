@@ -1,5 +1,7 @@
 class ProjectExternalAsset < ApplicationRecord
   belongs_to :project
+  has_many :room_evidences, dependent: :destroy
+  has_many :rooms, through: :room_evidences
 
   validates :title, presence: true
   validates :url, presence: true
@@ -26,5 +28,9 @@ class ProjectExternalAsset < ApplicationRecord
     return meta if meta.present? && type.present? && meta.downcase.include?(type.downcase)
 
     [meta.presence, type].compact.join(" • ")
+  end
+
+  def room_summary_for(room)
+    room_evidences.where(room: room).order(:created_at).last&.summary.presence || meta_text.to_s.strip.presence || "Project source"
   end
 end

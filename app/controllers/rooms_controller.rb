@@ -73,8 +73,21 @@ class RoomsController < ApplicationController
 
       if @room_project
         @recent_decision_records = @room_project.adrs.active.ordered.limit(5)
-        @artifact_assets = @room_project.external_assets.active.ordered.limit(6)
-        @artifact_knowledge_items = @room_project.knowledge_items.active.ordered.limit(6)
+
+        room_asset_links = @room.room_evidences.active.ordered.where.not(project_external_asset_id: nil).includes(:project_external_asset)
+        if room_asset_links.exists?
+          @artifact_assets = room_asset_links.map(&:project_external_asset).compact
+        else
+          @artifact_assets = @room_project.external_assets.active.ordered.limit(6)
+        end
+
+        room_knowledge_links = @room.room_evidences.active.ordered.where.not(project_knowledge_item_id: nil).includes(:project_knowledge_item)
+        if room_knowledge_links.exists?
+          @artifact_knowledge_items = room_knowledge_links.map(&:project_knowledge_item).compact
+        else
+          @artifact_knowledge_items = @room_project.knowledge_items.active.ordered.limit(6)
+        end
+
         @room_outcome = @room_project.description.presence || @artifact_knowledge_items.first&.description
       else
         @recent_decision_records = []

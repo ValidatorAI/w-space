@@ -48,6 +48,9 @@ class Room < ApplicationRecord
   has_many :approval_requests, dependent: :nullify
   has_many :decision_rooms, dependent: :destroy
   has_many :project_adrs, through: :decision_rooms
+  has_many :room_evidences, dependent: :destroy
+  has_many :project_external_assets, through: :room_evidences, source: :project_external_asset
+  has_many :project_knowledge_items, through: :room_evidences, source: :project_knowledge_item
 
   belongs_to :creator, class_name: "User", default: -> { Current.user }
 

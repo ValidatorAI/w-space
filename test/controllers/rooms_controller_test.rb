@@ -42,6 +42,34 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dialog", text: /Human decision required/i
   end
 
+  test "show renders room evidence cards with room-specific summary metadata" do
+    project = Project.create!(path: "/tmp/room-evidence-project-#{SecureRandom.uuid}", name: "Evidence Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Evidence Room", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+
+    asset = project.external_assets.create!(
+      title: "Launch brief",
+      source_type: "external_url",
+      url: "https://example.com/brief",
+      meta_text: "Q3 review"
+    )
+    item = project.knowledge_items.create!(
+      title: "Customer insight",
+      description: "Users want a simpler onboarding flow.",
+      badge: "Research"
+    )
+    RoomEvidence.create!(room: room, project_external_asset: asset, summary: "Relevant to this room decision")
+    RoomEvidence.create!(room: room, project_knowledge_item: item, summary: "Used in the room narrative")
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select "h2", text: /Artifacts and evidence/i
+    assert_select ".workspace-room__artifact-card", text: /Launch brief/i
+    assert_select ".workspace-room__knowledge-list", text: /Customer insight/i
+    assert_select ".workspace-room__artifact-card", text: /Relevant to this room decision/i
+  end
+
   test "shows records the last room visited in a cookie" do
     get room_url(users(:david).rooms.last)
     assert response.cookies[:last_room] = users(:david).rooms.last.id

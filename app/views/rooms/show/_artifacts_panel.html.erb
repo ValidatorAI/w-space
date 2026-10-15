@@ -15,6 +15,7 @@
                     user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url)
                   end %>
           <% turbo_options = asset.external_source? ? { turbo: false } : { turbo: false, turbo_frame: "_top" } %>
+          <% room_summary = asset.room_summary_for(@room) %>
           <%= link_to href,
                 class: "workspace-room__artifact-card",
                 target: ("_blank" if asset.external_source?),
@@ -22,7 +23,9 @@
                 data: turbo_options do %>
             <strong><%= asset.title %></strong>
             <span><%= asset.display_type %></span>
-            <% if asset.meta_text.present? %>
+            <% if room_summary.present? %>
+              <small><%= room_summary %></small>
+            <% elsif asset.meta_text.present? %>
               <small><%= asset.display_meta %></small>
             <% else %>
               <small><%= asset.external_source? ? "External source" : "Project source" %></small>
@@ -41,7 +44,8 @@
           <li>
             <strong><%= item.title %></strong>
             <span class="workspace-room__knowledge-badge"><%= item.display_badge %></span>
-            <span><%= item.summary_text.truncate(180) %></span>
+            <% summary = item.room_summary_for(@room) %>
+            <span><%= summary.to_s.truncate(180) %></span>
           </li>
         <% end %>
       </ul>

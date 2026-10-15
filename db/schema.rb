@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_15_000002) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -627,6 +627,27 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
     t.index ["updated_at"], name: "index_room_ai_activity_states_on_updated_at"
   end
 
+  create_table "room_evidences", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "evidence_type", null: false
+    t.string "owner_name"
+    t.integer "position", default: 0, null: false
+    t.integer "project_external_asset_id"
+    t.integer "project_knowledge_item_id"
+    t.text "provenance"
+    t.integer "room_id", null: false
+    t.string "source_label"
+    t.string "summary"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["project_external_asset_id"], name: "index_room_evidences_on_project_external_asset_id"
+    t.index ["project_knowledge_item_id"], name: "index_room_evidences_on_project_knowledge_item_id"
+    t.index ["room_id", "project_external_asset_id"], name: "index_room_evidences_on_room_id_and_project_external_asset_id", unique: true, where: "project_external_asset_id IS NOT NULL"
+    t.index ["room_id", "project_knowledge_item_id"], name: "index_room_evidences_on_room_id_and_project_knowledge_item_id", unique: true, where: "project_knowledge_item_id IS NOT NULL"
+    t.index ["room_id"], name: "index_room_evidences_on_room_id"
+  end
+
   create_table "room_history_topics", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
@@ -750,6 +771,14 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  create_table "webhooks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_webhooks_on_user_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agents", "projects"
@@ -798,6 +827,9 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "room_ai_activity_states", "agents"
   add_foreign_key "room_ai_activity_states", "rooms"
+  add_foreign_key "room_evidences", "project_external_assets"
+  add_foreign_key "room_evidences", "project_knowledge_items"
+  add_foreign_key "room_evidences", "rooms"
   add_foreign_key "room_history_topics", "rooms"
   add_foreign_key "rooms", "projects"
   add_foreign_key "rooms", "rooms", column: "parent_id"
@@ -805,6 +837,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000001) do
   add_foreign_key "sessions", "users"
   add_foreign_key "topics", "projects"
   add_foreign_key "topics", "topics", column: "parent_topic_id"
+  add_foreign_key "webhooks", "users"
 
   # Virtual tables defined in this database.
   # Note that virtual tables may not work with other database engines. Be careful if changing database.
