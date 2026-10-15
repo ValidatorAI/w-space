@@ -22,6 +22,30 @@ class RoomEvidenceTest < ActiveSupport::TestCase
     assert_equal "Launch brief", evidence.entity_title
   end
 
+  test "tracks freshness and provenance for room evidence" do
+    asset = @project.external_assets.create!(
+      title: "Launch brief",
+      source_type: "external_url",
+      url: "https://example.com/brief",
+      meta_text: "Q3 review"
+    )
+
+    evidence = RoomEvidence.create!(
+      room: @room,
+      project_external_asset: asset,
+      author_name: "Ava",
+      visibility: "project",
+      source_updated_at: 9.days.ago,
+      source_label: "Public brief",
+      summary: "Relevant to this room decision"
+    )
+
+    assert_includes evidence.freshness_label, "Recent"
+    assert_equal "Project scoped", evidence.visibility_label
+    assert_includes evidence.provenance_summary, "Ava"
+    assert_includes evidence.provenance_summary, "Updated"
+  end
+
   test "rejects evidence that links an asset from a different project" do
     other_project = Project.create!(name: "Other Project", path: "/tmp/other-project-#{SecureRandom.hex(4)}")
     other_room = other_project.rooms.create!(type: "Rooms::Project", name: "Other Room", creator: users(:david))

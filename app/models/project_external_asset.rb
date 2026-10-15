@@ -33,4 +33,8 @@ class ProjectExternalAsset < ApplicationRecord
   def room_summary_for(room)
     room_evidences.where(room: room).order(:created_at).last&.summary.presence || meta_text.to_s.strip.presence || "Project source"
   end
+
+  def room_provenance_for(room)
+    room_evidences.where(room: room).order(:created_at).last
+  end
 end

@@ -68,6 +68,7 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".workspace-room__artifact-card", text: /Launch brief/i
     assert_select ".workspace-room__knowledge-list", text: /Customer insight/i
     assert_select ".workspace-room__artifact-card", text: /Relevant to this room decision/i
+    assert_select "small", text: /Updated|Recent|Fresh|Project scoped/i
   end
 
   test "show renders room economics and risk framing for active decision rooms" do

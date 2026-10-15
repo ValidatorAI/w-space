@@ -100,13 +100,16 @@
     <% if @artifact_assets.any? %>
       <% @artifact_assets.first(4).each do |asset| %>
         <% href = asset.external_source? ? asset.url : user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url) %>
+        <% room_evidence = asset.room_provenance_for(@room) %>
         <%= link_to href,
               class: "room-context-rail__link",
               target: ("_blank" if asset.external_source?),
               rel: ("noopener noreferrer" if asset.external_source?),
               data: { turbo: false } do %>
           <span><%= asset.title %></span>
-          <% if asset.display_meta.present? %>
+          <% if room_evidence.present? %>
+            <small><%= room_evidence.freshness_label %> • <%= room_evidence.visibility_label %> • <%= room_evidence.author_name.presence || "Project source" %></small>
+          <% elsif asset.display_meta.present? %>
             <small><%= asset.display_meta %></small>
           <% end %>
         <% end %>

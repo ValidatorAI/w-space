@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_15_000003) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -642,6 +642,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000003) do
 
   create_table "room_evidences", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.string "author_name"
     t.datetime "created_at", null: false
     t.string "evidence_type", null: false
     t.string "owner_name"
@@ -651,14 +652,17 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000003) do
     t.text "provenance"
     t.integer "room_id", null: false
     t.string "source_label"
+    t.datetime "source_updated_at"
     t.string "summary"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.string "visibility", default: "project", null: false
     t.index ["project_external_asset_id"], name: "index_room_evidences_on_project_external_asset_id"
     t.index ["project_knowledge_item_id"], name: "index_room_evidences_on_project_knowledge_item_id"
     t.index ["room_id", "project_external_asset_id"], name: "index_room_evidences_on_room_id_and_project_external_asset_id", unique: true, where: "project_external_asset_id IS NOT NULL"
     t.index ["room_id", "project_knowledge_item_id"], name: "index_room_evidences_on_room_id_and_project_knowledge_item_id", unique: true, where: "project_knowledge_item_id IS NOT NULL"
     t.index ["room_id"], name: "index_room_evidences_on_room_id"
+    t.index ["visibility"], name: "index_room_evidences_on_visibility"
   end
 
   create_table "room_history_topics", force: :cascade do |t|
