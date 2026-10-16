@@ -53,6 +53,23 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert_equal @room.id, payload["room_id"]
   end
 
+  test "get_users can be listed through the MCP registry without exposing password hashes" do
+    other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
+    @project.project_users.create!(user: @user)
+    @project.project_users.create!(user: other)
+
+    tool = Mcp::Registry.find_tool("get_users", scope: :read)
+    assert_not_nil tool
+
+    result = tool.call(project_id: @project.id)
+    assert_equal false, result[:isError]
+
+    payload = JSON.parse(result[:content].first[:text])
+    assert_equal [@user.id, other.id].sort, payload["users"].map { |user| user["id"].to_i }.sort
+    assert_equal @project.id, payload["project_id"]
+    refute payload["users"].any? { |user| user.key?("password_digest") || user.key?("password") }
+  end
+
   test "project membership tools can be listed through the MCP registry" do
     other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
     beta = Project.create!(name: "Project Beta", path: "/path/beta", slug: "beta")

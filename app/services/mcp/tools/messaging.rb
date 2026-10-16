@@ -95,9 +95,67 @@ module Mcp
             room_id: room.id,
             room_name: room.name,
             members: members.map do |participant|
-              participant.as_json.merge(participant_type: participant.class.name)
+              if participant.respond_to?(:public_mcp_attributes)
+                participant.public_mcp_attributes.merge(participant_type: participant.class.name)
+              else
+                participant.as_json.merge(participant_type: participant.class.name)
+              end
             end
           }
+
+          success(payload)
+        end
+      end
+
+      class GetUsersTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_users"
+        def description = "List users in the workspace or project with sanitized fields only"
+        def aliases = %w[get_users GetUsers]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              project_id: { type: %w[string integer] },
+              project_name: { type: "string" },
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" },
+              query: { type: "string" },
+              page: { type: "integer" },
+              per_page: { type: "integer" }
+            }
+          }
+        end
+
+        def execute(args)
+          project = resolve_project(args)
+          scope = project ? project.users : User.all
+
+          if args[:user_id].present?
+            user = resolve_user(args, project: project)
+            return failure("User not found") unless user
+
+            scope = scope.where(id: user.id)
+          end
+
+          if args[:query].present?
+            q = args[:query].to_s.strip
+            scope = scope.where(
+              "LOWER(users.name) LIKE ? OR LOWER(users.display_name) LIKE ?",
+              "%#{q.downcase}%",
+              "%#{q.downcase}%"
+            )
+          end
+
+          users = paginate(scope.order("LOWER(users.name)"), args)
+          payload = { users: users.map(&:public_mcp_attributes) }
+
+          if project
+            payload[:project_id] = project.id
+            payload[:project_name] = project.display_name.presence || project.slug
+          end
 
           success(payload)
         end
@@ -129,7 +187,7 @@ module Mcp
             project_id: project.id,
             project_name: project.display_name.presence || project.slug,
             users: users.map do |user|
-              user.as_json.merge(project_user_id: project.project_users.find_by(user_id: user.id)&.id)
+              user.public_mcp_attributes.merge(project_user_id: project.project_users.find_by(user_id: user.id)&.id)
             end
           }
 
