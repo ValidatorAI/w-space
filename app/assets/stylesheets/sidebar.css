@@ -382,22 +382,38 @@
   --btn-background: transparent;
   --btn-border-color: transparent;
   --btn-border-radius: 999px;
-  --btn-padding: 0.15rem 0.4rem;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.18em;
 
   align-items: center;
-  background: transparent;
-  border: 0;
-  color: color-mix(in oklab, var(--color-text), transparent 45%);
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
   display: inline-flex;
-  font-size: 1.1rem;
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  font-weight: 700;
   justify-content: center;
   line-height: 1;
   margin-inline-start: auto;
   min-inline-size: auto;
+  padding: 0.08em 0.18em !important;
 }
 
-.sidebar-direct-messages__add-btn:where(:hover, :focus-visible) {
-  --btn-background: color-mix(in oklab, var(--color-text), transparent 92%);
+.sidebar-direct-messages__add-btn span {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.sidebar-direct-messages__add-btn:hover,
+.sidebar-direct-messages__add-btn:focus,
+.sidebar-direct-messages__add-btn:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
 }
 
 .sidebar-direct-messages:not([open]) > .sidebar-direct-messages__summary::after {
