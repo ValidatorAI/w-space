@@ -98,6 +98,30 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert_equal @user.id, user_payload["user_id"]
   end
 
+  test "project catalog tools are available through the MCP registry" do
+    beta = Project.create!(name: "Project Beta", path: "/path/beta", slug: "beta")
+
+    list_tool = Mcp::Registry.find_tool("get_projects", scope: :read)
+    assert_not_nil list_tool
+
+    list_result = list_tool.call
+    assert_equal false, list_result[:isError]
+
+    list_payload = JSON.parse(list_result[:content].first[:text])
+    assert_includes list_payload["projects"].map { |project| project["id"].to_i }, @project.id
+    assert_includes list_payload["projects"].map { |project| project["id"].to_i }, beta.id
+
+    single_tool = Mcp::Registry.find_tool("get_single_project", scope: :read)
+    assert_not_nil single_tool
+
+    single_result = single_tool.call(project_id: @project.id)
+    assert_equal false, single_result[:isError]
+
+    single_payload = JSON.parse(single_result[:content].first[:text])
+    assert_equal @project.id, single_payload["id"].to_i
+    assert_equal @project.name, single_payload["name"]
+  end
+
   test "approval request lifecycle" do
     add_appr = Mcp::Registry.find_tool("add_approval_request", scope: :action)
     res = add_appr.call(room_id: @room.id, request_type: "deploy", payload: { env: "prod" })

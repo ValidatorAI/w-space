@@ -135,6 +135,8 @@ module Mcp
     Registry.register(Tools::Messaging::SearchRoomsTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::GetRoomMembersTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::GetUsersTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetProjectsTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetSingleProjectTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::GetProjectUsersTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::GetUserProjectsTool.new, scopes: %i[all read action])
     Registry.register(Tools::RoomContext::RoomDecisionContextTool.new, scopes: %i[all read])

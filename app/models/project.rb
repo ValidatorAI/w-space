@@ -66,6 +66,26 @@ class Project < ApplicationRecord
     name.presence || slug
   end
 
+  def public_mcp_attributes
+    attributes.slice(
+      "id",
+      "name",
+      "slug",
+      "path",
+      "description",
+      "private",
+      "short_code",
+      "current_phase",
+      "progress_percent",
+      "roadmap",
+      "recently_completed",
+      "budget_total",
+      "budget_spent",
+      "created_at",
+      "updated_at"
+    ).merge("display_name" => display_name)
+  end
+
   def current_phase_name
     current_phase.presence || "Phase 1: Project Setup"
   end

@@ -161,6 +161,77 @@ module Mcp
         end
       end
 
+      class GetProjectsTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_projects"
+        def description = "List projects in the workspace"
+        def aliases = %w[get_projects GetProjects list_projects ListProjects]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              project_id: { type: %w[string integer] },
+              project_name: { type: "string" },
+              query: { type: "string" },
+              page: { type: "integer" },
+              per_page: { type: "integer" }
+            }
+          }
+        end
+
+        def execute(args)
+          scope = Project.all
+
+          if args[:project_id].present? || args[:project_name].present?
+            project = resolve_project(args)
+            return failure("Project not found") unless project
+
+            scope = scope.where(id: project.id)
+          end
+
+          if args[:query].present?
+            q = args[:query].to_s.strip.downcase
+            scope = scope.where(
+              "LOWER(projects.name) LIKE ? OR LOWER(projects.slug) LIKE ? OR LOWER(projects.path) LIKE ?",
+              "%#{q}%",
+              "%#{q}%",
+              "%#{q}%"
+            )
+          end
+
+          projects = paginate(scope.order("LOWER(projects.name)"), args)
+          success({ projects: projects.map(&:public_mcp_attributes) })
+        end
+      end
+
+      class GetSingleProjectTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_single_project"
+        def description = "Get a single project by id, slug, or name"
+        def aliases = %w[get_single_project GetSingleProject get_project GetProject]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              project_id: { type: %w[string integer] },
+              project_name: { type: "string" },
+              project_slug: { type: "string" }
+            }
+          }
+        end
+
+        def execute(args)
+          project = resolve_project(args)
+          return failure("Project not found") unless project
+
+          success(project.public_mcp_attributes)
+        end
+      end
+
       class GetProjectUsersTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
@@ -221,7 +292,7 @@ module Mcp
             user_id: user.id,
             user_name: user.effective_display_name.presence || user.name,
             projects: projects.map do |project|
-              project.as_json.merge(project_user_id: user.project_users.find_by(project_id: project.id)&.id)
+              project.public_mcp_attributes.merge(project_user_id: user.project_users.find_by(project_id: project.id)&.id)
             end
           }
 
