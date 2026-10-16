@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_16_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -58,25 +58,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
-  end
-
-  create_table "agents", force: :cascade do |t|
-    t.string "api_token"
-    t.datetime "created_at", null: false
-    t.datetime "last_active_at"
-    t.string "mcp_session_id"
-    t.string "model", null: false
-    t.string "name", null: false
-    t.string "program", null: false
-    t.integer "project_id", null: false
-    t.integer "status", default: 0, null: false
-    t.text "task_description"
-    t.datetime "updated_at", null: false
-    t.index ["api_token"], name: "index_agents_on_api_token", unique: true
-    t.index ["mcp_session_id"], name: "index_agents_on_mcp_session_id"
-    t.index ["project_id", "name"], name: "index_agents_on_project_id_and_name", unique: true
-    t.index ["project_id"], name: "index_agents_on_project_id"
-    t.index ["status"], name: "index_agents_on_status"
   end
 
   create_table "ai_profile_mcps", force: :cascade do |t|
@@ -146,7 +127,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   end
 
   create_table "approval_requests", force: :cascade do |t|
-    t.integer "agent_id"
     t.datetime "created_at", null: false
     t.integer "message_id"
     t.json "payload"
@@ -278,7 +258,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   end
 
   create_table "file_reservations", force: :cascade do |t|
-    t.integer "agent_id", null: false
     t.datetime "created_at", null: false
     t.boolean "exclusive", default: true, null: false
     t.datetime "expires_at", null: false
@@ -286,7 +265,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
     t.integer "project_id", null: false
     t.text "reason"
     t.datetime "updated_at", null: false
-    t.index ["agent_id"], name: "index_file_reservations_on_agent_id"
     t.index ["expires_at"], name: "index_file_reservations_on_expires_at"
     t.index ["project_id", "expires_at"], name: "index_file_reservations_on_project_id_and_expires_at"
     t.index ["project_id"], name: "index_file_reservations_on_project_id"
@@ -629,14 +607,13 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   end
 
   create_table "room_ai_activity_states", force: :cascade do |t|
-    t.integer "agent_id"
     t.datetime "created_at", null: false
     t.integer "room_id"
     t.datetime "started_at"
     t.integer "state", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.index ["room_id", "agent_id"], name: "index_room_ai_activity_states_on_room_id_and_agent_id", unique: true
     t.index ["room_id"], name: "index_room_ai_activity_states_on_room_id"
+    t.index ["room_id"], name: "index_room_ai_activity_states_on_room_id_and_agent_id", unique: true
     t.index ["updated_at"], name: "index_room_ai_activity_states_on_updated_at"
   end
 
@@ -788,17 +765,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
-  create_table "webhooks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "url", null: false
-    t.integer "user_id", null: false
-    t.index ["user_id"], name: "index_webhooks_on_user_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "agents", "projects"
   add_foreign_key "ai_profile_mcps", "ai_profiles"
   add_foreign_key "ai_profile_mcps", "mcps"
   add_foreign_key "ai_profile_skills", "ai_profiles"
@@ -806,7 +774,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   add_foreign_key "ai_profile_tools", "ai_profiles"
   add_foreign_key "ai_profile_tools", "tools"
   add_foreign_key "approval_request_actions", "approval_requests"
-  add_foreign_key "approval_requests", "agents"
   add_foreign_key "approval_requests", "messages"
   add_foreign_key "approval_requests", "rooms"
   add_foreign_key "approval_requests", "users", column: "resolved_by_id"
@@ -821,7 +788,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   add_foreign_key "decision_room_economics", "decision_rooms"
   add_foreign_key "decision_rooms", "project_adrs"
   add_foreign_key "decision_rooms", "rooms"
-  add_foreign_key "file_reservations", "agents"
   add_foreign_key "file_reservations", "projects"
   add_foreign_key "message_analysis", "messages"
   add_foreign_key "message_topics", "messages"
@@ -843,7 +809,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "push_subscriptions", "users"
-  add_foreign_key "room_ai_activity_states", "agents"
   add_foreign_key "room_ai_activity_states", "rooms"
   add_foreign_key "room_evidences", "project_external_assets"
   add_foreign_key "room_evidences", "project_knowledge_items"
@@ -855,7 +820,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_15_000004) do
   add_foreign_key "sessions", "users"
   add_foreign_key "topics", "projects"
   add_foreign_key "topics", "topics", column: "parent_topic_id"
-  add_foreign_key "webhooks", "users"
 
   # Virtual tables defined in this database.
   # Note that virtual tables may not work with other database engines. Be careful if changing database.

@@ -22,12 +22,6 @@ class Rooms::ProjectsControllerTest < ActionDispatch::IntegrationTest
     )
     @channel.memberships.grant_to(users(:david))
 
-    Agent.create!(
-      project: @project,
-      name: "Scout",
-      program: "RSpec",
-      model: "gpt-test"
-    )
   end
 
   test "edit renders project settings sections" do

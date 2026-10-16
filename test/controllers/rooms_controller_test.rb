@@ -29,7 +29,6 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
 
   test "show renders a review modal for pending room decisions" do
     project = Project.create!(path: "/tmp/room-review-modal-project-#{SecureRandom.uuid}", name: "Review Modal Project")
-    agent = project.agents.create!(name: "Room Bot", program: "assistant", model: "gpt-4o-mini")
     room = project.rooms.create!(type: "Rooms::Project", name: "Decision Review", creator: users(:david))
     room.memberships.grant_to(users(:david))
     room.approval_requests.create!(
@@ -42,8 +41,7 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
           { "label" => "Option B", "value" => "Keep the current flow" }
         ]
       },
-      status: :pending,
-      agent: agent
+      status: :pending
     )
 
     get room_url(room)

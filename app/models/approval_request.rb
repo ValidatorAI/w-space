@@ -3,7 +3,6 @@ class ApprovalRequest < ApplicationRecord
 
   belongs_to :room, optional: true
   belongs_to :message, optional: true
-  belongs_to :agent, optional: true
   belongs_to :resolved_by, class_name: "User", optional: true
   has_many :approval_request_actions, dependent: :delete_all
 
@@ -61,7 +60,7 @@ class ApprovalRequest < ApplicationRecord
   end
 
   def review_owner_name
-    agent&.name.presence || room&.creator&.name.presence || "Room owner"
+    room&.creator&.name.presence || "Room owner"
   end
 
   def approve!(actor = Current.user, note: nil)

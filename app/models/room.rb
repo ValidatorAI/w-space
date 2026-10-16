@@ -5,7 +5,6 @@ class Room < ApplicationRecord
 
   after_create_commit :announce_creation, unless: :skip_announcement?
   after_create_commit :auto_join_human_overseer
-  after_create_commit :auto_join_all_agents, unless: :direct?
 
   has_many :memberships, dependent: :delete_all do
     def grant_to(participants)
@@ -35,11 +34,9 @@ class Room < ApplicationRecord
     end
   end
 
-  # Separate associations for users and agents
+  # Separate associations for users
   has_many :user_memberships, -> { where(participant_type: "User") }, class_name: "Membership"
-  has_many :agent_memberships, -> { where(participant_type: "Agent") }, class_name: "Membership"
   has_many :users, through: :user_memberships, source: :participant, source_type: "User"
-  has_many :agents, through: :agent_memberships, source: :participant, source_type: "Agent"
 
   has_many :messages, dependent: :destroy
   has_many :room_history_topics, dependent: :destroy
@@ -134,7 +131,7 @@ class Room < ApplicationRecord
     children.active.ordered
   end
 
-  # Get all participants (users + agents)
+  # Get all participants
   def participants
     memberships.includes(:participant).map(&:participant)
   end
@@ -173,7 +170,4 @@ class Room < ApplicationRecord
       memberships.grant_to(overseer) unless users.include?(overseer)
     end
 
-    def auto_join_all_agents
-      memberships.grant_to(Agent.all)
-    end
 end

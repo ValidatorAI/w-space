@@ -16,7 +16,6 @@ class Rooms::OpensController < RoomsController
   def new
     @room = Rooms::Open.new(name: DEFAULT_ROOM_NAME, project: @project, parent_id: @parent_room&.id)
     @users = users_scope_for_room_picker(@project)
-    @agents = agents_scope_for_room_picker(@project)
   end
 
   def create
@@ -47,7 +46,6 @@ class Rooms::OpensController < RoomsController
 
   def edit
     @users = users_scope_for_room_picker(@room.project)
-    @agents = agents_scope_for_room_picker(@room.project)
   end
 
   def update
@@ -91,11 +89,6 @@ class Rooms::OpensController < RoomsController
 
     def users_scope_for_room_picker(project)
       scope = project ? project.users : User.all
-      scope.active.ordered
-    end
-
-    def agents_scope_for_room_picker(project)
-      scope = project ? project.agents : Agent.all
       scope.active.ordered
     end
 

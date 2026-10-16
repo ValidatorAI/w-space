@@ -2,7 +2,7 @@ module Api
   class DecisionsController < Api::BaseController
     DECISION_ACTIONS = %w[approve confirm deny cancel].freeze
     APPROVAL_REQUEST_FIELDS = %i[
-      id room_id message_id agent_id request_type status requested_at resolved_at resolved_by_id
+      id room_id message_id request_type status requested_at resolved_at resolved_by_id
     ].freeze
 
     def create

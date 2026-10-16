@@ -1,5 +1,4 @@
 class Project < ApplicationRecord
-  has_many :agents, dependent: :destroy
   has_many :rooms, dependent: :destroy
   has_many :file_reservations, dependent: :destroy
   has_many :project_users, dependent: :delete_all

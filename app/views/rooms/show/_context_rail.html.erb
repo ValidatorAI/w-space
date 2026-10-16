@@ -84,8 +84,6 @@
             <strong><%= participant.name %></strong>
             <% if participant == @room.creator %>
               <small>Room owner</small>
-            <% elsif participant.is_a?(Agent) %>
-              <small>AI collaborator</small>
             <% else %>
               <small>Room member</small>
             <% end %>
