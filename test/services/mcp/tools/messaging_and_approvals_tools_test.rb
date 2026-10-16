@@ -53,6 +53,34 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert_equal @room.id, payload["room_id"]
   end
 
+  test "project membership tools can be listed through the MCP registry" do
+    other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
+    beta = Project.create!(name: "Project Beta", path: "/path/beta", slug: "beta")
+    @project.project_users.create!(user: @user)
+    @project.project_users.create!(user: other)
+    beta.project_users.create!(user: @user)
+
+    project_tool = Mcp::Registry.find_tool("get_project_users", scope: :read)
+    assert_not_nil project_tool
+
+    project_result = project_tool.call(project_id: @project.id)
+    assert_equal false, project_result[:isError]
+
+    project_payload = JSON.parse(project_result[:content].first[:text])
+    assert_equal [@user.id, other.id].sort, project_payload["users"].map { |user| user["id"].to_i }.sort
+    assert_equal @project.id, project_payload["project_id"]
+
+    user_tool = Mcp::Registry.find_tool("get_user_projects", scope: :read)
+    assert_not_nil user_tool
+
+    user_result = user_tool.call(user_id: @user.id)
+    assert_equal false, user_result[:isError]
+
+    user_payload = JSON.parse(user_result[:content].first[:text])
+    assert_equal [@project.id, beta.id].sort, user_payload["projects"].map { |project| project["id"].to_i }.sort
+    assert_equal @user.id, user_payload["user_id"]
+  end
+
   test "approval request lifecycle" do
     add_appr = Mcp::Registry.find_tool("add_approval_request", scope: :action)
     res = add_appr.call(room_id: @room.id, request_type: "deploy", payload: { env: "prod" })

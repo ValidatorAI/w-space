@@ -103,6 +103,74 @@ module Mcp
         end
       end
 
+      class GetProjectUsersTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_project_users"
+        def description = "List all users in a project"
+        def aliases = %w[get_project_users GetProjectUsers]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              project_id: { type: %w[string integer] },
+              project_name: { type: "string" }
+            }
+          }
+        end
+
+        def execute(args)
+          project = resolve_project(args)
+          return failure("Project not found") unless project
+
+          users = project.users.order("LOWER(users.name)")
+          payload = {
+            project_id: project.id,
+            project_name: project.display_name.presence || project.slug,
+            users: users.map do |user|
+              user.as_json.merge(project_user_id: project.project_users.find_by(user_id: user.id)&.id)
+            end
+          }
+
+          success(payload)
+        end
+      end
+
+      class GetUserProjectsTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_user_projects"
+        def description = "List all projects for a user"
+        def aliases = %w[get_user_projects GetUserProjects]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" }
+            }
+          }
+        end
+
+        def execute(args)
+          user = resolve_user(args)
+          return failure("User not found") unless user
+
+          projects = user.projects.order("LOWER(projects.name)")
+          payload = {
+            user_id: user.id,
+            user_name: user.effective_display_name.presence || user.name,
+            projects: projects.map do |project|
+              project.as_json.merge(project_user_id: user.project_users.find_by(project_id: project.id)&.id)
+            end
+          }
+
+          success(payload)
+        end
+      end
+
       # --- Messages ---
       class AddMessageTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
