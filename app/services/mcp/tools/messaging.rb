@@ -65,6 +65,44 @@ module Mcp
         end
       end
 
+      class GetRoomMembersTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "get_room_members"
+        def description = "List all members of a room"
+        def aliases = %w[get_room_members GetRoomMembers]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              room_id: { type: %w[string integer] },
+              room_name: { type: "string" },
+              project_id: { type: %w[string integer] },
+              project_name: { type: "string" }
+            },
+            required: ["room_id"]
+          }
+        end
+
+        def execute(args)
+          project = resolve_project(args)
+          room = resolve_room(args, project: project)
+          return failure("Room not found") unless room
+
+          members = room.memberships.includes(:participant).visible.map(&:participant).compact.uniq
+          payload = {
+            room_id: room.id,
+            room_name: room.name,
+            members: members.map do |participant|
+              participant.as_json.merge(participant_type: participant.class.name)
+            end
+          }
+
+          success(payload)
+        end
+      end
+
       # --- Messages ---
       class AddMessageTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
