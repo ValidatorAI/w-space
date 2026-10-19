@@ -81,4 +81,48 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
     assert event.reload.synced?
     assert_requested :post, ENV.fetch("OUTPUT_EVENTS_URL")
   end
+
+  test "posts message events with project, room, sender, and active topic metadata" do
+    project = Project.create!(name: "Launch", path: "launch", slug: "launch")
+    room = project.rooms.create!(name: "Sprint", type: "Rooms::Project", creator: users(:david), private: false)
+    active_topic = room.children.create!(name: "Current Topic", type: "Rooms::Open", creator: users(:david), private: false)
+    message = room.messages.create!(body: "Need a status update", creator: users(:david), client_message_id: "msg-ctx-1")
+
+    event = OutputEvents::Recorder.record(
+      event_type: "message_created",
+      event_id: message.id,
+      group_id: "group-ctx-1",
+      actor: users(:david),
+      target_type: "Message",
+      data: { "room_id" => room.id }
+    )
+
+    assert_equal project.id, event.event_data["content_payload"]["project"]["id"]
+    assert_equal "Launch", event.event_data["content_payload"]["project"]["name"]
+    assert_equal room.id, event.event_data["content_payload"]["room"]["id"]
+    assert_equal "Sprint", event.event_data["content_payload"]["room"]["name"]
+    assert_nil event.event_data["content_payload"]["room"]["parent_id"]
+    assert_equal users(:david).id, event.event_data["content_payload"]["sender"]["id"]
+    assert_equal users(:david).name, event.event_data["content_payload"]["sender"]["name"]
+    assert_equal false, event.event_data["content_payload"]["sender"]["is_bot"]
+    assert_equal message.id, event.event_data["content_payload"]["message"]["id"]
+    assert_equal "Need a status update", event.event_data["content_payload"]["message"]["content"]
+    assert_includes event.event_data["content_payload"]["active_topics"], { "id" => active_topic.id, "name" => "Current Topic" }
+
+    stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).to_return(status: 201)
+    OutputEvents::DeliverJob.perform_now(event.id)
+
+    assert_requested :post, ENV.fetch("OUTPUT_EVENTS_URL") do |request|
+      payload = JSON.parse(request.body)
+      content_payload = payload["event_data"]["content_payload"]
+
+      content_payload["project"]["id"] == project.id &&
+        content_payload["project"]["name"] == "Launch" &&
+        content_payload["room"]["id"] == room.id &&
+        content_payload["room"]["name"] == "Sprint" &&
+        content_payload["sender"]["id"] == users(:david).id &&
+        content_payload["message"]["id"] == message.id &&
+        content_payload["active_topics"].any? { |topic| topic["id"] == active_topic.id && topic["name"] == "Current Topic" }
+    end
+  end
 end

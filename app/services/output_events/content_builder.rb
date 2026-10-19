@@ -25,6 +25,8 @@ module OutputEvents
     def self.build_message_content(event_type:, event_id:, data:)
       message = Message.find_by(id: event_id)
       content = message&.plain_text_body&.presence
+      room = message&.room
+      message_context = build_message_context_payload(message, room)
 
       if event_type.to_s == "message_attachment_uploaded"
         return {
@@ -34,7 +36,7 @@ module OutputEvents
             "message_id" => event_id,
             "room_id" => data["room_id"],
             "file" => attachment_payload(message)
-          }.compact
+          }.merge(message_context).compact
         }
       end
 
@@ -47,10 +49,68 @@ module OutputEvents
           "content_type" => data["content_type"] || message&.content_type&.to_s,
           "text" => content,
           "bot_user_ids" => data["bot_user_ids"]
-        }.compact
+        }.merge(message_context).compact
       }
     end
     private_class_method :build_message_content
+
+    def self.build_message_context_payload(message, room)
+      return {} unless message
+
+      sender = message.creator
+      project = room&.project
+      active_topics = room&.child_topics&.map do |topic_room|
+        {
+          "id" => topic_room.id,
+          "name" => topic_room.name
+        }
+      end || []
+
+      {
+        "project" => project_payload(project),
+        "room" => room_payload(room),
+        "sender" => sender_payload(sender),
+        "message" => {
+          "id" => message.id,
+          "content" => message.plain_text_body
+        },
+        "active_topics" => active_topics
+      }.compact
+    end
+    private_class_method :build_message_context_payload
+
+    def self.project_payload(project)
+      return if project.blank?
+
+      {
+        "id" => project.id,
+        "name" => project.name
+      }.compact
+    end
+    private_class_method :project_payload
+
+    def self.room_payload(room)
+      return if room.blank?
+
+      {
+        "id" => room.id,
+        "name" => room.name,
+        "parent_id" => room.parent_id,
+        "parent_name" => room.parent&.name
+      }.compact
+    end
+    private_class_method :room_payload
+
+    def self.sender_payload(sender)
+      return if sender.blank?
+
+      {
+        "id" => sender.id,
+        "name" => sender.respond_to?(:name) ? sender.name : nil,
+        "is_bot" => sender.respond_to?(:bot?) ? sender.bot? : false
+      }.compact
+    end
+    private_class_method :sender_payload
 
     def self.build_approval_request_content(event_id:, data:)
       approval_request = ApprovalRequest.find_by(id: event_id)
