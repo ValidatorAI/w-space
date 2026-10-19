@@ -85,6 +85,51 @@ class TopicsAndTasksEnhancementTest < ActiveSupport::TestCase
     assert_equal "Resolved", rht.reload.last_state
   end
 
+  test "search_messages_of_room returns newest-first filtered results" do
+    topic = Topic.create!(name: "Architecture", project: @project, active: true, need_an_action: false)
+
+    older = @room.messages.create!(body: "Older architecture note", creator: @user, client_message_id: SecureRandom.uuid)
+    newer = @room.messages.create!(body: "Newer architecture note", creator: @user, client_message_id: SecureRandom.uuid)
+
+    older.update_column(:created_at, 2.days.ago)
+    newer.update_column(:created_at, 1.day.ago)
+
+    MessageTopic.create!(message: older, topic: topic, created_date: Time.current)
+    MessageTopic.create!(message: newer, topic: topic, created_date: Time.current)
+
+    MessageAnalysis.create!(
+      message: older,
+      importance_level: 2,
+      message_content_summary: "older summary",
+      message_type: "note",
+      tags: "alpha prompt"
+    )
+
+    MessageAnalysis.create!(
+      message: newer,
+      importance_level: 5,
+      message_content_summary: "newer summary",
+      message_type: "decision",
+      tags: "beta urgent"
+    )
+
+    tool = Mcp::Registry.find_tool("search_messages_of_room", scope: :knowledge)
+    assert tool.present?
+
+    result = tool.call(
+      room_id: @room.id,
+      topic_name: "arch",
+      message_analysis_importance_level_minimum: 2,
+      number_of_returned_messages: 10
+    )
+
+    assert_equal false, result[:isError]
+    payload = JSON.parse(result[:content].first[:text])
+
+    assert_equal [newer.id, older.id], payload.map { |item| item["id"] }
+    assert_equal @room.id, payload.first["room_id"]
+  end
+
   test "get_task_children collects nested descendants recursively" do
     parent = Task.create!(description: "Parent", project_id: @project.id)
     child = Task.create!(description: "Child", parent_task_id: parent.id, project_id: @project.id)

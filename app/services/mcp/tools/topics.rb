@@ -293,6 +293,164 @@ module Mcp
       end
 
       # --- Message Analysis ---
+      class SearchMessagesOfRoomTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "search_messages_of_room"
+        def description = "Search room messages in descending date order with optional topic and analysis filters"
+        def aliases = %w[search_room_messages SearchMessagesOfRoom room_message_search]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              room_id: { type: %w[string integer], description: "Mandatory room id to search within" },
+              from_message_id: { type: %w[string integer] },
+              number_of_returned_messages: { type: "integer" },
+              limit: { type: "integer" },
+              from_date: { type: "string" },
+              end_date: { type: "string" },
+              topic_id: { type: %w[string integer] },
+              topic_name: { type: "string" },
+              message_analysis_importance_level: { type: "integer" },
+              message_analysis_importance_level_minimum: { type: "integer" },
+              message_analysis_type: { type: "string" },
+              message_analysis_tags: { type: "string" },
+              message_analysis_content_summary: { type: "string" }
+            },
+            required: ["room_id"]
+          }
+        end
+
+        def execute(args)
+          room_id = args[:room_id].presence || args["room_id"]
+          raise ArgumentError, "room_id is required" if room_id.blank?
+
+          scope = Message.where(room_id: room_id.to_i)
+
+          from_message_id = args[:from_message_id].presence || args["from_message_id"]
+          scope = scope.where("messages.id <= ?", from_message_id.to_i) if from_message_id.present?
+
+          scope = apply_date_filter(scope, args, :from_date, :>=)
+          scope = apply_date_filter(scope, args, :end_date, :<=)
+
+          scope = apply_topic_filters(scope, args)
+          scope = apply_analysis_filters(scope, args)
+
+          limit = args[:number_of_returned_messages].presence || args["number_of_returned_messages"].presence || args[:limit].presence || args["limit"].presence || 20
+          limit = limit.to_i
+          limit = 20 if limit <= 0
+
+          messages = scope
+            .order(created_at: :desc, id: :desc)
+            .limit(limit)
+            .includes(:creator, :room)
+
+          success(messages.map {|message| serialize_message(message) })
+        end
+
+        private
+
+        def apply_date_filter(scope, args, key, operator)
+          raw_value = args[key].presence || args[key.to_s].presence
+          return scope if raw_value.blank?
+
+          parsed = Time.zone.parse(raw_value.to_s)
+          raise ArgumentError, "#{key} is invalid" if parsed.nil?
+
+          if operator == :>=
+            scope.where("messages.created_at >= ?", parsed)
+          else
+            scope.where("messages.created_at <= ?", parsed.end_of_day)
+          end
+        end
+
+        def apply_topic_filters(scope, args)
+          topic_id = args[:topic_id].presence || args["topic_id"]
+          topic_name = args[:topic_name].presence || args["topic_name"]
+          return scope if topic_id.blank? && topic_name.blank?
+
+          scope = scope.joins("INNER JOIN message_topics ON message_topics.message_id = messages.id")
+
+          if topic_id.present?
+            scope = scope.where(message_topics: { topic_id: topic_id.to_i })
+          end
+
+          if topic_name.present?
+            scope = scope.joins("INNER JOIN topics ON topics.id = message_topics.topic_id")
+            scope = scope.where("LOWER(COALESCE(topics.name, '')) LIKE ?", "%#{topic_name.to_s.downcase}%")
+          end
+
+          scope.distinct
+        end
+
+        def apply_analysis_filters(scope, args)
+          has_any_analysis_filter = [
+            args[:message_analysis_importance_level].present?,
+            args[:message_analysis_importance_level_minimum].present?,
+            args[:message_analysis_type].present?,
+            args[:message_analysis_tags].present?,
+            args[:message_analysis_content_summary].present?
+          ].any?
+
+          return scope unless has_any_analysis_filter
+
+          scope = scope.joins("LEFT OUTER JOIN message_analysis ON message_analysis.message_id = messages.id")
+
+          importance_level = args[:message_analysis_importance_level].presence || args["message_analysis_importance_level"].presence
+          if importance_level.present?
+            scope = scope.where("message_analysis.importance_level = ?", importance_level.to_i)
+          end
+
+          minimum_importance = args[:message_analysis_importance_level_minimum].presence || args["message_analysis_importance_level_minimum"].presence
+          if minimum_importance.present?
+            scope = scope.where("message_analysis.importance_level >= ?", minimum_importance.to_i)
+          end
+
+          analysis_type = args[:message_analysis_type].presence || args["message_analysis_type"].presence
+          if analysis_type.present?
+            scope = scope.where("LOWER(COALESCE(message_analysis.message_type, '')) = ?", analysis_type.to_s.downcase)
+          end
+
+          tags = args[:message_analysis_tags].presence || args["message_analysis_tags"].presence
+          if tags.present?
+            scope = scope.where("LOWER(COALESCE(message_analysis.tags, '')) LIKE ?", "%#{tags.to_s.downcase}%")
+          end
+
+          summary = args[:message_analysis_content_summary].presence || args["message_analysis_content_summary"].presence
+          if summary.present?
+            scope = scope.where("LOWER(COALESCE(message_analysis.message_content_summary, '')) LIKE ?", "%#{summary.to_s.downcase}%")
+          end
+
+          scope.distinct
+        end
+
+        def serialize_message(message)
+          message_hash = message.as_json
+          message_hash["body"] = message.plain_text_body
+          message_hash["room_name"] = message.room&.name
+          message_hash["creator_name"] = if message.creator.respond_to?(:display_name) && message.creator.display_name.present?
+            message.creator.display_name
+          elsif message.creator.respond_to?(:name)
+            message.creator.name
+          else
+            message.creator_type
+          end
+
+          analysis = MessageAnalysis.find_by(message_id: message.id)
+          message_hash["analysis"] = analysis&.as_json
+          message_hash["topics"] = MessageTopic.where(message_id: message.id).includes(:topic).map do |link|
+            next unless link.topic
+            {
+              id: link.topic.id,
+              name: link.topic.name,
+              project_id: link.topic.project_id
+            }
+          end.compact
+          message_hash
+        end
+      end
+
       class MessageAnalysisTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
