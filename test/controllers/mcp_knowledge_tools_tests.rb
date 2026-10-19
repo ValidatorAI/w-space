@@ -28,6 +28,48 @@ class McpKnowledgeToolsTests < ActionDispatch::IntegrationTest
     response.parsed_body
   end
 
+  test "room topic tree tool returns nested topic branches" do
+    root = Topic.create!(project: @project, name: "Root topic", active: true, need_an_action: false)
+    child = Topic.create!(project: @project, name: "Child topic", parent_topic: root, active: true, need_an_action: false)
+    message = @room.messages.create!(body: "Tree test message", creator: @user, client_message_id: SecureRandom.uuid)
+    MessageTopic.create!(message: message, topic: root, created_date: Time.current)
+    MessageTopic.create!(message: message, topic: child, created_date: Time.current)
+
+    payload = call_tool("/knowledge-mcp", "room_topic_tree", room_id: @room.id)
+    body = payload.dig("result", "content", 0, "text")
+    assert_equal false, payload.dig("result", "isError")
+    assert_includes body, "\"id\": #{root.id}"
+    assert_includes body, "\"id\": #{child.id}"
+
+    branch_payload = call_tool("/knowledge-mcp", "room_topic_tree", room_id: @room.id, start_topic_id: root.id, include_root: false)
+    branch_body = branch_payload.dig("result", "content", 0, "text")
+    assert_equal false, branch_payload.dig("result", "isError")
+    assert_includes branch_body, "\"id\": #{child.id}"
+    assert_not_includes branch_body, "\"id\": #{root.id}"
+  end
+
+  test "search_topics finds matches by name or related topics within project or room" do
+    alpha = Topic.create!(project: @project, name: "Alpha strategy", related_topics: "beta,launch", active: true, need_an_action: false)
+    beta = Topic.create!(project: @project, name: "Beta launch", active: true, need_an_action: false)
+    gamma = Topic.create!(project: @project, name: "Gamma roadmap", active: true, need_an_action: false)
+
+    message = @room.messages.create!(body: "Search test message", creator: @user, client_message_id: SecureRandom.uuid)
+    MessageTopic.create!(message: message, topic: alpha, created_date: Time.current)
+    MessageTopic.create!(message: message, topic: beta, created_date: Time.current)
+
+    payload = call_tool("/knowledge-mcp", "search_topics", project_id: @project.id, query: "beta")
+    body = payload.dig("result", "content", 0, "text")
+    assert_equal false, payload.dig("result", "isError")
+    assert_includes body, "\"id\": #{beta.id}"
+    assert_includes body, "\"id\": #{alpha.id}"
+    assert_not_includes body, "\"id\": #{gamma.id}"
+
+    room_payload = call_tool("/knowledge-mcp", "search_topics", room_id: @room.id, query: "alpha")
+    room_body = room_payload.dig("result", "content", 0, "text")
+    assert_equal false, room_payload.dig("result", "isError")
+    assert_includes room_body, "\"id\": #{alpha.id}"
+  end
+
   test "topics tool reflects real project topics from the database" do
     payload = call_tool("/knowledge-mcp", "topics")
     assert_equal false, payload.dig("result", "isError")

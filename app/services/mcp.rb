@@ -187,6 +187,8 @@ module Mcp
       Tools::Topics::CreateTopicTool.new,
       Tools::Topics::UpdateTopicTool.new,
       Tools::Topics::DeleteTopicTool.new,
+      Tools::Topics::RoomTopicTreeTool.new,
+      Tools::Topics::SearchTopicsTool.new,
       Tools::Topics::MessageAnalysisTool.new,
       Tools::Topics::GetMessageAnalysisTool.new,
       Tools::Topics::CreateMessageAnalysisTool.new,

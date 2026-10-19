@@ -129,6 +129,169 @@ module Mcp
         end
       end
 
+      class RoomTopicTreeTool < Mcp::BaseTool
+        def name = "room_topic_tree"
+        def description = "Return a room or project topic tree, optionally starting from a specific topic node"
+        def aliases = %w[room_topics_tree get_room_topic_tree get_topics_tree]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              room_id: { type: %w[string integer] },
+              project_id: { type: %w[string integer] },
+              start_topic_id: { type: %w[string integer] },
+              include_root: { type: "boolean" },
+              max_depth: { type: "integer" }
+            }
+          }
+        end
+
+        def execute(args)
+          scope = build_scope(args)
+
+          if args[:start_topic_id].present?
+            root = scope.find_by(id: args[:start_topic_id])
+            raise ActiveRecord::RecordNotFound, "Topic #{args[:start_topic_id]} not found in the requested scope" if root.nil?
+
+            return success(build_tree(root, scope, max_depth: args[:max_depth].presence&.to_i, include_root: boolean_param(args[:include_root]).nil? ? true : boolean_param(args[:include_root])))
+          end
+
+          roots = scope.where(parent_topic_id: nil).order(:name)
+          success(roots.map { |topic| build_tree(topic, scope, max_depth: args[:max_depth].presence&.to_i) })
+        end
+
+        private
+
+        def build_scope(args)
+          scope = Topic.all
+          scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
+          if args[:room_id].present?
+            scope = scope
+              .joins(:message_topics)
+              .joins("INNER JOIN messages ON messages.id = message_topics.message_id")
+              .where(messages: { room_id: args[:room_id] })
+              .distinct
+          end
+          scope.order(:name)
+        end
+
+        def build_tree(topic, scope, max_depth:, include_root: true, current_depth: 0)
+          if max_depth.present? && current_depth >= max_depth
+            return include_root ? node_hash(topic) : []
+          end
+
+          node = node_hash(topic)
+          children = scope.where(parent_topic_id: topic.id).order(:name)
+          node["children"] = children.map { |child| build_tree(child, scope, max_depth: max_depth, include_root: true, current_depth: current_depth + 1) }
+
+          if !include_root && current_depth.zero?
+            node["children"]
+          else
+            node
+          end
+        end
+
+        def node_hash(topic)
+          {
+            "id" => topic.id,
+            "project_id" => topic.project_id,
+            "parent_topic_id" => topic.parent_topic_id,
+            "name" => topic.name,
+            "related_topics" => topic.related_topics,
+            "memory" => topic.memory,
+            "state" => topic.state,
+            "active" => topic.active,
+            "need_an_action" => topic.need_an_action,
+            "importance_level" => topic.importance_level
+          }
+        end
+      end
+
+      class SearchTopicsTool < Mcp::BaseTool
+        def name = "search_topics"
+        def description = "Search topics by name, memory, state, or related topics within a project or room"
+        def aliases = %w[find_topics topic_search]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+              project_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
+              start_topic_id: { type: %w[string integer] },
+              limit: { type: "integer" }
+            },
+            required: ["query"]
+          }
+        end
+
+        def execute(args)
+          query = args[:query].to_s.strip
+          raise ArgumentError, "query is required" if query.blank?
+
+          scope = build_scope(args)
+          scope = restrict_to_branch(scope, args[:start_topic_id]) if args[:start_topic_id].present?
+
+          terms = query.split(/\s+/).reject(&:empty?)
+          return success([]) if terms.empty?
+
+          where_clauses = []
+          values = {}
+          terms.each_with_index do |term, index|
+            term_key = "term_#{index}".to_sym
+            where_clauses << "(
+              LOWER(COALESCE(topics.name, '')) LIKE :#{term_key}
+              OR LOWER(COALESCE(topics.memory, '')) LIKE :#{term_key}
+              OR LOWER(COALESCE(topics.state, '')) LIKE :#{term_key}
+              OR LOWER(COALESCE(topics.related_topics, '')) LIKE :#{term_key}
+            )"
+            values[term_key] = "%#{term.downcase}%"
+          end
+
+          limit = args[:limit].presence&.to_i || 20
+          matches = scope.where(where_clauses.join(" OR "), values).order(:name).limit(limit)
+          success(matches.map(&:as_json))
+        end
+
+        private
+
+        def build_scope(args)
+          scope = Topic.all
+          scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
+          if args[:room_id].present?
+            scope = scope
+              .joins(:message_topics)
+              .joins("INNER JOIN messages ON messages.id = message_topics.message_id")
+              .where(messages: { room_id: args[:room_id] })
+              .distinct
+          end
+          scope.order(:name)
+        end
+
+        def restrict_to_branch(scope, start_topic_id)
+          start_topic = scope.find_by(id: start_topic_id)
+          raise ActiveRecord::RecordNotFound, "Topic #{start_topic_id} not found in the requested scope" if start_topic.nil?
+
+          ids = descendant_topic_ids(start_topic, scope)
+          scope.where(id: ids)
+        end
+
+        def descendant_topic_ids(topic, scope)
+          queue = [topic]
+          result = []
+
+          until queue.empty?
+            current = queue.shift
+            result << current.id
+            queue.concat(scope.where(parent_topic_id: current.id).to_a)
+          end
+
+          result
+        end
+      end
+
       # --- Message Analysis ---
       class MessageAnalysisTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
