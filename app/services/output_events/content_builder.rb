@@ -59,12 +59,7 @@ module OutputEvents
 
       sender = message.creator
       project = room&.project
-      active_topics = room&.child_topics&.map do |topic_room|
-        {
-          "id" => topic_room.id,
-          "name" => topic_room.name
-        }
-      end || []
+      active_topics = room&.active_topic_tree || []
 
       {
         "project" => project_payload(project),

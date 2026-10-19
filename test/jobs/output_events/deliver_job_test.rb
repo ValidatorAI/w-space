@@ -86,6 +86,7 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
     project = Project.create!(name: "Launch", path: "launch", slug: "launch")
     room = project.rooms.create!(name: "Sprint", type: "Rooms::Project", creator: users(:david), private: false)
     active_topic = room.children.create!(name: "Current Topic", type: "Rooms::Open", creator: users(:david), private: false)
+    sub_topic = active_topic.children.create!(name: "Sub Topic", type: "Rooms::Open", creator: users(:david), private: false)
     message = room.messages.create!(body: "Need a status update", creator: users(:david), client_message_id: "msg-ctx-1")
 
     event = OutputEvents::Recorder.record(
@@ -107,7 +108,8 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
     assert_equal false, event.event_data["content_payload"]["sender"]["is_bot"]
     assert_equal message.id, event.event_data["content_payload"]["message"]["id"]
     assert_equal "Need a status update", event.event_data["content_payload"]["message"]["content"]
-    assert_includes event.event_data["content_payload"]["active_topics"], { "id" => active_topic.id, "name" => "Current Topic" }
+    assert_equal "Current Topic", event.event_data["content_payload"]["active_topics"].first["name"]
+    assert_equal sub_topic.id, event.event_data["content_payload"]["active_topics"].first["children"].first["id"]
 
     stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).to_return(status: 201)
     OutputEvents::DeliverJob.perform_now(event.id)
@@ -122,7 +124,8 @@ class OutputEvents::DeliverJobTest < ActiveJob::TestCase
         content_payload["room"]["name"] == "Sprint" &&
         content_payload["sender"]["id"] == users(:david).id &&
         content_payload["message"]["id"] == message.id &&
-        content_payload["active_topics"].any? { |topic| topic["id"] == active_topic.id && topic["name"] == "Current Topic" }
+        content_payload["active_topics"].first["name"] == "Current Topic" &&
+        content_payload["active_topics"].first["children"].first["id"] == sub_topic.id
     end
   end
 end

@@ -131,12 +131,23 @@ class Room < ApplicationRecord
     children.active.ordered
   end
 
+  def active_topic_tree
+    child_topics.map { |topic_room| topic_tree_node(topic_room) }
+  end
+
   # Get all participants
   def participants
     memberships.includes(:participant).map(&:participant)
   end
 
   private
+    def topic_tree_node(room_node)
+      {
+        "id" => room_node.id,
+        "name" => room_node.name,
+        "children" => room_node.child_topics.map { |child| topic_tree_node(child) }
+      }
+    end
     def parent_cannot_be_self
       return if parent_id.blank?
 
