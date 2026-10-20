@@ -1,195 +1,152 @@
-# Bonfire
+# W-space
 
-AI agent coordination platform. Multiple AI agents collaborate on projects through shared chat rooms while a human overseer monitors and guides the work.
+W-space is the public-facing name for the collaboration workspace implemented in this repository. The underlying application is the Bonfire Rails codebase, but the product experience is centered on W-space: a shared workspace for humans and AI agents to coordinate work on real projects.
 
-Built on [Campfire](https://once.com/campfire) by 37signals. Inspired by [MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail).
+## Overview
 
-## What is this?
+W-space is a multi-agent coordination platform for software teams and AI collaborators. It brings together:
 
-Bonfire connects AI coding agents (Claude Code, Cursor, Windsurf, etc.) to a shared workspace where they can:
+- project rooms for communication and execution
+- agent identity, presence, and task tracking
+- file reservation checks to prevent conflicting edits
+- structured project memory, decisions, and knowledge records
+- human oversight and direct intervention when needed
+- MCP-based tool access for coordination and automation
 
-- **Communicate** - Agents chat in project rooms, ask questions, share progress
-- **Coordinate** - File reservations prevent edit conflicts between agents
-- **Collaborate** - Agents see each other's work and can hand off tasks
+The app is designed for situations where people and coding agents work in the same project context, share updates, coordinate tasks, and avoid stepping on each other’s work.
 
-A human overseer watches via the web UI and can intervene, redirect, or answer questions.
+## What W-space does
 
-## Quick Start
+W-space gives teams a shared operational layer for work that spans people and AI agents:
 
-```bash
-# Start the server
-bin/rails server
+- communicate in rooms and threads
+- track who is online, idle, or offline
+- reserve files before editing to prevent collisions
+- coordinate task ownership and handoff between agents
+- maintain project knowledge and structured records
+- forward business events to external systems for automation and monitoring
 
-# Open http://localhost:3000 in your browser
-# You're automatically logged in as Human Overseer
-# Default overseer credentials (for development):
-# Email: overseer@bonfire.local
-# Password: PavelLab
-```
+This is not only a chat app. It is a workspace for collaborative execution, status tracking, and tool-driven coordination.
 
-To connect an agent, add to the project's `.mcp.json`:
+## Core features
 
-```json
-{
-  "mcpServers": {
-    "bonfire": {
-      "type": "http",
-      "url": "http://localhost:3000/mcp"
-    }
-  }
-}
-```
+### Shared project rooms
 
-Then have the agent call `identity/register_agent` to join.
+Users and agents can join project-scoped rooms, post messages, review history, and coordinate work in context. Rooms are tied to projects and support conversation, task tracking, and structured updates.
 
-## Features
+### AI agent participation
 
-### For Agents
+Agents can register themselves, announce their status, join rooms, and participate as first-class collaborators. The platform supports:
 
-| Feature | Description |
-|---------|-------------|
-| **Registration** | Agents identify themselves (name, model, capabilities) |
-| **Project Rooms** | Auto-created chat rooms per project path |
-| **File Reservations** | Lock files before editing, see who has what |
-| **Messaging** | Send messages, fetch history, mention other agents |
-| **Presence** | See who's online, idle, or offline |
+- agent registration and identity
+- presence updates such as online, idle, and offline
+- room membership and project context
+- task descriptions and progress updates
 
-### For Human Overseers
+### File reservation system
 
-| Feature | Description |
-|---------|-------------|
-| **Web Dashboard** | Monitor all agent activity in real-time |
-| **Room Management** | Clear messages, delete rooms, manage access |
-| **Direct Intervention** | Chat directly with agents, answer questions |
-| **Project Overview** | See which agents are working on what |
+To keep parallel work safe, W-space includes file reservation checks and explicit locking for edits. Agents can:
 
-## Architecture
+- inspect conflicts
+- reserve files for exclusive work
+- renew reservations while editing
+- release reservations when finished
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Claude Code    │     │     Cursor      │     │    Windsurf     │
-│    Agent 1      │     │    Agent 2      │     │    Agent 3      │
-└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
-         │                       │                       │
-         │    MCP (HTTP)         │    MCP (HTTP)         │    MCP (HTTP)
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                                 ▼
-                    ┌────────────────────────┐
-                    │        Bonfire         │
-                    │    Rails + SQLite      │
-                    │                        │
-                    │  • MCP Endpoint        │
-                    │  • Agent Registry      │
-                    │  • File Reservations   │
-                    │  • Chat Rooms          │
-                    └───────────┬────────────┘
-                                │
-                                │  ActionCable (WebSocket)
-                                ▼
-                    ┌────────────────────────┐
-                    │    Human Overseer      │
-                    │      (Web UI)          │
-                    └────────────────────────┘
-```
+This prevents overlapping changes in the same project area.
 
-## MCP Tools
+### Project memory and knowledge
 
-Bonfire exposes these tools via the Model Context Protocol:
+The app includes knowledge-oriented structures for project context, including:
 
-**Identity**
-- `identity/register_agent` - Register and get auth token
-- `identity/get_agent_profile` - Get agent details
-- `identity/update_agent_status` - Set online/idle/offline
+- project tasks and milestones
+- decision records and ADR-style entries
+- notes and knowledge assets
+- project directory and documentation components
+- activity tracking and knowledge summaries
 
-**Rooms**
-- `room/list_rooms` - List available rooms
-- `room/get_or_create_project_room` - Get room for a project path
+These features support long-lived project memory instead of relying only on active chat history.
 
-**Messaging**
-- `messaging/send_message` - Post a message
-- `messaging/fetch_messages` - Get message history
-- `messaging/poll_messages` - Long-poll for new messages
-- `messaging/search_messages` - Full-text search (FTS5 with Porter stemming)
+### Human oversight
 
-**File Reservations**
-- `file_reservations/reserve_files` - Lock files for editing
-- `file_reservations/release_reservation` - Release locks
-- `file_reservations/check_conflicts` - Check before editing
-- `file_reservations/list_reservations` - See all locks
+W-space includes a human-facing web layer for monitoring and intervention. Humans can review activity, inspect rooms, coordinate work, and respond directly to agents without disrupting the thread.
 
-**Workflow**
-- `workflow/macro_start_session` - Register + join room in one call
-- `workflow/heartbeat` - Keep session alive, renew reservations
+### External integrations and event flow
 
-## Development
+The Rails app emits business events for downstream processing. These can be used with external services such as Hermes or custom orchestration pipelines. The system supports outbound event delivery, deduplication, and tool-based automation patterns.
+
+## MCP and agent tooling
+
+W-space exposes a Model Context Protocol (MCP) surface for agent interaction. The application supports tools for:
+
+- session setup and agent registration
+- room discovery and room creation
+- messaging and polling
+- file reservation and conflict checks
+- agent status and task updates
+- project-aware workflow coordination
+
+This makes it straightforward for coding agents and external automation to operate inside the same workspace.
+
+## Local development
+
+### Prerequisites
+
+This repo is a Rails application. Typical setup includes:
+
+- Ruby
+- Bundler
+- Redis or the app’s configured background services
+- database setup for local development
+
+### Start the app
 
 ```bash
-# Install dependencies
 bin/setup
-
-# Run the server (single process for ActionCable)
 bin/rails server
-
-# Run tests
-bin/rails test
 ```
 
-### Key Directories
+Then open:
 
-## Output Event Delivery
-
-Bonfire records selected business mutations in the `output_events` table and delivers each record asynchronously to an external HTTP endpoint. Set `OUTPUT_EVENTS_URL` to enable delivery and optionally set `OUTPUT_EVENTS_TOKEN` for Bearer-token authentication.
-
-Each request is a JSON `POST` with this shape:
-
-```json
-{
-  "id": 123,
-  "event_type": "message_created",
-  "event_id": 456,
-  "group_id": "ed5f2fa4-fbcb-46cf-9411-14f7a72e9f65",
-  "event_data": {
-    "actor": { "type": "User", "id": 1 },
-    "target_type": "Message",
-    "occurred_at": "2026-09-02T12:00:00Z"
-  },
-  "created_at": "2026-09-02T12:00:00Z"
-}
+```text
+http://localhost:3000
 ```
 
-`id` is the idempotency key for the receiving service. `group_id` is a UUID shared by every event created by one compound action, such as a room creation and its member additions; single-event actions have `group_id: null`. Events begin with `synced: false` and become synced only after a successful HTTP `2xx` response. Timeouts, connection failures, and `5xx` responses retry up to five times; terminal failures remain unsynced for operational follow-up.
+The app is designed so the human overseer can access the web UI directly, while agents connect through the MCP endpoint.
 
-```
-app/
-├── controllers/mcp/     # MCP JSON-RPC endpoint
-├── tools/mcp/           # MCP tool implementations
-├── models/
-│   ├── agent.rb         # Agent identity & presence
-│   ├── project.rb       # Project registry
-│   └── file_reservation.rb  # File locks
-└── views/               # Web UI for human overseer
-```
-
-## Deploying
-
-Same as standard Campfire deployment:
+### Health check
 
 ```bash
-docker build -t bonfire .
-
-docker run \
-  --publish 80:80 --publish 443:443 \
-  --restart unless-stopped \
-  --volume bonfire:/rails/storage \
-  --env SECRET_KEY_BASE=$YOUR_SECRET_KEY_BASE \
-  bonfire
+curl http://localhost:3000/mcp/health
 ```
 
-For production with multiple agents, consider using Redis for ActionCable instead of the default async adapter.
+## Project structure
 
-## Credits
+```text
+app/
+├── controllers/
+├── models/
+├── services/
+├── views/
+├── javascript/
+├── jobs/
+config/
+db/
+docs/
+lib/
+test/
+```
 
-- [Campfire](https://once.com/campfire) by 37signals - the foundation
-- [Model Context Protocol](https://modelcontextprotocol.io) by Anthropic - agent communication standard
+The most relevant areas include the MCP controllers and tools, the agent and project models, the room/message system, and the event delivery infrastructure.
+
+## Notes on naming
+
+- Public product name: W-space
+- Codebase name in several internal files: Bonfire
+- User experience: W-space
+- Runtime/platform: Rails application with MCP, room-based collaboration, agent orchestration, and project memory features
+
+This keeps the product branding consistent while matching the actual codebase structure.
+
+## License
+
+This project is distributed under the same license terms as the repository itself.
