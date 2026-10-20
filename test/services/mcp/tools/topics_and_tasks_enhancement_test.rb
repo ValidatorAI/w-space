@@ -130,6 +130,45 @@ class TopicsAndTasksEnhancementTest < ActiveSupport::TestCase
     assert_equal @room.id, payload.first["room_id"]
   end
 
+  test "topic tools persist hierarchy, importance, and required actions" do
+    parent = Topic.create!(name: "Parent topic", project: @project, active: true, need_an_action: false)
+
+    create_tool = Mcp::Registry.find_tool("create_topic", scope: :action)
+    assert create_tool.present?
+
+    res = create_tool.call(
+      name: "Child topic",
+      project_id: @project.id,
+      parent_topic_id: parent.id,
+      related_topics: ["alpha", "beta"].to_json,
+      importance_level: 4,
+      required_actions: ["Draft brief", "Review with team"].to_json
+    )
+
+    assert_equal false, res[:isError]
+
+    created = Topic.order(:id).last
+    assert_equal parent.id, created.parent_topic_id
+    assert_equal 4, created.importance_level
+    assert_equal ["alpha", "beta"], JSON.parse(created.related_topics)
+    assert_equal ["Draft brief", "Review with team"], JSON.parse(created.required_actions)
+
+    update_tool = Mcp::Registry.find_tool("update_topic", scope: :action)
+    assert update_tool.present?
+
+    res_up = update_tool.call(
+      topic_id: created.id,
+      importance_level: 5,
+      required_actions: ["Ship update"].to_json,
+      related_topics: ["gamma"].to_json
+    )
+
+    assert_equal false, res_up[:isError]
+    assert_equal 5, created.reload.importance_level
+    assert_equal ["gamma"], JSON.parse(created.related_topics)
+    assert_equal ["Ship update"], JSON.parse(created.required_actions)
+  end
+
   test "get_task_children collects nested descendants recursively" do
     parent = Task.create!(description: "Parent", project_id: @project.id)
     child = Task.create!(description: "Child", parent_task_id: parent.id, project_id: @project.id)

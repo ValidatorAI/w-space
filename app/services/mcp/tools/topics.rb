@@ -15,7 +15,8 @@ module Mcp
             properties: {
               topic_id: { type: %w[string integer] },
               project_id: { type: %w[string integer] },
-              room_id: { type: %w[string integer] },
+              parent_topic_id: { type: %w[string integer] },
+              importance_level: { type: "integer" },
               active: { type: "boolean" },
               need_an_action: { type: "boolean" },
               page: { type: "integer" },
@@ -31,7 +32,8 @@ module Mcp
 
           scope = Topic.all
           scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
-          scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
+          scope = scope.where(parent_topic_id: args[:parent_topic_id]) if args[:parent_topic_id].present?
+          scope = scope.where(importance_level: args[:importance_level]) if args[:importance_level].present?
           scope = scope.where(active: boolean_param(args[:active])) if args.key?(:active)
           scope = scope.where(need_an_action: boolean_param(args[:need_an_action])) if args.key?(:need_an_action)
 
@@ -59,9 +61,12 @@ module Mcp
             properties: {
               name: { type: "string" },
               project_id: { type: %w[string integer] },
-              room_id: { type: %w[string integer] },
+              parent_topic_id: { type: %w[string integer] },
+              related_topics: { type: ["string", "array", "object"] },
+              importance_level: { type: "integer" },
               memory: { type: "string" },
               state: { type: "string" },
+              required_actions: { type: ["string", "array", "object"] },
               active: { type: "boolean" },
               need_an_action: { type: "boolean" }
             },
@@ -73,13 +78,40 @@ module Mcp
           t = Topic.create!(
             name: args[:name],
             project_id: args[:project_id],
-            room_id: args[:room_id],
+            parent_topic_id: args[:parent_topic_id].presence,
+            related_topics: normalize_text_list(args[:related_topics]),
+            importance_level: normalize_integer(args[:importance_level]),
             memory: args[:memory],
             state: args[:state],
+            required_actions: normalize_text_list(args[:required_actions]),
             active: args.key?(:active) ? boolean_param(args[:active]) : true,
-            need_an_action: boolean_param(args[:need_an_action]) || false
+            need_an_action: args.key?(:need_an_action) ? boolean_param(args[:need_an_action]) : false
           )
           success(t.as_json)
+        end
+
+        private
+
+        def normalize_text_list(value)
+          return nil if value.nil?
+
+          case value
+          when Array, Hash
+            value.to_json
+          when String
+            parsed = JSON.parse(value)
+            parsed.is_a?(Array) || parsed.is_a?(Hash) ? JSON.generate(parsed) : value
+          else
+            value.to_s
+          end
+        rescue JSON::ParserError
+          value.to_s
+        end
+
+        def normalize_integer(value)
+          return nil if value.nil?
+
+          value.to_i
         end
       end
 
@@ -94,8 +126,12 @@ module Mcp
             properties: {
               topic_id: { type: %w[string integer] },
               name: { type: "string" },
+              parent_topic_id: { type: %w[string integer] },
+              related_topics: { type: ["string", "array", "object"] },
+              importance_level: { type: "integer" },
               memory: { type: "string" },
               state: { type: "string" },
+              required_actions: { type: ["string", "array", "object"] },
               active: { type: "boolean" },
               need_an_action: { type: "boolean" }
             },
@@ -107,13 +143,41 @@ module Mcp
           t = Topic.find(args[:topic_id])
           attrs = {
             name: args[:name],
+            parent_topic_id: args.key?(:parent_topic_id) ? args[:parent_topic_id].presence : nil,
+            related_topics: args.key?(:related_topics) ? normalize_text_list(args[:related_topics]) : nil,
+            importance_level: args.key?(:importance_level) ? normalize_integer(args[:importance_level]) : nil,
             memory: args[:memory],
             state: args[:state],
+            required_actions: args.key?(:required_actions) ? normalize_text_list(args[:required_actions]) : nil,
             active: args.key?(:active) ? boolean_param(args[:active]) : nil,
             need_an_action: args.key?(:need_an_action) ? boolean_param(args[:need_an_action]) : nil
           }.compact
           t.update!(attrs)
           success(t.as_json)
+        end
+
+        private
+
+        def normalize_text_list(value)
+          return nil if value.nil?
+
+          case value
+          when Array, Hash
+            value.to_json
+          when String
+            parsed = JSON.parse(value)
+            parsed.is_a?(Array) || parsed.is_a?(Hash) ? JSON.generate(parsed) : value
+          else
+            value.to_s
+          end
+        rescue JSON::ParserError
+          value.to_s
+        end
+
+        def normalize_integer(value)
+          return nil if value.nil?
+
+          value.to_i
         end
       end
 
@@ -199,6 +263,7 @@ module Mcp
             "parent_topic_id" => topic.parent_topic_id,
             "name" => topic.name,
             "related_topics" => topic.related_topics,
+            "required_actions" => topic.required_actions,
             "memory" => topic.memory,
             "state" => topic.state,
             "active" => topic.active,
