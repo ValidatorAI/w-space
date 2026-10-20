@@ -3,7 +3,9 @@ module Api
     ALLOWED_ACTIONS = %w[typing_start typing_stop].freeze
 
     def create
-      project = find_project(params[:project_id])
+      project = find_project_or_render_not_found(params[:project_id])
+      return if params[:project_id].present? && project.nil?
+
       room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 

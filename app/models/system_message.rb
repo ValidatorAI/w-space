@@ -36,56 +36,6 @@ class SystemMessage
       ).tap(&:broadcast_create)
     end
 
-    # Agent events
-    def agent_joined(room:, agent:)
-      post(room: room, type: :agent_join, data: {
-        agent_name: agent.name,
-        program: agent.program,
-        task: agent.task_description || "No task specified"
-      })
-    end
-
-    def agent_left(room:, agent:)
-      post(room: room, type: :agent_leave, data: { agent_name: agent.name })
-    end
-
-    def agent_reconnected(room:, agent:)
-      post(room: room, type: :agent_reconnect, data: {
-        agent_name: agent.name,
-        program: agent.program
-      })
-    end
-
-    # Reservation events (don't mirror to meta - too noisy)
-    def reservation_acquired(room:, agent:, patterns:)
-      post(room: room, type: :reservation_acquired, mirror_to_meta: false, data: {
-        agent_name: agent.name,
-        patterns: Array(patterns).join(", ")
-      })
-    end
-
-    def reservation_released(room:, agent:, patterns:)
-      post(room: room, type: :reservation_released, mirror_to_meta: false, data: {
-        agent_name: agent.name,
-        patterns: Array(patterns).join(", ")
-      })
-    end
-
-    def reservation_conflict(room:, requester:, holder:, patterns:)
-      post(room: room, type: :reservation_conflict, mirror_to_meta: false, data: {
-        requester_name: requester.name,
-        holder_name: holder.name,
-        patterns: Array(patterns).join(", ")
-      })
-    end
-
-    def reservation_expired(room:, agent:, patterns:)
-      post(room: room, type: :reservation_expired, mirror_to_meta: false, data: {
-        agent_name: agent.name,
-        patterns: Array(patterns).join(", ")
-      })
-    end
-
     # Room/Project events (posted only to meta room)
     def room_created(room:, creator:)
       post_to_meta(type: :room_created, data: {

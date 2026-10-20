@@ -1,112 +1,158 @@
 <% @page_title = "User Settings" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <span class="btn btn--reversed btn--faux user-settings-nav__pill">⚙️ Preferences</span>
-  <h1 class="user-settings-nav__title txt-large">User Settings</h1>
-<% end %>
-
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
-
-<div id="message-area" class="message-area">
-  <div class="user-settings-content">
-    <div class="user-settings-grid">
-      <section class="user-settings-card" aria-label="Profile and identity settings">
-        <div class="user-settings-card-header">
-          <h2 class="user-settings-card-title">Profile &amp; Identity</h2>
-          <p class="user-settings-card-desc">Update how you appear to others in the workspace.</p>
-        </div>
-
-        <div class="avatar-row" data-controller="upload-preview">
-          <label class="user-settings-avatar" aria-label="Current avatar">
-            <%= image_tag fresh_user_avatar_path(Current.user),
-                  size: 64,
-                  aria: { hidden: "true" },
-                  data: { upload_preview_target: "image" } %>
-          </label>
-
-          <%= form_with model: Current.user, url: user_profile_path(return_to: "settings"), method: :patch, data: { controller: "form" } do |form| %>
-            <label class="btn btn-outline input--file user-settings-avatar-btn">
-              <span>Update Avatar</span>
-              <%= form.file_field :avatar,
-                    class: "input",
-                    accept: "image/gif,image/png,image/jpeg",
-                    data: { action: "upload-preview#previewImage change->form#submit" } %>
-            </label>
-            <span class="user-settings-help">Supports GIF, PNG, JPG</span>
-          <% end %>
-        </div>
-
-          <%= form_with model: Current.user,
-              url: user_profile_path(return_to: "settings"),
-              method: :patch,
-            id: "user-settings-profile-form",
-              class: "user-settings-form",
-              data: { controller: "form" } do |form| %>
-          <div class="form-group">
-            <%= form.label :display_name, "Display Name" %>
-            <%= form.text_field :display_name, class: "input", autocomplete: "name", value: Current.user.effective_display_name %>
-          </div>
-
-          <div class="form-group">
-            <%= form.label :job_title, "Role / Title" %>
-            <%= form.text_field :job_title, class: "input", autocomplete: "organization-title", placeholder: "Role or title" %>
-          </div>
-
-          <div class="form-group">
-            <%= form.label :timezone, "Timezone" %>
-            <%= form.time_zone_select :timezone,
-                  ActiveSupport::TimeZone.all,
-                  { default: Current.user.timezone.presence || "UTC" },
-                  { class: "input" } %>
-          </div>
-        <% end %>
-      </section>
-
-        <section class="user-settings-card" aria-label="Security settings">
-        <div class="user-settings-card-header">
-            <h2 class="user-settings-card-title user-settings-card-title--small">Password Reset &amp; Email</h2>
-            <p class="user-settings-card-desc">Update your sign-in email and choose a new password.</p>
-        </div>
-
-          <%= form_with model: Current.user,
-                url: user_profile_path(return_to: "settings"),
-                method: :patch,
-                id: "user-settings-security-form",
-                class: "user-settings-form",
-                data: { controller: "form" } do |form| %>
-            <div class="form-group">
-              <%= form.label :email_address, "Email" %>
-              <%= form.email_field :email_address,
-                    class: "input",
-                    autocomplete: "email",
-                    placeholder: "name@company.com" %>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :password, "New Password" %>
-              <%= form.password_field :password,
-                    class: "input",
-                    autocomplete: "new-password",
-                    placeholder: "Set a new password",
-                    maxlength: 72 %>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :password_confirmation, "Confirm New Password" %>
-              <%= form.password_field :password_confirmation,
-                    class: "input",
-                    autocomplete: "new-password",
-                    placeholder: "Repeat new password",
-                    maxlength: 72 %>
-          </div>
-          <% end %>
-      </section>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
     </div>
 
-    <div class="user-settings-page-actions">
-        <button type="submit" form="user-settings-profile-form" class="btn">Save Profile</button>
-        <button type="submit" form="user-settings-security-form" class="btn btn--reversed">Save Security</button>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
     </div>
   </div>
+<% end %>
+
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
+
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area">
+      <div class="user-settings-content">
+        <div class="user-settings-grid">
+          <section class="user-settings-card" aria-label="Profile and identity settings">
+            <div class="user-settings-card-header">
+              <h2 class="user-settings-card-title">Profile &amp; Identity</h2>
+              <p class="user-settings-card-desc">Update how you appear to others in the workspace.</p>
+            </div>
+
+            <div class="avatar-row" data-controller="upload-preview">
+              <label class="user-settings-avatar" aria-label="Current avatar">
+                <%= image_tag fresh_user_avatar_path(Current.user),
+                      size: 64,
+                      aria: { hidden: "true" },
+                      data: { upload_preview_target: "image" } %>
+              </label>
+
+              <%= form_with model: Current.user, url: user_profile_path(return_to: "settings"), method: :patch, data: { controller: "form" } do |form| %>
+                <label class="btn btn-outline input--file user-settings-avatar-btn">
+                  <span>Update Avatar</span>
+                  <%= form.file_field :avatar,
+                        class: "input",
+                        accept: "image/gif,image/png,image/jpeg",
+                        data: { action: "upload-preview#previewImage change->form#submit" } %>
+                </label>
+                <span class="user-settings-help">Supports GIF, PNG, JPG</span>
+              <% end %>
+            </div>
+
+            <%= form_with model: Current.user,
+                url: user_profile_path(return_to: "settings"),
+                method: :patch,
+                id: "user-settings-profile-form",
+                class: "user-settings-form",
+                data: { controller: "form" } do |form| %>
+              <div class="form-group">
+                <%= form.label :display_name, "Display Name" %>
+                <%= form.text_field :display_name, class: "input", autocomplete: "name", value: Current.user.effective_display_name %>
+              </div>
+
+              <div class="form-group">
+                <%= form.label :job_title, "Role / Title" %>
+                <%= form.text_field :job_title, class: "input", autocomplete: "organization-title", placeholder: "Role or title" %>
+              </div>
+
+              <div class="form-group">
+                <%= form.label :timezone, "Timezone" %>
+                <%= form.time_zone_select :timezone,
+                      ActiveSupport::TimeZone.all,
+                      { default: Current.user.timezone.presence || "UTC" },
+                      { class: "input" } %>
+              </div>
+            <% end %>
+          </section>
+
+          <section class="user-settings-card" aria-label="Security settings">
+            <div class="user-settings-card-header">
+              <h2 class="user-settings-card-title user-settings-card-title--small">Password Reset &amp; Email</h2>
+              <p class="user-settings-card-desc">Update your sign-in email and choose a new password.</p>
+            </div>
+
+            <%= form_with model: Current.user,
+                  url: user_profile_path(return_to: "settings"),
+                  method: :patch,
+                  id: "user-settings-security-form",
+                  class: "user-settings-form",
+                  data: { controller: "form" } do |form| %>
+              <div class="form-group">
+                <%= form.label :email_address, "Email" %>
+                <%= form.email_field :email_address,
+                      class: "input",
+                      autocomplete: "email",
+                      placeholder: "name@company.com" %>
+              </div>
+
+              <div class="form-group">
+                <%= form.label :password, "New Password" %>
+                <%= form.password_field :password,
+                      class: "input",
+                      autocomplete: "new-password",
+                      placeholder: "Set a new password",
+                      maxlength: 72 %>
+              </div>
+
+              <div class="form-group">
+                <%= form.label :password_confirmation, "Confirm New Password" %>
+                <%= form.password_field :password_confirmation,
+                      class: "input",
+                      autocomplete: "new-password",
+                      placeholder: "Repeat new password",
+                      maxlength: 72 %>
+              </div>
+            <% end %>
+          </section>
+        </div>
+
+        <div class="user-settings-page-actions">
+          <button type="submit" form="user-settings-profile-form" class="btn">Save Profile</button>
+          <button type="submit" form="user-settings-security-form" class="btn btn--reversed">Save Security</button>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>

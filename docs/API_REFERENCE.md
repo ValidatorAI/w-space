@@ -158,6 +158,35 @@ update to connected web clients in that room, in addition to the JSON response.
 Note: message ids are globally unique (not scoped per room), so the flat
 `/api/messages/:id` routes work regardless of which room the message belongs to.
 
+## Topic and message-analysis resources
+
+The following resources are also exposed under the same bearer-token auth contract as the rest of the Bonfire API:
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/topics` | List topics. Supports `project_id`, `active`, `need_an_action`, `room_id`, and `parent_topic_id` filters. |
+| GET | `/api/topics/:id` | Fetch a single topic. |
+| POST | `/api/topics` | Create a topic for a project. |
+| PATCH/PUT | `/api/topics/:id` | Update a topic. |
+| DELETE | `/api/topics/:id` | Delete a topic. |
+| GET | `/api/message_analysis` | List message analysis rows. Supports `message_id` and `importance_level` filters. |
+| GET | `/api/message_analysis/:id` | Fetch a message analysis record. |
+| POST | `/api/message_analysis` | Create a message analysis record for a message. |
+| PATCH/PUT | `/api/message_analysis/:id` | Update a message analysis record. |
+| DELETE | `/api/message_analysis/:id` | Delete a message analysis record. |
+| GET | `/api/room_history_topics` | List room history topic snapshots. Supports `room_id` filtering. |
+| GET | `/api/room_history_topics/:id` | Fetch a room history topic snapshot. |
+| POST | `/api/room_history_topics` | Create a room history topic snapshot. |
+| PATCH/PUT | `/api/room_history_topics/:id` | Update a room history topic snapshot. |
+| DELETE | `/api/room_history_topics/:id` | Delete a room history topic snapshot. |
+| GET | `/api/message_topics` | List topic-message associations. Supports `topic_id` and `message_id` filters. |
+| GET | `/api/message_topics/:id` | Fetch a message-topic link. |
+| POST | `/api/message_topics` | Create a topic-message link. |
+| PATCH/PUT | `/api/message_topics/:id` | Update a message-topic link. |
+| DELETE | `/api/message_topics/:id` | Delete a message-topic link. |
+
+These routes use the same `Authorization: Bearer <OUTPUT_EVENTS_TOKEN>` auth as the rest of the API. A missing or invalid bearer token still resolves to `401 Unauthorized`, and an unset server token still fails closed with `500`.
+
 ---
 
 ## AI Config Entities API

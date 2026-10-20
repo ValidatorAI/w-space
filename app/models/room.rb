@@ -5,7 +5,6 @@ class Room < ApplicationRecord
 
   after_create_commit :announce_creation, unless: :skip_announcement?
   after_create_commit :auto_join_human_overseer
-  after_create_commit :auto_join_all_agents, unless: :direct?
 
   has_many :memberships, dependent: :delete_all do
     def grant_to(participants)
@@ -35,16 +34,21 @@ class Room < ApplicationRecord
     end
   end
 
-  # Separate associations for users and agents
+  # Separate associations for users
   has_many :user_memberships, -> { where(participant_type: "User") }, class_name: "Membership"
-  has_many :agent_memberships, -> { where(participant_type: "Agent") }, class_name: "Membership"
   has_many :users, through: :user_memberships, source: :participant, source_type: "User"
-  has_many :agents, through: :agent_memberships, source: :participant, source_type: "Agent"
 
   has_many :messages, dependent: :destroy
+  has_many :room_history_topics, dependent: :destroy
   has_many :room_ai_activity_states, dependent: :delete_all
   has_many :attention_items, dependent: :nullify
   has_many :approval_requests, dependent: :nullify
+  has_many :decision_rooms, dependent: :destroy
+  has_many :decision_room_economics, through: :decision_rooms, class_name: "DecisionRoomEconomics"
+  has_many :project_adrs, through: :decision_rooms
+  has_many :room_evidences, dependent: :destroy
+  has_many :project_external_assets, through: :room_evidences, source: :project_external_asset
+  has_many :project_knowledge_items, through: :room_evidences, source: :project_knowledge_item
 
   belongs_to :creator, class_name: "User", default: -> { Current.user }
 
@@ -127,12 +131,23 @@ class Room < ApplicationRecord
     children.active.ordered
   end
 
-  # Get all participants (users + agents)
+  def active_topic_tree
+    child_topics.map { |topic_room| topic_tree_node(topic_room) }
+  end
+
+  # Get all participants
   def participants
     memberships.includes(:participant).map(&:participant)
   end
 
   private
+    def topic_tree_node(room_node)
+      {
+        "id" => room_node.id,
+        "name" => room_node.name,
+        "children" => room_node.child_topics.map { |child| topic_tree_node(child) }
+      }
+    end
     def parent_cannot_be_self
       return if parent_id.blank?
 
@@ -166,7 +181,4 @@ class Room < ApplicationRecord
       memberships.grant_to(overseer) unless users.include?(overseer)
     end
 
-    def auto_join_all_agents
-      memberships.grant_to(Agent.all)
-    end
 end

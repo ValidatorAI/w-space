@@ -9,6 +9,7 @@ class RoomsController < ApplicationController
 
   def show
     @messages = find_messages
+    prepare_room_shell_context
   end
 
   def destroy
@@ -60,6 +61,46 @@ class RoomsController < ApplicationController
 
     def room_params
       params.require(:room).permit(:name)
+    end
+
+    def prepare_room_shell_context
+      @room_project = @room.project || @room.parent&.project
+      room_ids = [ @room.id ] + @room.child_topics.ids
+
+      decision_requests_scope = ApprovalRequest.where(room_id: room_ids, request_type: "decision").recent
+      @open_decision_requests = decision_requests_scope.where(status: :pending).limit(5)
+      @recent_decision_requests = decision_requests_scope.limit(10)
+
+      if @room_project
+        @recent_decision_records = @room_project.adrs.active.ordered.limit(5)
+        @room_economics = @room.decision_room_economics.order(:created_at).last
+
+        room_asset_links = @room.room_evidences.active.ordered.where.not(project_external_asset_id: nil).includes(:project_external_asset)
+        if room_asset_links.exists?
+          @artifact_assets = room_asset_links.map(&:project_external_asset).compact
+        else
+          @artifact_assets = @room_project.external_assets.active.ordered.limit(6)
+        end
+
+        room_knowledge_links = @room.room_evidences.active.ordered.where.not(project_knowledge_item_id: nil).includes(:project_knowledge_item)
+        if room_knowledge_links.exists?
+          @artifact_knowledge_items = room_knowledge_links.map(&:project_knowledge_item).compact
+        else
+          @artifact_knowledge_items = @room_project.knowledge_items.active.ordered.limit(6)
+        end
+
+        @room_outcome = @room_project.description.presence || @artifact_knowledge_items.first&.description
+      else
+        @recent_decision_records = []
+        @room_economics = nil
+        @artifact_assets = []
+        @artifact_knowledge_items = []
+        @room_outcome = nil
+      end
+
+      @room_participants = @room.memberships.includes(:participant).map(&:participant).compact
+      @decision_items_count = @open_decision_requests.size + @recent_decision_records.size
+      @artifact_items_count = @artifact_assets.size + @artifact_knowledge_items.size
     end
 
     def broadcast_remove_room

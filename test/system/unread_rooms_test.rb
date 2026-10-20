@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class UnreadRoomsTest < ApplicationSystemTestCase
   setup do
-    sign_in "jz@37signals.com"
+    sign_in "david@37signals.com"
   end
 
   test "sending messages between two users" do

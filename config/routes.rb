@@ -72,6 +72,7 @@ Rails.application.routes.draw do
         get "company/ai-admin/mcps", to: "ai_admin#mcps", as: :company_ai_admin_mcps_page
         get "company/ai-admin/tools", to: "ai_admin#tools", as: :company_ai_admin_tools_page
         get "company/ai-admin/skills", to: "ai_admin#skills", as: :company_ai_admin_skills_page
+        post "company/ai-admin/restart-w-bridge", to: "ai_admin#restart_w_bridge", as: :company_ai_admin_restart_w_bridge
         post "company/ai-admin/reset-ai-config", to: "ai_admin#reset_ai_config_all", as: :company_ai_admin_reset_ai_config
 
         post "company/ai-admin/ai-settings", to: "ai_admin#create_ai_setting", as: :company_ai_admin_ai_settings
@@ -167,6 +168,7 @@ Rails.application.routes.draw do
   end
 
   resources :searches, only: %i[ index create ] do
+    post :ask, on: :collection
     delete :clear, on: :collection
   end
 
@@ -212,6 +214,18 @@ Rails.application.routes.draw do
     resources :ai_profile_skills, only: %i[ index show ]
     resources :ai_profile_mcps, only: %i[ index show ]
 
+    resources :topics, only: %i[ index show create update destroy ]
+    resources :message_analysis, only: %i[ index show create update destroy ], controller: "message_analysis"
+    resources :room_history_topics, only: %i[ index show create update destroy ]
+    resources :room_history, only: %i[ index show create update destroy ], controller: "room_history_topics"
+    resources :message_topics, only: %i[ index show create update destroy ]
+    post "tasks/task_cost", to: "tasks#task_cost", as: :task_cost
+    patch "tasks/task_cost", to: "tasks#task_cost"
+    resources :tasks, only: %i[ index show create update destroy ] do
+      get :children, on: :member
+      get :parents, on: :member
+    end
+
     resources :attention_items, only: %i[ index show create update destroy ]
 
     # Flat routes since message ids are globally unique; no project/room scoping required.
@@ -254,26 +268,12 @@ Rails.application.routes.draw do
     end
   end
 
-  # MCP Agent Chat API (Streamable HTTP transport)
-  namespace :mcp do
-    post "/", to: "endpoint#handle"
-    get "/", to: "endpoint#handle_get"
-    delete "/", to: "endpoint#handle_delete"
-    get "/health", to: "endpoint#health"
-    get "/setup", to: "setup#index"
-    get "/setup/instructions", to: "setup#instructions"
-  end
-
-  # OAuth discovery endpoints - signal no auth required for MCP
-  scope "/.well-known" do
-    get "oauth-protected-resource", to: "well_known#oauth_protected_resource"
-    get "oauth-protected-resource/*path", to: "well_known#oauth_protected_resource"
-    get "oauth-authorization-server", to: "well_known#not_implemented"
-    get "oauth-authorization-server/*path", to: "well_known#not_implemented"
-    get "openid-configuration", to: "well_known#not_implemented"
-    get "openid-configuration/*path", to: "well_known#not_implemented"
-  end
-  post "/register", to: "well_known#not_implemented"
+  # Native MCP endpoints (JSON-RPC 2.0)
+  post "mcp", to: "mcp#handle"
+  post "action-mcp", to: "mcp#action"
+  post "read-mcp", to: "mcp#read"
+  post "knowledge-mcp", to: "mcp#knowledge"
+  post "task-mcp", to: "mcp#task"
 
   get "up" => "rails/health#show", as: :rails_health_check
 end

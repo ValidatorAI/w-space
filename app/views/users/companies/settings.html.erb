@@ -1,213 +1,255 @@
 <% @page_title = "Company Settings" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <span class="btn btn--reversed btn--faux user-settings-nav__pill bg-black">Workspace</span>
-  <h1 class="user-settings-nav__title txt-large">Company Settings</h1>
-<% end %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
-<% invite_url = "#{request.base_url}#{join_path(@account.join_code)}" %>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
 
-<div id="message-area" class="message-area">
-  <div class="feed-container company-settings-feed">
-    <div class="settings-container">
-      <section class="settings-card" aria-label="Organization profile">
-        <div class="settings-section-title">📌 Organization Profile</div>
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
 
-        <% if Current.user.can_administer? %>
-          <%= form_with model: @account, url: account_path(return_to: "company_settings"), method: :patch, class: "company-settings-form", html: { id: "company-settings-form" }, data: { controller: "form upload-preview" } do |form| %>
-            <%= hidden_field_tag :return_to, "company_settings" %>
-
-            <div class="form-group">
-              <label>Organization Avatar</label>
-              <div class="align-center avatar__form gap">
-                <label class="btn avatar input--file account-logo txt-xx-large">
-                  <%= image_tag fresh_account_logo_path(size: :small), alt: "Organization avatar", size: 96, data: { upload_preview_target: "image" } %>
-                  <%= form.file_field :logo, class: "input", accept: "image/*", style: "visibility: hidden;",
-                        data: { upload_preview_target: "input", action: "upload-preview#previewImage change->form#submit" } %>
-                  <span class="for-screen-reader">Upload organization avatar</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="form-row form-row--two">
-              <div class="form-group">
-                <label>Company Name</label>
-                <%= form.text_field :name, class: "input", autocomplete: "organization", required: true %>
-              </div>
-
-              <div class="form-group">
-                <label>Workspace URL</label>
-                <div class="workspace-url-field">
-                  <input class="input" type="text" value="<%= invite_url %>" readonly>
-                  <%= tag.button "Copy", type: "button", class: "action-btn action-btn--small workspace-url-copy-btn", aria: { label: "Copy workspace invite link" }, data: { controller: "copy-to-clipboard", action: "copy-to-clipboard#copy", copy_to_clipboard_success_class: "btn--success", copy_to_clipboard_content_value: invite_url } %>
-                </div>
-              </div>
-            </div>
-          <% end %>
-        <% else %>
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label>Company Name</label>
-              <input class="input input--disabled" type="text" value="<%= @account.name %>" disabled>
-            </div>
-
-            <div class="form-group">
-              <label>Workspace URL</label>
-              <div class="workspace-url-field">
-                <input class="input" type="text" value="<%= invite_url %>" readonly>
-                <%= tag.button "Copy", type: "button", class: "action-btn action-btn--small workspace-url-copy-btn", aria: { label: "Copy workspace invite link" }, data: { controller: "copy-to-clipboard", action: "copy-to-clipboard#copy", copy_to_clipboard_success_class: "btn--success", copy_to_clipboard_content_value: invite_url } %>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </section>
-
-      <section class="settings-card" aria-label="Member directory" data-controller="company-users-modal">
-        <div class="settings-section-title settings-section-title--spread">
-          <span>👥 Member Directory</span>
-          <% if Current.user.can_administer? %>
-            <%= link_to "+ Invite User",
-                  user_company_add_user_path(user_id: "me"),
-                  class: "action-btn primary",
-                  style: "font-size: 12px;",
-                  data: {
-                    action: "company-users-modal#open",
-                    company_users_modal_url_param: user_company_add_user_path(user_id: "me")
-                  } %>
-          <% end %>
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
         </div>
-
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @users.each do |user| %>
-              <tr>
-                <td>
-                  <div class="member-row-info">
-                    <div class="top-avatar"><%= user.initials.first(1).upcase %></div>
-                    <%= user.effective_display_name %>
-                  </div>
-                </td>
-                <td class="company-cell-muted"><%= user.email_address %></td>
-                <td>
-                  <% if Current.user.can_administer? %>
-                    <%= form_with url: account_user_path(user), method: :patch, scope: :user do |form| %>
-                      <%= hidden_field_tag :return_to, "company_settings" %>
-                      <%= form.select :role,
-                            options_for_select([["Member", "member"], ["Workspace Admin", "administrator"]], user.role),
-                            {},
-                            class: "role-select",
-                            onchange: "this.form.requestSubmit()" %>
-                    <% end %>
-                  <% else %>
-                    <span><%= user.role.to_s.humanize %></span>
-                  <% end %>
-                </td>
-                <td>
-                  <% if Current.user.can_administer? && user != Current.user %>
-                    <% if user.deactivated? %>
-                      <%= button_to "Activate", activate_account_user_path(user), method: :patch, params: { return_to: "company_settings" }, class: "action-btn action-btn--small" %>
-                    <% else %>
-                      <%= button_to "Deactivate", account_user_path(user), method: :delete, params: { return_to: "company_settings" }, class: "action-btn action-btn--small" %>
-                    <% end %>
-                  <% else %>
-                    <span class="company-cell-muted">—</span>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-
-        <dialog class="dialog sidebar-room-settings-modal border border-radius shadow"
-          aria-label="Add workspace user"
-          data-company-users-modal-target="dialog"
-          data-action="click->company-users-modal#closeOnBackdrop close->company-users-modal#reset">
-          <button type="button" class="btn dialog__close" data-action="company-users-modal#close" aria-label="Close add user modal">✕</button>
-          <iframe class="sidebar-room-settings-modal__frame"
-            data-company-users-modal-target="frame"
-            title="Add workspace user"
-            loading="lazy"></iframe>
-        </dialog>
-      </section>
-
-      <section class="settings-card" aria-label="Global AI integrations">
-        <div class="settings-section-title">🤖 Global AI Integrations</div>
-        <p class="settings-section-copy">
-          Enable which specialized AI agents are allowed to be added to projects across your workspace.
-        </p>
-
-        <% if Current.user.can_administer? %>
-          <%= form_with url: user_update_company_settings_path(user_id: "me"), method: :patch, class: "company-settings-form", html: { id: "company-bot-settings-form" }, data: { controller: "form" } do %>
-            <%= hidden_field_tag "account[settings][allowed_bot_user_ids][]", "" %>
-
-            <div class="bot-selection-grid">
-              <% if @bots.any? %>
-                <% @bots.each do |bot| %>
-                  <% selected = @allowed_bot_user_ids.include?(bot.id) %>
-
-                  <label class="bot-card <%= "selected" if selected %>">
-                    <input type="checkbox"
-                          name="account[settings][allowed_bot_user_ids][]"
-                          value="<%= bot.id %>"
-                        data-action="change->form#submit"
-                          <%= "checked" if selected %>>
-                    <div class="bot-card-icon"><%= bot.initials.first(1).upcase %></div>
-                    <div class="bot-card-info">
-                      <div class="bot-card-name"><%= bot.effective_display_name %></div>
-                      <div class="bot-card-role">Workspace Bot</div>
-                    </div>
-                  </label>
-                <% end %>
-              <% else %>
-                <p class="company-cell-muted">No workspace bots are registered yet.</p>
-              <% end %>
-            </div>
-
-            <p class="company-cell-muted">Changes are saved automatically.</p>
-          <% end %>
-        <% else %>
-          <div class="bot-selection-grid">
-            <% if @bots.any? %>
-              <% @bots.each do |bot| %>
-                <% selected = @allowed_bot_user_ids.include?(bot.id) %>
-
-                <label class="bot-card <%= "selected" if selected %>">
-                  <input type="checkbox" <%= "checked" if selected %> disabled>
-                  <div class="bot-card-icon"><%= bot.initials.first(1).upcase %></div>
-                  <div class="bot-card-info">
-                    <div class="bot-card-name"><%= bot.effective_display_name %></div>
-                    <div class="bot-card-role">Workspace Bot</div>
-                  </div>
-                </label>
-              <% end %>
-            <% else %>
-              <p class="company-cell-muted">No workspace bots are registered yet.</p>
-            <% end %>
-          </div>
-        <% end %>
-
-        <% if Current.user.can_administer? %>
-          <div class="settings-row-actions">
-            <%= link_to "+ Register Custom Agent Webhook", account_bots_path(return_to: "company_settings"), class: "action-btn action-btn--dashed" %>
-          </div>
-        <% end %>
-      </section>
-
-      <div class="settings-footer-actions">
-        <% if Current.user.can_administer? %>
-          <button type="submit" class="action-btn primary" form="company-settings-form">Save Workspace Changes</button>
-        <% end %>
       </div>
     </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
+<% end %>
+
+<% invite_url = "#{request.base_url}#{join_path(@account.join_code)}" %>
+
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
+
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area company-settings-area">
+      <div class="company-settings-feed">
+        <div class="settings-container">
+          <section class="settings-card" aria-label="Organization profile">
+            <div class="settings-section-title">📌 Organization Profile</div>
+
+            <% if Current.user.can_administer? %>
+              <%= form_with model: @account, url: account_path(return_to: "company_settings"), method: :patch, class: "company-settings-form", html: { id: "company-settings-form" }, data: { controller: "form upload-preview" } do |form| %>
+                <%= hidden_field_tag :return_to, "company_settings" %>
+
+                <div class="form-group">
+                  <label>Organization Avatar</label>
+                  <div class="align-center avatar__form gap">
+                    <label class="btn avatar input--file account-logo txt-xx-large">
+                      <%= image_tag fresh_account_logo_path(size: :small), alt: "Organization avatar", size: 96, data: { upload_preview_target: "image" } %>
+                      <%= form.file_field :logo, class: "input", accept: "image/*", style: "visibility: hidden;",
+                            data: { upload_preview_target: "input", action: "upload-preview#previewImage change->form#submit" } %>
+                      <span class="for-screen-reader">Upload organization avatar</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-row form-row--two">
+                  <div class="form-group">
+                    <label>Company Name</label>
+                    <%= form.text_field :name, class: "input", autocomplete: "organization", required: true %>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Workspace URL</label>
+                    <div class="workspace-url-field">
+                      <input class="input" type="text" value="<%= invite_url %>" readonly>
+                      <%= tag.button "Copy", type: "button", class: "action-btn action-btn--small workspace-url-copy-btn", aria: { label: "Copy workspace invite link" }, data: { controller: "copy-to-clipboard", action: "copy-to-clipboard#copy", copy_to_clipboard_success_class: "btn--success", copy_to_clipboard_content_value: invite_url } %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="form-row form-row--two">
+                <div class="form-group">
+                  <label>Company Name</label>
+                  <input class="input input--disabled" type="text" value="<%= @account.name %>" disabled>
+                </div>
+
+                <div class="form-group">
+                  <label>Workspace URL</label>
+                  <div class="workspace-url-field">
+                    <input class="input" type="text" value="<%= invite_url %>" readonly>
+                    <%= tag.button "Copy", type: "button", class: "action-btn action-btn--small workspace-url-copy-btn", aria: { label: "Copy workspace invite link" }, data: { controller: "copy-to-clipboard", action: "copy-to-clipboard#copy", copy_to_clipboard_success_class: "btn--success", copy_to_clipboard_content_value: invite_url } %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </section>
+
+          <section class="settings-card" aria-label="Member directory" data-controller="company-users-modal">
+            <div class="settings-section-title settings-section-title--spread">
+              <span>👥 Member Directory</span>
+              <% if Current.user.can_administer? %>
+                <%= link_to "+ Invite User",
+                      user_company_add_user_path(user_id: "me"),
+                      class: "action-btn primary",
+                      style: "font-size: 12px;",
+                      data: {
+                        action: "company-users-modal#open",
+                        company_users_modal_url_param: user_company_add_user_path(user_id: "me")
+                      } %>
+              <% end %>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @users.each do |user| %>
+                  <tr>
+                    <td>
+                      <div class="member-row-info">
+                        <div class="top-avatar"><%= user.initials.first(1).upcase %></div>
+                        <%= user.effective_display_name %>
+                      </div>
+                    </td>
+                    <td class="company-cell-muted"><%= user.email_address %></td>
+                    <td>
+                      <% if Current.user.can_administer? %>
+                        <%= form_with url: account_user_path(user), method: :patch, scope: :user do |form| %>
+                          <%= hidden_field_tag :return_to, "company_settings" %>
+                          <%= form.select :role,
+                                options_for_select([["Member", "member"], ["Workspace Admin", "administrator"]], user.role),
+                                {},
+                                class: "role-select",
+                                onchange: "this.form.requestSubmit()" %>
+                        <% end %>
+                      <% else %>
+                        <span><%= user.role.to_s.humanize %></span>
+                      <% end %>
+                    </td>
+                    <td>
+                      <% if Current.user.can_administer? && user != Current.user %>
+                        <% if user.deactivated? %>
+                          <%= button_to "Activate", activate_account_user_path(user), method: :patch, params: { return_to: "company_settings" }, class: "action-btn action-btn--small" %>
+                        <% else %>
+                          <%= button_to "Deactivate", account_user_path(user), method: :delete, params: { return_to: "company_settings" }, class: "action-btn action-btn--small" %>
+                        <% end %>
+                      <% else %>
+                        <span class="company-cell-muted">—</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+
+            <dialog class="dialog sidebar-room-settings-modal border border-radius shadow"
+              aria-label="Add workspace user"
+              data-company-users-modal-target="dialog"
+              data-action="click->company-users-modal#closeOnBackdrop close->company-users-modal#reset">
+              <button type="button" class="btn dialog__close" data-action="company-users-modal#close" aria-label="Close add user modal">✕</button>
+              <iframe class="sidebar-room-settings-modal__frame"
+                data-company-users-modal-target="frame"
+                title="Add workspace user"
+                loading="lazy"></iframe>
+            </dialog>
+          </section>
+
+          <section class="settings-card" aria-label="Global AI integrations">
+            <div class="settings-section-title">🤖 Global AI Integrations</div>
+            <p class="settings-section-copy">
+              Enable which specialized AI agents are allowed to be added to projects across your workspace.
+            </p>
+
+            <% if Current.user.can_administer? %>
+              <%= form_with url: user_update_company_settings_path(user_id: "me"), method: :patch, class: "company-settings-form", html: { id: "company-bot-settings-form" }, data: { controller: "form" } do %>
+                <%= hidden_field_tag "account[settings][allowed_bot_user_ids][]", "" %>
+
+                <div class="bot-selection-grid">
+                  <% if @bots.any? %>
+                    <% @bots.each do |bot| %>
+                      <% selected = @allowed_bot_user_ids.include?(bot.id) %>
+
+                      <label class="bot-card <%= "selected" if selected %>">
+                        <input type="checkbox"
+                              name="account[settings][allowed_bot_user_ids][]"
+                              value="<%= bot.id %>"
+                              data-action="change->form#submit"
+                              <%= "checked" if selected %>>
+                        <div class="bot-card-icon"><%= bot.initials.first(1).upcase %></div>
+                        <div class="bot-card-info">
+                          <div class="bot-card-name"><%= bot.effective_display_name %></div>
+                          <div class="bot-card-role">Workspace Bot</div>
+                        </div>
+                      </label>
+                    <% end %>
+                  <% else %>
+                    <p class="company-cell-muted">No workspace bots are registered yet.</p>
+                  <% end %>
+                </div>
+
+                <p class="company-cell-muted">Changes are saved automatically.</p>
+              <% end %>
+            <% else %>
+              <div class="bot-selection-grid">
+                <% if @bots.any? %>
+                  <% @bots.each do |bot| %>
+                    <% selected = @allowed_bot_user_ids.include?(bot.id) %>
+
+                    <label class="bot-card <%= "selected" if selected %>">
+                      <input type="checkbox" <%= "checked" if selected %> disabled>
+                      <div class="bot-card-icon"><%= bot.initials.first(1).upcase %></div>
+                      <div class="bot-card-info">
+                        <div class="bot-card-name"><%= bot.effective_display_name %></div>
+                        <div class="bot-card-role">Workspace Bot</div>
+                      </div>
+                    </label>
+                  <% end %>
+                <% else %>
+                  <p class="company-cell-muted">No workspace bots are registered yet.</p>
+                <% end %>
+              </div>
+            <% end %>
+
+          </section>
+
+          <div class="settings-footer-actions">
+            <% if Current.user.can_administer? %>
+              <button type="submit" class="action-btn primary" form="company-settings-form">Save Workspace Changes</button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>

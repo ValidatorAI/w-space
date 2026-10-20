@@ -1,13 +1,72 @@
 <% @page_title = "New chat bot" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="flex-item-justify-start">
-    <%= link_back_to account_bots_path(return_to: params[:return_to]) %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<section class="panel">
-  <%= form_with model: @bot, url: account_bots_path(return_to: params[:return_to]), class: "flex flex-column gap" do |form| %>
-    <%= render "accounts/bots/form", form: form, bot: @bot %>
-  <% end %>
-</section>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
+
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area company-settings-area">
+      <div class="company-settings-feed">
+        <div class="settings-container">
+          <section class="settings-card account-bot-form-card" aria-label="Create chat bot">
+            <div class="settings-section-title settings-section-title--spread">
+              <span>➕ New chat bot</span>
+              <%= link_back_to account_bots_path(return_to: params[:return_to]) %>
+            </div>
+
+            <%= form_with model: @bot, url: account_bots_path(return_to: params[:return_to]), class: "account-bot-form-grid" do |form| %>
+              <%= render "accounts/bots/form", form: form, bot: @bot %>
+            <% end %>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

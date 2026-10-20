@@ -21,8 +21,8 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
 
   test "create" do
     assert_difference -> { Room.count }, 1 do
-      assert_difference -> { User.count }, 1 do
-        post first_run_url, params: { account: { name: "37signals" }, user: { name: "New Person", email_address: "new@37signals.com", password: "secret123456" } }
+      assert_difference -> { User.count }, 2 do
+        post first_run_url, params: { account: { name: "37signals" }, user: { name: "New Person", display_name: "New Person", email_address: "new@37signals.com", password: "secret123456" } }
       end
     end
 
@@ -44,6 +44,7 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
         session.post url, params: {
           user: {
             name: "Attacker#{i}",
+            display_name: "Attacker#{i}",
             email_address: "attacker#{i}@example.com",
             password: "password123"
           }

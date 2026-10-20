@@ -3,7 +3,7 @@ module Api
     include ActionView::RecordIdentifier
 
     APPROVAL_REQUEST_FIELDS = %i[
-      id room_id message_id agent_id request_type status requested_at resolved_at resolved_by_id created_at updated_at
+      id room_id message_id request_type status requested_at resolved_at resolved_by_id created_at updated_at
     ].freeze
     DEFAULT_PER_PAGE = 40
     MAX_PER_PAGE = 200
@@ -93,7 +93,7 @@ module Api
 
     def approval_request_params
       params.permit(
-        :message_id, :agent_id, :request_type, :status, :requested_at, :resolved_at, :resolved_by_id,
+        :message_id, :request_type, :status, :requested_at, :resolved_at, :resolved_by_id,
         payload: {}
       )
     end

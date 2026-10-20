@@ -32,11 +32,4 @@ class User::BotTest < ActiveSupport::TestCase
     assert User.authenticate_bot(bot.bot_key)
   end
 
-  test "deliver message by webhook" do
-    WebMock.stub_request(:post, webhooks(:bender).url).to_return(status: 200)
-
-    perform_enqueued_jobs only: Bot::WebhookJob do
-      users(:bender).deliver_webhook_later(messages(:first))
-    end
-  end
 end

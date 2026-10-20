@@ -7,7 +7,12 @@ export default class extends Controller {
     this.filter()
   }
 
-  open() {
+  open(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
     if (!this.dialogTarget.open) this.dialogTarget.showModal()
     this.searchTarget.focus()
   }

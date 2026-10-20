@@ -1,69 +1,115 @@
 <% @page_title = "Home" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <%= account_logo_tag %>
-  <h1 class="user-settings-nav__title txt-large">Home</h1>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
+  </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area" class="message-area home-message-area" data-controller="home-attention">
-  <div class="home-attention-feed">
-    <div class="home-attention-header">
-      <h2>What needs your attention?</h2>
-      <span class="badge red" data-home-attention-target="openBadge"><%= @open_count %> Open</span>
-    </div>
-    <p class="home-attention-subtitle">Action-only inbox: decisions, blockers, reviews, AI confirmations, and knowledge approvals. For full context, open Status.</p>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area home-message-area" data-controller="home-attention">
+      <div class="home-attention-feed">
+        <div class="home-attention-header">
+          <h2>What needs your attention?</h2>
+          <span class="badge red" data-home-attention-target="openBadge"><%= @open_count %> Open</span>
+        </div>
+        <p class="home-attention-subtitle">Action-only inbox: decisions, blockers, reviews, AI confirmations, and knowledge approvals. For full context, open Status.</p>
 
-    <div class="home-signal-strip">
-      <div class="home-signal-card">
-        <span class="home-signal-label">Open Attention</span>
-        <span class="home-signal-value" data-home-attention-target="openCount"><%= @open_count %></span>
-      </div>
-      <div class="home-signal-card">
-        <span class="home-signal-label">Overdue Today</span>
-        <span class="home-signal-value" data-home-attention-target="overdueCount"><%= @overdue_count %></span>
-      </div>
-      <div class="home-signal-card">
-        <span class="home-signal-label">AI Awaiting Confirmation</span>
-        <span class="home-signal-value" data-home-attention-target="aiCount"><%= @ai_count %></span>
-      </div>
-    </div>
-
-    <div class="home-attention-grid">
-      <% AttentionItem::CATEGORIES.each do |cat| %>
-        <% items = @items_by_category[cat] || [] %>
-        <div class="home-attention-card" data-home-attention-target="card" data-category="<%= cat %>">
-          <h3>
-            <%= AttentionItem.category_title(cat) %>
-            <span class="badge <%= AttentionItem.category_badge_class(cat) %> home-card-count"><%= items.count %></span>
-          </h3>
-
-          <div class="card-items-list">
-            <% if items.any? %>
-              <%= render partial: "attention_items/attention_item", collection: items %>
-            <% else %>
-              <div class="company-cell-muted txt-small" style="padding: 8px 0;">No active items</div>
-            <% end %>
+        <div class="home-signal-strip">
+          <div class="home-signal-card">
+            <span class="home-signal-label">Open Attention</span>
+            <span class="home-signal-value" data-home-attention-target="openCount"><%= @open_count %></span>
+          </div>
+          <div class="home-signal-card">
+            <span class="home-signal-label">Overdue Today</span>
+            <span class="home-signal-value" data-home-attention-target="overdueCount"><%= @overdue_count %></span>
+          </div>
+          <div class="home-signal-card">
+            <span class="home-signal-label">AI Awaiting Confirmation</span>
+            <span class="home-signal-value" data-home-attention-target="aiCount"><%= @ai_count %></span>
           </div>
         </div>
-      <% end %>
-    </div>
 
-    <div class="home-empty-state" data-home-attention-target="emptyState" style="<%= 'display: block;' if @open_count.zero? %>">
-      All clear. No items require your action right now.
-    </div>
-  </div>
+        <div class="home-attention-grid">
+          <% AttentionItem::CATEGORIES.each do |cat| %>
+            <% items = @items_by_category[cat] || [] %>
+            <div class="home-attention-card" data-home-attention-target="card" data-category="<%= cat %>">
+              <h3>
+                <%= AttentionItem.category_title(cat) %>
+                <span class="badge <%= AttentionItem.category_badge_class(cat) %> home-card-count"><%= items.count %></span>
+              </h3>
 
-  <div class="home-ask-input-area">
-    <%= form_with url: rooms_directs_path, method: :post, class: "home-ask-form" do %>
-      <%= hidden_field_tag "user_ids[]", @company_bot.id %>
-      <div class="home-input-pill">
-        <span aria-hidden="true">✨</span>
-        <%= text_field_tag "message[body]", nil, placeholder: "Ask W about the company...", aria: { label: "Ask W about the company" }, autocomplete: "off", class: "home-ask-input" %>
-        <%= submit_tag "📨", class: "home-ask-send", aria: { label: "Send" } %>
+              <div class="card-items-list">
+                <% if items.any? %>
+                  <%= render partial: "attention_items/attention_item", collection: items %>
+                <% else %>
+                  <div class="company-cell-muted txt-small" style="padding: 8px 0;">No active items</div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="home-empty-state" data-home-attention-target="emptyState" style="<%= 'display: block;' if @open_count.zero? %>">
+          All clear. No items require your action right now.
+        </div>
       </div>
-    <% end %>
-  </div>
+
+      <div class="home-ask-input-area">
+        <%= form_with url: rooms_directs_path, method: :post, class: "home-ask-form" do %>
+          <%= hidden_field_tag "user_ids[]", @company_bot.id %>
+          <div class="home-input-pill">
+            <span aria-hidden="true">✨</span>
+            <%= text_field_tag "message[body]", nil, placeholder: "Ask W about the company...", aria: { label: "Ask W about the company" }, autocomplete: "off", class: "home-ask-input" %>
+            <%= submit_tag "📨", class: "home-ask-send", aria: { label: "Send" } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </main>
 </div>

@@ -11,18 +11,18 @@ module Users::AvatarsHelper
   end
 
   def avatar_tag(user, **options)
-    link_to user_path(user), title: user.title, class: "btn avatar", data: { turbo_frame: "_top" } do
+    target = user == Current.user ? user_settings_path : user_path(user)
+
+    link_to target, title: user.title, class: "btn avatar", data: { turbo_frame: "_top" } do
       image_tag fresh_user_avatar_path(user), aria: { hidden: "true" }, size: 48, **options
     end
   end
 
-  # Polymorphic avatar tag that handles both User and Agent
+  # Polymorphic avatar tag for participants that are currently user-backed
   def participant_avatar_tag(participant, **options)
     case participant
     when User
       avatar_tag(participant, **options)
-    when Agent
-      agent_avatar_tag(participant, **options)
     else
       content_tag :span, "?", class: "btn avatar avatar--unknown", title: "Unknown"
     end

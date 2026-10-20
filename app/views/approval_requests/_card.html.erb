@@ -22,6 +22,11 @@
   <% if approval_request.pending? %>
     <div class="action-btn-group approval-card__actions">
       <% if approval_request.request_type == "decision" %>
+        <button type="button"
+                class="action-btn secondary"
+                onclick="document.getElementById('review_decision_modal_<%= approval_request.id %>').showModal();">
+          Review decision
+        </button>
         <%= button_to "Confirm", confirm_approval_request_path(approval_request), method: :patch, class: "action-btn primary" %>
         <%= button_to "Deny", deny_approval_request_path(approval_request), method: :patch, class: "action-btn secondary" %>
       <% else %>

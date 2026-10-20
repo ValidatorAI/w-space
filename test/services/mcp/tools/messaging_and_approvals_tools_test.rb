@@ -1,0 +1,140 @@
+require "test_helper"
+
+class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
+  self.fixture_table_names = []
+
+  setup do
+    @account = Account.first || Account.create!(name: "Test Acc")
+    @user = User.create!(name: "carol", display_name: "Carol Danvers", email_address: "carol@example.com", role: :member)
+    @project = Project.create!(name: "Project Gamma", path: "/path/gamma", slug: "gamma")
+    @room = Rooms::Open.create!(name: "General Room", creator: @user, project: @project)
+  end
+
+  test "message lifecycle and loading message" do
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+    res = add_msg.call(room_id: @room.id, user_id: @user.id, body: "Hello from MCP test")
+    assert_equal false, res[:isError]
+
+    msg = @room.messages.last
+    assert_equal "Hello from MCP test", msg.plain_text_body
+
+    # Loading message
+    add_loading = Mcp::Registry.find_tool("add_loading_message", scope: :action)
+    res_load = add_loading.call(room_id: @room.id, user_id: @user.id, body: "Thinking...")
+    assert_equal false, res_load[:isError]
+    load_msg = @room.messages.last
+    assert_includes load_msg.plain_text_body, ":spin: Thinking..."
+
+    # Edit loading message
+    edit_loading = Mcp::Registry.find_tool("edit_loading_message", scope: :action)
+    res_edit = edit_loading.call(message_id: load_msg.id, body: "Almost done...")
+    assert_equal false, res_edit[:isError]
+    assert_includes load_msg.reload.plain_text_body, ":spin: Almost done..."
+
+    # Delete loading message
+    del_loading = Mcp::Registry.find_tool("delete_loading_message", scope: :action)
+    res_del = del_loading.call(message_id: load_msg.id)
+    assert_equal false, res_del[:isError]
+    assert_nil Message.find_by(id: load_msg.id)
+  end
+
+  test "room members can be listed through the MCP registry" do
+    other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
+    @room.memberships.grant_to([@user, other])
+
+    tool = Mcp::Registry.find_tool("get_room_members", scope: :read)
+    assert_not_nil tool
+
+    result = tool.call(room_id: @room.id)
+    assert_equal false, result[:isError]
+
+    payload = JSON.parse(result[:content].first[:text])
+    assert_equal [@user.id, other.id].sort, payload["members"].map { |member| member["id"].to_i }.sort
+    assert_equal @room.id, payload["room_id"]
+  end
+
+  test "get_users can be listed through the MCP registry without exposing password hashes" do
+    other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
+    @project.project_users.create!(user: @user)
+    @project.project_users.create!(user: other)
+
+    tool = Mcp::Registry.find_tool("get_users", scope: :read)
+    assert_not_nil tool
+
+    result = tool.call(project_id: @project.id)
+    assert_equal false, result[:isError]
+
+    payload = JSON.parse(result[:content].first[:text])
+    assert_equal [@user.id, other.id].sort, payload["users"].map { |user| user["id"].to_i }.sort
+    assert_equal @project.id, payload["project_id"]
+    refute payload["users"].any? { |user| user.key?("password_digest") || user.key?("password") }
+  end
+
+  test "project membership tools can be listed through the MCP registry" do
+    other = User.create!(name: "stark", display_name: "Tony Stark", email_address: "tony@example.com", role: :member)
+    beta = Project.create!(name: "Project Beta", path: "/path/beta", slug: "beta")
+    @project.project_users.create!(user: @user)
+    @project.project_users.create!(user: other)
+    beta.project_users.create!(user: @user)
+
+    project_tool = Mcp::Registry.find_tool("get_project_users", scope: :read)
+    assert_not_nil project_tool
+
+    project_result = project_tool.call(project_id: @project.id)
+    assert_equal false, project_result[:isError]
+
+    project_payload = JSON.parse(project_result[:content].first[:text])
+    assert_equal [@user.id, other.id].sort, project_payload["users"].map { |user| user["id"].to_i }.sort
+    assert_equal @project.id, project_payload["project_id"]
+
+    user_tool = Mcp::Registry.find_tool("get_user_projects", scope: :read)
+    assert_not_nil user_tool
+
+    user_result = user_tool.call(user_id: @user.id)
+    assert_equal false, user_result[:isError]
+
+    user_payload = JSON.parse(user_result[:content].first[:text])
+    assert_equal [@project.id, beta.id].sort, user_payload["projects"].map { |project| project["id"].to_i }.sort
+    assert_equal @user.id, user_payload["user_id"]
+  end
+
+  test "project catalog tools are available through the MCP registry" do
+    beta = Project.create!(name: "Project Beta", path: "/path/beta", slug: "beta")
+
+    list_tool = Mcp::Registry.find_tool("get_projects", scope: :read)
+    assert_not_nil list_tool
+
+    list_result = list_tool.call
+    assert_equal false, list_result[:isError]
+
+    list_payload = JSON.parse(list_result[:content].first[:text])
+    assert_includes list_payload["projects"].map { |project| project["id"].to_i }, @project.id
+    assert_includes list_payload["projects"].map { |project| project["id"].to_i }, beta.id
+
+    single_tool = Mcp::Registry.find_tool("get_single_project", scope: :read)
+    assert_not_nil single_tool
+
+    single_result = single_tool.call(project_id: @project.id)
+    assert_equal false, single_result[:isError]
+
+    single_payload = JSON.parse(single_result[:content].first[:text])
+    assert_equal @project.id, single_payload["id"].to_i
+    assert_equal @project.name, single_payload["name"]
+  end
+
+  test "approval request lifecycle" do
+    add_appr = Mcp::Registry.find_tool("add_approval_request", scope: :action)
+    res = add_appr.call(room_id: @room.id, request_type: "deploy", payload: { env: "prod" })
+    assert_equal false, res[:isError]
+
+    appr = @room.approval_requests.last
+    assert_equal "deploy", appr.request_type
+    assert appr.pending?
+
+    # Decide
+    decide_tool = Mcp::Registry.find_tool("add_decision_message", scope: :action)
+    res_decide = decide_tool.call(approval_request_id: appr.id, decision: "approve", note: "Approved by lead")
+    assert_equal false, res_decide[:isError]
+    assert appr.reload.approved?
+  end
+end

@@ -16,7 +16,6 @@ class Rooms::ClosedsController < RoomsController
   def new
     @room  = Rooms::Closed.new(name: DEFAULT_ROOM_NAME, project: @project, parent_id: @parent_room&.id)
     @users = users_scope_for_room_picker(@project)
-    @agents = agents_scope_for_room_picker(@project)
   end
 
   def create
@@ -48,9 +47,6 @@ class Rooms::ClosedsController < RoomsController
   def edit
     selected_user_ids = @room.users.pluck(:id)
     @selected_users, @unselected_users = users_scope_for_room_picker(@room.project).partition { |user| selected_user_ids.include?(user.id) }
-
-    selected_agent_ids = @room.agents.pluck(:id)
-    @selected_agents, @unselected_agents = agents_scope_for_room_picker(@room.project).partition { |agent| selected_agent_ids.include?(agent.id) }
   end
 
   def update
@@ -100,11 +96,6 @@ class Rooms::ClosedsController < RoomsController
 
     def users_scope_for_room_picker(project)
       scope = project ? project.users : User.all
-      scope.active.ordered
-    end
-
-    def agents_scope_for_room_picker(project)
-      scope = project ? project.agents : Agent.all
       scope.active.ordered
     end
 

@@ -6,7 +6,7 @@ module SystemTestHelper
     fill_in "password", with: password
 
     click_on "log_in"
-    assert_text "Designers"
+    assert_text "PWR WORK"
   end
 
   def wait_for_cable_connection

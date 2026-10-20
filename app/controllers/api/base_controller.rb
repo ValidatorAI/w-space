@@ -19,6 +19,16 @@ module Api
       Project.find_by(id: id) || Project.find_by(slug: id)
     end
 
+    def find_project_or_render_not_found(id)
+      return nil if id.blank?
+
+      project = find_project(id)
+      return project if project.present?
+
+      render json: { error: "Project not found" }, status: :not_found
+      nil
+    end
+
     def find_room(project_or_id, id = nil)
       if id.nil?
         room_id = project_or_id

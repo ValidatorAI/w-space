@@ -78,6 +78,16 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "creating an AI room question records the room ask event" do
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+        post room_messages_url(@room, format: :turbo_stream), params: { message: { body: "Summarize the room status", client_message_id: 998, mode: "ask" } }
+      end
+    end
+
+    assert_response :success
+  end
+
   test "creating a message in child room broadcasts to parent room stream as well" do
     child_room = Rooms::Open.create_for({ name: "Child Topic", creator: users(:david), parent: @room }, users: [ users(:david) ])
 
@@ -163,15 +173,6 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     delete room_message_url(room, message, format: :turbo_stream)
     assert_response :forbidden
-  end
-
-  test "mentioning a bot triggers a webhook" do
-    WebMock.stub_request(:post, webhooks(:bender).url).to_return(status: 200)
-
-    assert_enqueued_jobs 1, only: Bot::WebhookJob do
-      post room_messages_url(@room, format: :turbo_stream), params: { message: {
-        body: "<div>Hey #{mention_attachment_for(:bender)}</div>", client_message_id: 999 } }
-    end
   end
 
   test "create in direct room between two users does not record message output events" do

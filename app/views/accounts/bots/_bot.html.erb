@@ -1,56 +1,52 @@
-<li class="flex flex-column gap flush fill-shade border-radius pad-block pad-inline-double">
-  <div class="flex align-center gap">
-    <figure class="avatar flex-item--no-shrink" style="--avatar-size: 2.65em;">
-      <%= avatar_tag bot, loading: :lazy %>
-    </figure>
+<li class="account-bots-item">
+  <div class="account-bots-item__header">
+    <div class="account-bots-item__identity">
+      <figure class="avatar account-bots-item__avatar" style="--avatar-size: 2.65em;">
+        <%= avatar_tag bot, loading: :lazy %>
+      </figure>
 
-    <div class="min-width">
-      <div class="overflow-ellipsis txt-large"><strong><%= bot.name %></strong></div>
+      <div class="account-bots-item__meta">
+        <div class="account-bots-item__name"><%= bot.name %></div>
+      </div>
     </div>
 
-    <%= link_to edit_account_bot_path(bot, return_to: return_to), class: "flex-item-justify-end", style: "view-transition-name: chat-bot-#{ bot.id }" do %>
-      <%= image_tag "pencil.svg", aria: { hidden: "true" }, size: 20 %>
-      <span class="for-screen-reader">Edit <%= bot.name %></span>
-    <% end %>
+    <div class="account-bots-item__actions">
+      <%= link_to edit_account_bot_path(bot, return_to: return_to), class: "action-btn action-btn--small", style: "view-transition-name: chat-bot-#{ bot.id }" do %>
+        <%= image_tag "pencil.svg", aria: { hidden: "true" }, size: 14 %>
+        <span>Edit</span>
+      <% end %>
+    </div>
   </div>
 
   <% unless return_to == "company_settings" %>
     <% bot.rooms.without_directs.ordered.each do |room| %>
-      <fieldset class="gap max-width pad border border-radius">
-        <legend class="min-width txt-align-start pad-inline">
-          <strong class="overflow-ellipsis"><%= room_display_name(room) %></strong>
+      <fieldset class="account-bots-item__details">
+        <legend class="account-bots-item__legend">
+          <strong><%= room_display_name(room) %></strong>
         </legend>
 
         <% curl_text_line = "curl -d 'Hello!' #{room_bot_messages_url(room, bot.bot_key)}" %>
-        <div class="flex align-center gap">
-          <%= image_tag "messages-outlined.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-
+        <div class="account-bots-item__command-row">
+          <%= image_tag "messages-outlined.svg", aria: { hidden: "true" }, size: 18, class: "colorize--black" %>
           <div class="flex-item-grow">
-            <input type="text" class="input full-width fill-white" value="<%= curl_text_line %>" aria-label="curl command for posting messages" readonly>
+            <input type="text" class="input full-width" value="<%= curl_text_line %>" aria-label="curl command for posting messages" readonly>
           </div>
-
-          <div class="txt-small">
-            <%= button_to_copy_to_clipboard(curl_text_line) do %>
-              <%= image_tag "copy-paste.svg", aria: { hidden: "true" }, size: 20 %>
-              <span class="for-screen-reader">Copy message command</span>
-            <% end %>
-          </div>
+          <button type="button" class="action-btn action-btn--small" data-controller="copy-to-clipboard" data-action="copy-to-clipboard#copy" data-copy-to-clipboard-success-class="btn--success" data-copy-to-clipboard-content-value="<%= curl_text_line %>">
+            <%= image_tag "copy-paste.svg", aria: { hidden: "true" }, size: 16 %>
+            <span class="for-screen-reader">Copy message command</span>
+          </button>
         </div>
 
         <% curl_upload_line = %[curl -F "attachment=@/path/to/file" #{room_bot_messages_url(room, bot.bot_key)}] %>
-        <div class="flex align-center gap">
-          <%= image_tag "attachment.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-
+        <div class="account-bots-item__command-row">
+          <%= image_tag "attachment.svg", aria: { hidden: "true" }, size: 18, class: "colorize--black" %>
           <div class="flex-item-grow">
-            <input type="text" class="input full-width fill-white" value="<%= curl_upload_line %>" aria-label="curl command for posting attachments" readonly>
+            <input type="text" class="input full-width" value="<%= curl_upload_line %>" aria-label="curl command for posting attachments" readonly>
           </div>
-
-          <div class="txt-small">
-            <%= button_to_copy_to_clipboard(curl_upload_line) do %>
-              <%= image_tag "copy-paste.svg", aria: { hidden: "true" }, size: 20 %>
-              <span class="for-screen-reader">Copy attachment command</span>
-            <% end %>
-          </div>
+          <button type="button" class="action-btn action-btn--small" data-controller="copy-to-clipboard" data-action="copy-to-clipboard#copy" data-copy-to-clipboard-success-class="btn--success" data-copy-to-clipboard-content-value="<%= curl_upload_line %>">
+            <%= image_tag "copy-paste.svg", aria: { hidden: "true" }, size: 16 %>
+            <span class="for-screen-reader">Copy attachment command</span>
+          </button>
         </div>
       </fieldset>
     <% end %>

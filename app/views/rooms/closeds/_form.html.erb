@@ -41,12 +41,5 @@
       <%= render partial: "rooms/closeds/user", collection: unselected_users, locals: { room: room, selected: false } %>
     </div>
 
-    <% if defined?(@selected_agents) && (@selected_agents.present? || @unselected_agents.present?) %>
-      <hr class="separator full-width" style="--border-style: solid">
-      <li class="txt-small txt-secondary pad-block-half"><strong>Agents in Room</strong></li>
-      <div contents>
-        <%= render partial: "rooms/closeds/agent", collection: @selected_agents, locals: { room: room } %>
-      </div>
-    <% end %>
   <% end %>
 <% end %>

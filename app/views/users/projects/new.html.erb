@@ -1,235 +1,281 @@
 <% @page_title = "Create Project" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <span class="btn btn--reversed btn--faux user-settings-nav__pill">🚀 New Space</span>
-  <h1 class="user-settings-nav__title txt-large">Create Project</h1>
-<% end %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
 
-<div id="message-area" class="message-area">
-  <div class="create-project-feed">
-    <div class="create-project-page" aria-label="Create Project page">
-      <section class="create-project-card" aria-label="Create Project">
-        <header class="create-project-card__header">
-          <h2 class="create-project-card__title">🚀 New Space</h2>
-          <p class="create-project-card__subtitle">Set up a project workspace with teammates and channels.</p>
-        </header>
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
 
-        <% if @project.errors.any? %>
-          <div class="create-project-errors" role="alert">
-            <p>Please fix the following:</p>
-            <ul>
-              <% @project.errors.full_messages.each do |message| %>
-                <li><%= message %></li>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
 
-        <%= form_with model: @project,
-              url: user_company_projects_path(user_id: "me"),
-              method: :post,
-              class: "create-project-form" do |form| %>
-          <section class="form-section" aria-label="General details">
-            <h3 class="form-section-title">📌 General Details</h3>
-
-            <div class="form-row form-row--two">
-              <div class="form-group">
-                <%= form.label :name, "Project Name *", for: "proj-name" %>
-                <%= form.text_field :name, id: "proj-name", class: "input", required: true, autocomplete: "off" %>
-                <% if @project.errors[:name].any? %>
-                  <p class="create-project-error">Project name is required.</p>
-                <% end %>
-              </div>
-
-              <div class="form-group">
-                <%= form.label :short_code, "Project Code", for: "proj-code" %>
-                <%= form.text_field :short_code, id: "proj-code", class: "input", autocomplete: "off" %>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :description, "Description", for: "proj-desc" %>
-              <%= form.text_area :description, id: "proj-desc", class: "input", rows: 3 %>
-            </div>
-
-            <div class="form-row form-row--two">
-              <div class="form-group">
-                <%= form.label :budget_total, "Total Budget", for: "proj-budget-total" %>
-                <%= form.number_field :budget_total, id: "proj-budget-total", class: "input", step: 0.01, min: 0 %>
-              </div>
-
-              <div class="form-group">
-                <%= form.label :budget_spent, "Spent Budget", for: "proj-budget-spent" %>
-                <%= form.number_field :budget_spent, id: "proj-budget-spent", class: "input", step: 0.01, min: 0 %>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <%= form.label :roadmap, "Road Map", for: "proj-roadmap" %>
-              <%= form.text_area :roadmap, id: "proj-roadmap", class: "input", rows: 3 %>
-            </div>
-          </section>
-
-          <section class="form-section" aria-label="Assign AI teammates">
-            <h3 class="form-section-title">🤖 Assign AI Teammates (Bots)</h3>
-            <p class="form-section-copy">Assign specialist bots now and map them later in project settings.</p>
-
-            <div class="bot-selection-grid">
-              <% if @bots.any? %>
-                <% @bots.each do |bot| %>
-                  <label class="bot-card">
-                    <input type="checkbox" name="ui_bot_ids[]" value="<%= bot.id %>">
-                    <span class="bot-card-icon" aria-hidden="true"><%= bot.initials.first(1).upcase %></span>
-                    <span class="bot-card-info">
-                      <span class="bot-card-name"><%= bot.effective_display_name %></span>
-                      <span class="bot-card-role">Workspace Bot</span>
-                      <span class="bot-card-desc"><%= bot.bio.presence || "Available for project collaboration." %></span>
-                    </span>
-                  </label>
-                <% end %>
-              <% else %>
-                <p class="company-cell-muted">No workspace bots are allowed yet.</p>
-              <% end %>
-            </div>
-          </section>
-
-          <section class="form-section" aria-label="Human team members">
-            <h3 class="form-section-title">👥 Human Team Members</h3>
-
-            <div class="member-picker"
-                 data-controller="project-members-picker"
-                 data-project-members-picker-current-user-id-value="<%= Current.user.id %>">
-              <div class="member-pills" data-project-members-picker-target="list">
-                <% @selected_member_users.each do |member| %>
-                  <span class="member-chip"
-                        data-member-id="<%= member.id %>"
-                        data-member-name="<%= member.effective_display_name %>"
-                        data-member-initials="<%= member.initials.first(1).upcase %>">
-                    <span class="member-chip-avatar"><%= member.initials.first(1).upcase %></span>
-                    <span><%= member.effective_display_name %></span>
-                    <% if member.id == Current.user.id %>
-                      <span class="member-chip-role">(You)</span>
-                    <% else %>
-                      <button type="button"
-                              class="member-chip-remove"
-                              data-member-id="<%= member.id %>"
-                              data-action="click->project-members-picker#remove"
-                              aria-label="Remove <%= member.effective_display_name %>">
-                        Remove
-                      </button>
-                    <% end %>
-                  </span>
-                <% end %>
-              </div>
-
-              <div class="member-picker-controls">
-                <% available_members = @users.reject { |user| @selected_member_users.any? { |member| member.id == user.id } } %>
-                <button type="button"
-                        class="action-btn"
-                        data-project-members-picker-target="openButton"
-                        data-action="click->project-members-picker#openModal"
-                        <%= "disabled" if available_members.empty? %>>
-                  + Add Member
-                </button>
-                <p class="company-cell-muted member-picker-empty"
-                   data-project-members-picker-target="empty"
-                   <%= "hidden" unless available_members.empty? %>>
-                  No additional active human members are available.
-                </p>
-              </div>
-
-              <dialog class="member-picker-modal"
-                      aria-label="Add project member"
-                      data-project-members-picker-target="dialog"
-                      data-action="click->project-members-picker#closeOnBackdrop close->project-members-picker#reset">
-                <section class="member-picker-modal__panel">
-                  <header class="member-picker-modal__header">
-                    <h4 class="member-picker-modal__title">Add Team Member</h4>
-                  </header>
-
-                  <div class="member-picker-modal__body">
-                    <label class="for-screen-reader" for="project_member_user_picker">Pick member</label>
-                    <div class="member-picker-row">
-                      <select id="project_member_user_picker"
-                              class="input member-picker-select"
-                              data-project-members-picker-target="select">
-                        <option value="">Select a person...</option>
-                        <% available_members.each do |user| %>
-                          <option value="<%= user.id %>"
-                                  data-name="<%= user.effective_display_name %>"
-                                  data-initials="<%= user.initials.first(1).upcase %>">
-                            <%= user.effective_display_name %>
-                          </option>
-                        <% end %>
-                      </select>
-
-                      <button type="button"
-                              class="action-btn"
-                              data-project-members-picker-target="addButton"
-                              data-action="click->project-members-picker#add"
-                              <%= "disabled" if available_members.empty? %>>
-                        Add
-                      </button>
-                    </div>
-                  </div>
-
-                  <footer class="member-picker-modal__footer">
-                    <button type="button" class="action-btn" data-action="click->project-members-picker#closeModal">Done</button>
-                  </footer>
-                </section>
-              </dialog>
-
-              <div data-project-members-picker-target="inputs">
-                <% @selected_member_users.each do |member| %>
-                  <input type="hidden" name="member_user_ids[]" value="<%= member.id %>">
-                <% end %>
-              </div>
-            </div>
-          </section>
-
-          <section class="form-section" aria-label="Default channels and access">
-            <h3 class="form-section-title">💬 Default Channels &amp; Access</h3>
-
-            <div class="channel-checkboxes">
-              <input type="hidden" name="default_channel_keys[]" value="">
-
-              <label class="checkbox-item">
-                <input type="checkbox" checked disabled>
-                <span>🔒 # general</span>
-              </label>
-
-              <label class="checkbox-item">
-                <input type="checkbox"
-                       name="default_channel_keys[]"
-                       value="specifications"
-                       <%= "checked" if @selected_default_channel_keys.include?("specifications") %>>
-                <span>💬 # specifications</span>
-              </label>
-
-              <label class="checkbox-item">
-                <input type="checkbox"
-                       name="default_channel_keys[]"
-                       value="releases"
-                       <%= "checked" if @selected_default_channel_keys.include?("releases") %>>
-                <span>🚀 # releases</span>
-              </label>
-
-              <label class="checkbox-item">
-                <%= form.check_box :private, id: "proj-private" %>
-                <span>Private Project (Only visible to added members)</span>
-              </label>
-            </div>
-          </section>
-
-          <div class="form-actions">
-            <%= link_to "Cancel", user_company_home_path(user_id: "me"), class: "action-btn" %>
-            <%= form.button "Create Project", class: "action-btn primary", type: :submit %>
-          </div>
-        <% end %>
-      </section>
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
     </div>
   </div>
+<% end %>
+
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
+
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area create-project-message-area">
+      <div class="create-project-feed">
+        <div class="create-project-page" aria-label="Create Project page">
+          <section class="create-project-card" aria-label="Create Project">
+            <header class="create-project-card__header">
+              <h2 class="create-project-card__title">🚀 New Space</h2>
+              <p class="create-project-card__subtitle">Set up a project workspace with teammates and channels.</p>
+            </header>
+
+            <% if @project.errors.any? %>
+              <div class="create-project-errors" role="alert">
+                <p>Please fix the following:</p>
+                <ul>
+                  <% @project.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <%= form_with model: @project,
+                  url: user_company_projects_path(user_id: "me"),
+                  method: :post,
+                  class: "create-project-form" do |form| %>
+              <section class="form-section" aria-label="General details">
+                <h3 class="form-section-title">📌 General Details</h3>
+
+                <div class="form-row form-row--two">
+                  <div class="form-group">
+                    <%= form.label :name, "Project Name *", for: "proj-name" %>
+                    <%= form.text_field :name, id: "proj-name", class: "input", required: true, autocomplete: "off" %>
+                    <% if @project.errors[:name].any? %>
+                      <p class="create-project-error">Project name is required.</p>
+                    <% end %>
+                  </div>
+
+                  <div class="form-group">
+                    <%= form.label :short_code, "Project Code", for: "proj-code" %>
+                    <%= form.text_field :short_code, id: "proj-code", class: "input", autocomplete: "off" %>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <%= form.label :description, "Description", for: "proj-desc" %>
+                  <%= form.text_area :description, id: "proj-desc", class: "input", rows: 3 %>
+                </div>
+
+                <div class="form-row form-row--two">
+                  <div class="form-group">
+                    <%= form.label :budget_total, "Total Budget", for: "proj-budget-total" %>
+                    <%= form.number_field :budget_total, id: "proj-budget-total", class: "input", step: 0.01, min: 0 %>
+                  </div>
+
+                  <div class="form-group">
+                    <%= form.label :budget_spent, "Spent Budget", for: "proj-budget-spent" %>
+                    <%= form.number_field :budget_spent, id: "proj-budget-spent", class: "input", step: 0.01, min: 0 %>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <%= form.label :roadmap, "Road Map", for: "proj-roadmap" %>
+                  <%= form.text_area :roadmap, id: "proj-roadmap", class: "input", rows: 3 %>
+                </div>
+              </section>
+
+              <section class="form-section" aria-label="Assign AI teammates">
+                <h3 class="form-section-title">🤖 Assign AI Teammates (Bots)</h3>
+                <p class="form-section-copy">Assign specialist bots now and map them later in project settings.</p>
+
+                <div class="bot-selection-grid">
+                  <% if @bots.any? %>
+                    <% @bots.each do |bot| %>
+                      <label class="bot-card">
+                        <input type="checkbox" name="ui_bot_ids[]" value="<%= bot.id %>">
+                        <span class="bot-card-icon" aria-hidden="true"><%= bot.initials.first(1).upcase %></span>
+                        <span class="bot-card-info">
+                          <span class="bot-card-name"><%= bot.effective_display_name %></span>
+                          <span class="bot-card-role">Workspace Bot</span>
+                          <span class="bot-card-desc"><%= bot.bio.presence || "Available for project collaboration." %></span>
+                        </span>
+                      </label>
+                    <% end %>
+                  <% else %>
+                    <p class="company-cell-muted">No workspace bots are allowed yet.</p>
+                  <% end %>
+                </div>
+              </section>
+
+              <section class="form-section" aria-label="Human team members">
+                <h3 class="form-section-title">👥 Human Team Members</h3>
+
+                <div class="member-picker"
+                     data-controller="project-members-picker"
+                     data-project-members-picker-current-user-id-value="<%= Current.user.id %>">
+                  <div class="member-pills" data-project-members-picker-target="list">
+                    <% @selected_member_users.each do |member| %>
+                      <span class="member-chip"
+                            data-member-id="<%= member.id %>"
+                            data-member-name="<%= member.effective_display_name %>"
+                            data-member-initials="<%= member.initials.first(1).upcase %>">
+                        <span class="member-chip-avatar"><%= member.initials.first(1).upcase %></span>
+                        <span><%= member.effective_display_name %></span>
+                        <% if member.id == Current.user.id %>
+                          <span class="member-chip-role">(You)</span>
+                        <% else %>
+                          <button type="button"
+                                  class="member-chip-remove"
+                                  data-member-id="<%= member.id %>"
+                                  data-action="click->project-members-picker#remove"
+                                  aria-label="Remove <%= member.effective_display_name %>">
+                            Remove
+                          </button>
+                        <% end %>
+                      </span>
+                    <% end %>
+                  </div>
+
+                  <div class="member-picker-controls">
+                    <% available_members = @users.reject { |user| @selected_member_users.any? { |member| member.id == user.id } } %>
+                    <button type="button"
+                            class="action-btn"
+                            data-project-members-picker-target="openButton"
+                            data-action="click->project-members-picker#openModal"
+                            <%= "disabled" if available_members.empty? %>>
+                      + Add Member
+                    </button>
+                    <p class="company-cell-muted member-picker-empty"
+                       data-project-members-picker-target="empty"
+                       <%= "hidden" unless available_members.empty? %>>
+                      No additional active human members are available.
+                    </p>
+                  </div>
+
+                  <dialog class="member-picker-modal"
+                          aria-label="Add project member"
+                          data-project-members-picker-target="dialog"
+                          data-action="click->project-members-picker#closeOnBackdrop close->project-members-picker#reset">
+                    <section class="member-picker-modal__panel">
+                      <header class="member-picker-modal__header">
+                        <h4 class="member-picker-modal__title">Add Team Member</h4>
+                      </header>
+
+                      <div class="member-picker-modal__body">
+                        <label class="for-screen-reader" for="project_member_user_picker">Pick member</label>
+                        <div class="member-picker-row">
+                          <select id="project_member_user_picker"
+                                  class="input member-picker-select"
+                                  data-project-members-picker-target="select">
+                            <option value="">Select a person...</option>
+                            <% available_members.each do |user| %>
+                              <option value="<%= user.id %>"
+                                      data-name="<%= user.effective_display_name %>"
+                                      data-initials="<%= user.initials.first(1).upcase %>">
+                                <%= user.effective_display_name %>
+                              </option>
+                            <% end %>
+                          </select>
+
+                          <button type="button"
+                                  class="action-btn"
+                                  data-project-members-picker-target="addButton"
+                                  data-action="click->project-members-picker#add"
+                                  <%= "disabled" if available_members.empty? %>>
+                            Add
+                          </button>
+                        </div>
+                      </div>
+
+                      <footer class="member-picker-modal__footer">
+                        <button type="button" class="action-btn" data-action="click->project-members-picker#closeModal">Done</button>
+                      </footer>
+                    </section>
+                  </dialog>
+
+                  <div data-project-members-picker-target="inputs">
+                    <% @selected_member_users.each do |member| %>
+                      <input type="hidden" name="member_user_ids[]" value="<%= member.id %>">
+                    <% end %>
+                  </div>
+                </div>
+              </section>
+
+              <section class="form-section" aria-label="Default channels and access">
+                <h3 class="form-section-title">💬 Default Channels &amp; Access</h3>
+
+                <div class="channel-checkboxes">
+                  <input type="hidden" name="default_channel_keys[]" value="">
+
+                  <label class="checkbox-item">
+                    <input type="checkbox" checked disabled>
+                    <span>🔒 # general</span>
+                  </label>
+
+                  <label class="checkbox-item">
+                    <input type="checkbox"
+                           name="default_channel_keys[]"
+                           value="specifications"
+                           <%= "checked" if @selected_default_channel_keys.include?("specifications") %>>
+                    <span>💬 # specifications</span>
+                  </label>
+
+                  <label class="checkbox-item">
+                    <input type="checkbox"
+                           name="default_channel_keys[]"
+                           value="releases"
+                           <%= "checked" if @selected_default_channel_keys.include?("releases") %>>
+                    <span>🚀 # releases</span>
+                  </label>
+
+                  <label class="checkbox-item">
+                    <%= form.check_box :private, id: "proj-private" %>
+                    <span>Private Project (Only visible to added members)</span>
+                  </label>
+                </div>
+              </section>
+
+              <div class="form-actions">
+                <%= link_to "Cancel", user_company_home_path(user_id: "me"), class: "action-btn" %>
+                <%= form.button "Create Project", class: "action-btn primary", type: :submit %>
+              </div>
+            <% end %>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>

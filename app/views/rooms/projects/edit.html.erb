@@ -1,227 +1,278 @@
 <% @page_title = "Project settings for #{room_display_name(@room)}" %>
-<% @body_class = "sidebar" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <%= tag.span class: "btn btn--reversed btn--faux room--current" do %>
-    <span>⚙️ Project Settings</span>
-  <% end %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
 
-  <h1 class="project-settings__title txt-large margin-none overflow-ellipsis">
-    <span aria-hidden="true">⚡</span>
-    <span><%= room_display_name(@room) %></span>
-  </h1>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
+  </div>
 <% end %>
 
-<% content_for :sidebar, sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-<div id="message-area" class="message-area">
-  <div class="project-settings-page" aria-label="Project settings">
-    <section class="project-settings-card" aria-label="Project details">
-      <header class="project-settings-card__header">
-        <h2 class="project-settings-card__title">📌 Project Details</h2>
-      </header>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area create-project-message-area">
+      <div class="create-project-feed">
+        <div class="create-project-page" aria-label="Project settings page">
+          <section class="create-project-card" aria-label="Project details">
+            <header class="create-project-card__header">
+              <h2 class="create-project-card__title">📌 Project Details</h2>
+            </header>
 
-      <% if Current.user.can_administer?(@room) %>
-        <%= form_with model: @project, url: rooms_project_path(@room.id), method: :patch, class: "project-settings-form" do |form| %>
-          <label class="project-settings-form__group">
-            <span>Project Name</span>
-            <%= form.text_field :name, class: "input", required: true, autocomplete: "off" %>
-          </label>
+            <% if Current.user.can_administer?(@room) %>
+              <%= form_with model: @project, url: rooms_project_path(@room.id), method: :patch, class: "create-project-form" do |form| %>
+                <section class="form-section" aria-label="General details">
+                  <div class="form-group">
+                    <%= form.label :name, "Project Name *", for: "project-name" %>
+                    <%= form.text_field :name, id: "project-name", class: "input", required: true, autocomplete: "off" %>
+                  </div>
 
-          <label class="project-settings-form__group">
-            <span>Description</span>
-            <%= form.text_area :description, class: "input", rows: 3 %>
-          </label>
+                  <div class="form-group">
+                    <%= form.label :description, "Description", for: "project-description" %>
+                    <%= form.text_area :description, id: "project-description", class: "input", rows: 3 %>
+                  </div>
 
-          <label class="project-settings-form__group">
-            <span>Total Budget</span>
-            <%= form.number_field :budget_total, class: "input", step: 0.01, min: 0 %>
-          </label>
-
-          <label class="project-settings-form__group">
-            <span>Spent Budget</span>
-            <%= form.number_field :budget_spent, class: "input", step: 0.01, min: 0 %>
-          </label>
-
-          <label class="project-settings-form__group">
-            <span>Road Map</span>
-            <%= form.text_area :roadmap, class: "input", rows: 3 %>
-          </label>
-
-          <label class="project-settings-form__checkbox">
-            <%= form.check_box :private, class: "project-settings-form__checkbox-input" %>
-            <span>Private Project (Only visible to added members)</span>
-          </label>
-
-          <div class="project-settings-actions">
-            <%= form.button "Save Project Changes", class: "btn btn--reversed", type: :submit %>
-          </div>
-        <% end %>
-      <% else %>
-        <div class="project-settings-readonly">
-          <p><strong>Project Name:</strong> <%= @project.display_name %></p>
-          <p><strong>Description:</strong> <%= @project.description.presence || "No description yet." %></p>
-          <p><strong>Total Budget:</strong> <%= @project.budget_total %></p>
-          <p><strong>Spent Budget:</strong> <%= @project.budget_spent %></p>
-          <p><strong>Road Map:</strong> <%= @project.roadmap.presence || "No road map yet." %></p>
-          <p><strong>Visibility:</strong> <%= @project.private? ? "Private" : "Public" %></p>
-        </div>
-      <% end %>
-    </section>
-
-    <section class="project-settings-card" aria-label="Teammates" data-controller="project-users-modal">
-      <header class="project-settings-card__header project-settings-card__header--inline">
-        <h2 class="project-settings-card__title">Teammates</h2>
-        <% project_users_settings_url = rooms_project_users_settings_path(@project) %>
-        <%= link_to "Manage Users", project_users_settings_url,
-              class: "btn",
-              data: {
-                action: "click->project-users-modal#open",
-                project_users_modal_url_param: project_users_settings_url
-              } %>
-      </header>
-
-      <div class="project-settings-table-wrap">
-        <table class="project-settings-table">
-          <thead>
-            <tr>
-              <th>Teammate</th>
-              <th>Type</th>
-              <th>Permissions</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if @teammates.any? %>
-              <% @teammates.each do |teammate| %>
-                <tr>
-                  <td>
-                    <div class="project-settings-member">
-                      <span class="avatar flex-item-no-shrink" style="--avatar-size: 2.25rem;">
-                        <%= image_tag fresh_user_avatar_path(teammate), aria: { hidden: "true" }, size: 36, loading: :lazy %>
-                      </span>
-                      <span><%= teammate.name %></span>
+                  <div class="form-row form-row--two">
+                    <div class="form-group">
+                      <%= form.label :budget_total, "Total Budget", for: "project-budget-total" %>
+                      <%= form.number_field :budget_total, id: "project-budget-total", class: "input", step: 0.01, min: 0 %>
                     </div>
-                  </td>
-                  <td>
-                    <span class="project-settings-badge <%= teammate.bot? ? "project-settings-badge--ai" : "project-settings-badge--human" %>">
-                      <%= teammate.bot? ? "AI" : "Human" %>
-                    </span>
-                  </td>
-                  <td>Read/Write in project channels</td>
-                  <td>
-                    <span class="project-settings-badge <%= teammate.active? ? "project-settings-badge--active" : "project-settings-badge--offline" %>">
-                      <%= teammate.status.humanize %>
-                    </span>
-                  </td>
-                </tr>
+
+                    <div class="form-group">
+                      <%= form.label :budget_spent, "Spent Budget", for: "project-budget-spent" %>
+                      <%= form.number_field :budget_spent, id: "project-budget-spent", class: "input", step: 0.01, min: 0 %>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <%= form.label :roadmap, "Road Map", for: "project-roadmap" %>
+                    <%= form.text_area :roadmap, id: "project-roadmap", class: "input", rows: 3 %>
+                  </div>
+
+                  <label class="form-checkbox">
+                    <%= form.check_box :private, class: "form-checkbox-input" %>
+                    <span>Private Project (Only visible to added members)</span>
+                  </label>
+                </section>
+
+                <div class="project-settings-actions">
+                  <%= form.button "Save Project Changes", class: "btn btn--reversed", type: :submit %>
+                </div>
               <% end %>
             <% else %>
-              <tr>
-                <td colspan="4">No teammates attached to this project.</td>
-              </tr>
+              <div class="project-settings-readonly">
+                <p><strong>Project Name:</strong> <%= @project.display_name %></p>
+                <p><strong>Description:</strong> <%= @project.description.presence || "No description yet." %></p>
+                <p><strong>Total Budget:</strong> <%= @project.budget_total %></p>
+                <p><strong>Spent Budget:</strong> <%= @project.budget_spent %></p>
+                <p><strong>Road Map:</strong> <%= @project.roadmap.presence || "No road map yet." %></p>
+                <p><strong>Visibility:</strong> <%= @project.private? ? "Private" : "Public" %></p>
+              </div>
             <% end %>
-          </tbody>
-        </table>
-      </div>
+          </section>
 
-      <dialog class="dialog sidebar-room-settings-modal border border-radius shadow"
-          aria-label="Project users settings"
-          data-project-users-modal-target="dialog"
-          data-action="click->project-users-modal#closeOnBackdrop close->project-users-modal#reset">
-        <button type="button" class="btn dialog__close" data-action="project-users-modal#close" aria-label="Close project users settings">✕</button>
-        <iframe class="sidebar-room-settings-modal__frame"
-            data-project-users-modal-target="frame"
-            title="Project users settings"
-            loading="lazy"></iframe>
-      </dialog>
-    </section>
+          <section class="create-project-card project-settings-card--teammates" aria-label="Teammates" data-controller="project-users-modal">
+            <header class="create-project-card__header create-project-card__header--inline">
+              <h2 class="create-project-card__title">Teammates</h2>
+              <% project_users_settings_url = rooms_project_users_settings_path(@project) %>
+              <%= link_to "Manage Users", project_users_settings_url,
+                    class: "btn",
+                    data: {
+                      action: "click->project-users-modal#open",
+                      project_users_modal_url_param: project_users_settings_url
+                    } %>
+            </header>
 
-    <section class="project-settings-card" aria-label="Channel management">
-      <header class="project-settings-card__header project-settings-card__header--inline">
-        <h2 class="project-settings-card__title">💬 Channel Management</h2>
-        <%= link_to "+ Create Channel", new_rooms_open_path(project_id: @project.id, parent_room_id: @room.id, from_project_settings: true), class: "btn btn--reversed", data: { turbo: false, turbo_frame: "_top" } %>
-      </header>
+            <div class="project-settings-table-wrap">
+              <table class="project-settings-table">
+                <thead>
+                  <tr>
+                    <th>Teammate</th>
+                    <th>Type</th>
+                    <th>Permissions</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if @teammates.any? %>
+                    <% @teammates.each do |teammate| %>
+                      <tr>
+                        <td>
+                          <div class="project-settings-member">
+                            <span class="avatar flex-item-no-shrink" style="--avatar-size: 2.25rem;">
+                              <%= image_tag fresh_user_avatar_path(teammate), aria: { hidden: "true" }, size: 36, loading: :lazy %>
+                            </span>
+                            <span><%= teammate.name %></span>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="project-settings-badge <%= teammate.bot? ? "project-settings-badge--ai" : "project-settings-badge--human" %>">
+                            <%= teammate.bot? ? "AI" : "Human" %>
+                          </span>
+                        </td>
+                        <td>Read/Write in project channels</td>
+                        <td>
+                          <span class="project-settings-badge <%= teammate.active? ? "project-settings-badge--active" : "project-settings-badge--offline" %>">
+                            <%= teammate.status.humanize %>
+                          </span>
+                        </td>
+                      </tr>
+                    <% end %>
+                  <% else %>
+                    <tr>
+                      <td colspan="4">No teammates attached to this project.</td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
 
-      <div class="project-settings-table-wrap">
-        <table class="project-settings-table">
-          <thead>
-            <tr>
-              <th>Channel</th>
-              <th>Status</th>
-              <th>Privacy</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if @channels.any? %>
-              <% @channels.each do |channel| %>
-                <tr>
-                  <td># <%= room_display_name(channel) %></td>
-                  <td>
-                    <span class="project-settings-badge <%= channel.archived? ? "project-settings-badge--offline" : "project-settings-badge--active" %>">
-                      <%= channel.archived? ? "Archived" : "Active" %>
-                    </span>
-                  </td>
-                  <td>
-                    <span class="project-settings-badge <%= channel.private? ? "project-settings-badge--private" : "project-settings-badge--public" %>">
-                      <%= channel.private? ? "Private" : "Public" %>
-                    </span>
-                  </td>
-                  <td>
-                    <div class="project-settings-inline-actions">
-                      <%= link_to "Edit", room_settings_path(channel), class: "btn", data: { turbo: false, turbo_frame: "_top" } %>
-                      <% if Current.user.can_administer?(@room) %>
-                        <% if channel.archived? %>
-                          <%= button_to "Unarchive", rooms_project_path(@room.id), method: :patch,
-                                params: { intent: "unarchive_channel", channel_id: channel.id },
-                                class: "btn",
-                                data: { turbo_confirm: "Unarchive ##{room_display_name(channel)}?" } %>
-                        <% else %>
-                          <%= button_to "Archive", rooms_project_path(@room.id), method: :patch,
-                                params: { intent: "archive_channel", channel_id: channel.id },
-                                class: "btn btn--negative",
-                                data: { turbo_confirm: "Archive ##{room_display_name(channel)}?" } %>
-                        <% end %>
-                      <% end %>
-                    </div>
-                  </td>
-                </tr>
-              <% end %>
-            <% else %>
-              <tr>
-                <td colspan="4">No channels created under this project yet.</td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    </section>
+            <dialog class="dialog sidebar-room-settings-modal border border-radius shadow"
+                aria-label="Project users settings"
+                data-project-users-modal-target="dialog"
+                data-action="click->project-users-modal#closeOnBackdrop close->project-users-modal#reset">
+              <button type="button" class="btn dialog__close" data-action="project-users-modal#close" aria-label="Close project users settings">✕</button>
+              <iframe class="sidebar-room-settings-modal__frame"
+                  data-project-users-modal-target="frame"
+                  title="Project users settings"
+                  loading="lazy"></iframe>
+            </dialog>
+          </section>
 
-    <% if Current.user.can_administer?(@room) %>
-      <section class="project-settings-card project-settings-card--danger" aria-label="Danger zone">
-        <header class="project-settings-card__header">
-          <h2 class="project-settings-card__title">⚠️ Danger Zone</h2>
-        </header>
+          <section class="create-project-card project-settings-card--channels" aria-label="Channel management">
+            <header class="create-project-card__header create-project-card__header--inline">
+              <h2 class="create-project-card__title">💬 Channel Management</h2>
+              <%= link_to "+ Create Channel", new_rooms_open_path(project_id: @project.id, parent_room_id: @room.id, from_project_settings: true), class: "btn btn--reversed", data: { turbo: false, turbo_frame: "_top" } %>
+            </header>
 
-        <p class="project-settings-danger-copy">
-          Archiving a project hides all its channels from active views. Deleting a project permanently removes all project channels, messages, and AI teammates.
-        </p>
+            <div class="project-settings-table-wrap">
+              <table class="project-settings-table">
+                <thead>
+                  <tr>
+                    <th>Channel</th>
+                    <th>Status</th>
+                    <th>Privacy</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if @channels.any? %>
+                    <% @channels.each do |channel| %>
+                      <tr>
+                        <td># <%= room_display_name(channel) %></td>
+                        <td>
+                          <span class="project-settings-badge <%= channel.archived? ? "project-settings-badge--offline" : "project-settings-badge--active" %>">
+                            <%= channel.archived? ? "Archived" : "Active" %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="project-settings-badge <%= channel.private? ? "project-settings-badge--private" : "project-settings-badge--public" %>">
+                            <%= channel.private? ? "Private" : "Public" %>
+                          </span>
+                        </td>
+                        <td>
+                          <div class="project-settings-inline-actions">
+                            <%= link_to "Edit", room_settings_path(channel), class: "btn", data: { turbo: false, turbo_frame: "_top" } %>
+                            <% if Current.user.can_administer?(@room) %>
+                              <% if channel.archived? %>
+                                <%= button_to "Unarchive", rooms_project_path(@room.id), method: :patch,
+                                      params: { intent: "unarchive_channel", channel_id: channel.id },
+                                      class: "btn",
+                                      data: { turbo_confirm: "Unarchive ##{room_display_name(channel)}?" } %>
+                              <% else %>
+                                <%= button_to "Archive", rooms_project_path(@room.id), method: :patch,
+                                      params: { intent: "archive_channel", channel_id: channel.id },
+                                      class: "btn btn--negative",
+                                      data: { turbo_confirm: "Archive ##{room_display_name(channel)}?" } %>
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  <% else %>
+                    <tr>
+                      <td colspan="4">No channels created under this project yet.</td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-        <div class="project-settings-inline-actions">
-          <% if @room.archived? %>
-            <%= button_to "Unarchive Project", rooms_project_path(@room.id), method: :patch,
-                  params: { intent: "unarchive_project" },
-                  class: "btn",
-                  data: { turbo_confirm: "Unarchive this project and all its channels?" } %>
-          <% else %>
-            <%= button_to "Archive Project", rooms_project_path(@room.id), method: :patch,
-                  params: { intent: "archive_project" },
-                  class: "btn",
-                  data: { turbo_confirm: "Archive this project and all its channels?" } %>
+          <% if Current.user.can_administer?(@room) %>
+            <section class="create-project-card create-project-card--danger" aria-label="Danger zone">
+              <header class="create-project-card__header">
+                <h2 class="create-project-card__title">⚠️ Danger Zone</h2>
+              </header>
+
+              <p class="project-settings-danger-copy">
+                Archiving a project hides all its channels from active views. Deleting a project permanently removes all project channels, messages, and AI teammates.
+              </p>
+
+              <div class="project-settings-inline-actions">
+                <% if @room.archived? %>
+                  <%= button_to "Unarchive Project", rooms_project_path(@room.id), method: :patch,
+                        params: { intent: "unarchive_project" },
+                        class: "btn",
+                        data: { turbo_confirm: "Unarchive this project and all its channels?" } %>
+                <% else %>
+                  <%= button_to "Archive Project", rooms_project_path(@room.id), method: :patch,
+                        params: { intent: "archive_project" },
+                        class: "btn",
+                        data: { turbo_confirm: "Archive this project and all its channels?" } %>
+                <% end %>
+
+                <%= button_to "Delete Project", rooms_project_path(@room.id), method: :delete,
+                      params: { intent: "delete_project" },
+                      class: "btn btn--negative",
+                      data: { turbo_confirm: "Permanently delete this project and all its channels? This cannot be undone." } %>
+              </div>
+            </section>
           <% end %>
         </div>
-      </section>
-    <% end %>
-  </div>
+      </div>
+    </div>
+  </main>
 </div>

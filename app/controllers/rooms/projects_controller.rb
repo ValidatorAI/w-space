@@ -82,7 +82,7 @@ class Rooms::ProjectsController < RoomsController
       record_project_event("project_archived", group_id: group_id)
       rooms.each { |room| record_room_lifecycle_event("room_archived", room, group_id: group_id) }
 
-      redirect_to edit_rooms_project_url(@project.id, by: "project"), notice: "Project archived"
+      redirect_to root_url, notice: "Project archived"
     end
 
     def unarchive_project

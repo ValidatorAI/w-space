@@ -1,11 +1,12 @@
 class Project < ApplicationRecord
-  has_many :agents, dependent: :destroy
   has_many :rooms, dependent: :destroy
   has_many :file_reservations, dependent: :destroy
   has_many :project_users, dependent: :delete_all
   has_many :users, through: :project_users
   has_many :attention_items, dependent: :nullify
+  has_many :topics, dependent: :destroy
   has_many :bottlenecks, class_name: "ProjectBottleneck", dependent: :destroy
+  has_many :tasks, dependent: :destroy
   has_many :todos, class_name: "ProjectTodo", dependent: :destroy
   has_many :knowledge_items, class_name: "ProjectKnowledgeItem", dependent: :destroy
   has_many :project_all_hands_takeaways, class_name: "ProjectAllHandsTakeaway", dependent: :destroy
@@ -14,6 +15,8 @@ class Project < ApplicationRecord
   has_many :obsidian_notes, class_name: "ProjectObsidianNote", dependent: :destroy
   has_many :external_assets, class_name: "ProjectExternalAsset", dependent: :destroy
   has_many :adrs, class_name: "ProjectAdr", dependent: :destroy
+  has_many :decision_rooms, through: :rooms
+  has_many :room_evidences, through: :rooms
   has_many :knowledge_activities, class_name: "ProjectKnowledgeActivity", dependent: :destroy
   has_many :directory_items, class_name: "ProjectDirectoryItem", dependent: :destroy
   has_many :project_milestones, dependent: :destroy
@@ -61,6 +64,26 @@ class Project < ApplicationRecord
 
   def display_name
     name.presence || slug
+  end
+
+  def public_mcp_attributes
+    attributes.slice(
+      "id",
+      "name",
+      "slug",
+      "path",
+      "description",
+      "private",
+      "short_code",
+      "current_phase",
+      "progress_percent",
+      "roadmap",
+      "recently_completed",
+      "budget_total",
+      "budget_spent",
+      "created_at",
+      "updated_at"
+    ).merge("display_name" => display_name)
   end
 
   def current_phase_name

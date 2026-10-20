@@ -29,6 +29,10 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".message", count: 0
   end
 
+  test "default search pagination is eight items per page" do
+    assert_equal 8, Searches::WorkspaceSearchService::DEFAULT_LIMIT
+  end
+
   test "create saves the search term" do
     assert_difference -> { users(:david).searches.count }, +1 do
       post searches_url, params: { q: "hello" }

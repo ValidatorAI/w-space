@@ -25,4 +25,11 @@ class ProjectKnowledgeItemTest < ActiveSupport::TestCase
     assert_not_includes @project.knowledge_items.for_badge("Architecture"), ai_item
     assert_equal [ arch_item, ai_item ], @project.knowledge_items.ordered.to_a
   end
+
+  test "exposes readable metadata and summaries" do
+    item = @project.knowledge_items.create!(title: "Launch checklist", description: "Review rollout readiness and customer comms", badge: "Operations", position: 1)
+
+    assert_equal "Operations", item.display_badge
+    assert_equal "Review rollout readiness and customer comms", item.summary_text
+  end
 end

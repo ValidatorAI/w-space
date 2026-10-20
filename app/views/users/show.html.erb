@@ -1,69 +1,126 @@
 <% @page_title = @user.name %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="flex-item-justify-start">
-    <%= link_back %>
-  </div>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
 
-  <div class="flex align-center gap flex-item-justify-end">
-    <% if Current.user == @user %>
-      <%= link_to user_profile_path, class: "btn" do %>
-        <%= image_tag "pencil.svg", aria: { hidden: "true" } %>
-        <span class="for-screen-reader">Edit my profile</span>
-      <% end %>
-    <% end %>
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<section class="panel txt-align-center">
-  <div class="flex flex-column gap <%= "banned" if @user.banned? %>">
-    <div class="avatar txt-xx-large center" style="background: white">
-      <%= image_tag fresh_user_avatar_path(@user), alt: "Profile avatar", class: "avatar" %>
-    </div>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-    <% if @user.bot? %>
-      <div class="pad-double--inline push--inline push--block-start">
-        <% if @user.active? %>
-          <%= button_to_direct_room_with @user%>
-        <% else %>
-          <div><%= @user.name %> is no longer on this account</div>
-        <% end %>
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area create-project-message-area">
+      <div class="create-project-feed">
+        <div class="create-project-page" aria-label="User profile page">
+          <section class="settings-card user-profile-card" aria-label="User profile">
+            <div class="settings-section-title settings-section-title--spread">
+              <span><%= @user.name %></span>
+              <% if Current.user == @user %>
+                <%= link_to user_profile_path, class: "action-btn action-btn--small", aria: { label: "Edit my profile" } do %>
+                  <%= image_tag "pencil.svg", aria: { hidden: "true" } %>
+                <% end %>
+              <% else %>
+                <%= link_back_to_last_room_visited %>
+              <% end %>
+            </div>
+
+            <div class="flex flex-column gap <%= "banned" if @user.banned? %>">
+              <div class="user-profile-avatar-wrap">
+                <div class="avatar txt-xx-large center user-profile-avatar">
+                  <%= image_tag fresh_user_avatar_path(@user), alt: "Profile avatar", class: "avatar" %>
+                </div>
+              </div>
+
+              <% if @user.bot? %>
+                <div class="pad-double--inline push--inline push--block-start">
+                  <% if @user.active? %>
+                    <%= button_to_direct_room_with @user %>
+                  <% else %>
+                    <div><%= @user.name %> is no longer on this account</div>
+                  <% end %>
+                </div>
+              <% else %>
+                <% unless @user.deactivated? %>
+                  <div class="flex flex-column gap user-profile-meta" style="--row-gap: calc(var(--block-space) / 3)">
+                    <h1 class="txt-x-large txt-tight-lines margin-none"><%= @user.name %></h1>
+                    <% if Current.user.can_administer? %>
+                      <div class="company-cell-muted"><%= mail_to @user.email_address %></div>
+                    <% end %>
+                    <div class="company-cell-muted"><%= @user.bio %></div>
+                  </div>
+
+                  <% if @user.active? %>
+                    <div class="pad-inline-double margin-inline margin-block-start">
+                      <%= button_to rooms_directs_path(user_ids: [ @user.id ]), class: "btn btn--reversed full-width txt-large" do %>
+                        <%= image_tag "messages.svg", aria: { hidden: "true", label: "Ping #{@user.name}" } %>
+                      <% end %>
+                    </div>
+
+                    <% if Current.user.can_administer? %>
+                      <hr class="margin-block-start borderless">
+                      <%= render "users/profiles/transfer", user: @user %>
+                    <% end %>
+                  <% end %>
+
+                  <% if Current.user.can_administer? && Current.user != @user %>
+                    <div class="margin-block-start">
+                      <%= render "users/ban_button", user: @user %>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div>
+                    <h1 class="txt-x-large margin-none"><%= @user.name %></h1>
+                    <div><%= @user.name %> is no longer on this account</div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </section>
+        </div>
       </div>
-    <% else %>
-      <% unless @user.deactivated? %>
-        <div class="flex flex-column gap" style="--row-gap: calc(var(--block-space) / 3)">
-          <h1 class="txt-x-large txt-tight-lines margin-none"><%= @user.name %></h1>
-          <% if Current.user.can_administer? %>
-            <div><%= mail_to @user.email_address %></div>
-          <% end %>
-          <div><%= @user.bio %></div>
-        </div>
-
-        <% if @user.active? %>
-          <div class="pad-inline-double margin-inline margin-block-start">
-            <%= button_to rooms_directs_path(user_ids: [ @user.id ]), class: "btn btn--reversed full-width txt-large" do %>
-              <%= image_tag "messages.svg", aria: { hidden: "true", label: "Ping #{@user.name}" } %>
-            <% end %>
-          </div>
-
-          <% if Current.user.can_administer? %>
-            <hr class="margin-block-start borderless">
-
-            <%= render "users/profiles/transfer", user: @user %>
-          <% end %>
-        <% end %>
-
-        <% if Current.user.can_administer? && Current.user != @user %>
-          <div class="margin-block-start">
-            <%= render "users/ban_button", user: @user %>
-          </div>
-        <% end %>
-      <% else %>
-        <div>
-          <h1 class="txt-x-large margin-none"><%= @user.name %></h1>
-          <div><%= @user.name %> is no longer on this account</div>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
-</section>
+    </div>
+  </main>
+</div>

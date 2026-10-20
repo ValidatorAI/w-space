@@ -27,7 +27,7 @@ class FirstRun
 
         Rooms::Open.create_for({ name: FIRST_ROOM_NAME, creator: overseer }, users: [overseer])
         ensure_company_bot!
-        account
+        overseer
       end
     end
 

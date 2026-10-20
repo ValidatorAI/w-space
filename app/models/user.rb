@@ -49,6 +49,21 @@ class User < ApplicationRecord
     display_name.presence || name
   end
 
+  def public_mcp_attributes
+    attributes.slice(
+      "id",
+      "name",
+      "display_name",
+      "job_title",
+      "bio",
+      "role",
+      "status",
+      "timezone",
+      "created_at",
+      "updated_at"
+    )
+  end
+
   def deactivate
     transaction do
       close_remote_connections

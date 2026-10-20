@@ -24,10 +24,6 @@ class Message < ApplicationRecord
   scope :with_boosts, -> { includes(boosts: :booster) }
 
   # Helper methods for creator type checking
-  def from_agent?
-    creator_type == "Agent"
-  end
-
   def from_user?
     creator_type == "User"
   end

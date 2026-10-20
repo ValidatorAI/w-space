@@ -48,7 +48,6 @@ class Rooms::DirectsController < RoomsController
     def dispatch_created_message(message)
       message.broadcast_create
       record_created_message_events(message)
-      deliver_webhooks_to_bots(message)
     end
 
     def broadcast_create_room(room)
@@ -103,10 +102,6 @@ class Rooms::DirectsController < RoomsController
         target_type: "Message",
         data: { "room_id" => message.room_id, "bot_user_ids" => bot_ids }
       )
-    end
-
-    def deliver_webhooks_to_bots(message)
-      message.room.users.active_bots.excluding(message.creator).each { |bot| bot.deliver_webhook_later(message) }
     end
 
     # All users in a direct room can administer it

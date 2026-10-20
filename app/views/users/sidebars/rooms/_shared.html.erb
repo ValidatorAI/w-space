@@ -1,18 +1,30 @@
 <% depth = local_assigns.fetch(:depth, room.parent_id.present? ? 1 : 0) %>
 <div class="room-item <%= "room-item--child" if depth.positive? %>" id="<%= dom_id(room, :list) %>" style="--room-depth: <%= depth %>">
-  <%= link_to_room room,
-        class: [ "room-item__link room btn txt-nowrap", "unread": local_assigns[:unread] ] do %>
-    <span class="overflow-ellipsis"><%= room.name %></span>
-    <% unless room.is_a?(Rooms::Meta) %>
-      <details class="room-item__actions" onclick="event.stopPropagation();">
-        <summary class="room-item__actions-btn">
-          <%= image_tag "trash.svg", size: 12 %>
-        </summary>
-        <div class="room-item__menu">
-          <%= button_to "Clear", room_clear_path(room), method: :post, class: "room-item__menu-btn" %>
-          <%= button_to "Delete", room_path(room), method: :delete, class: "room-item__menu-btn room-item__menu-btn--danger" %>
-        </div>
-      </details>
+  <div class="room-item__row">
+    <%= link_to_room room,
+          class: [ "room-item__link room btn txt-nowrap", "unread": local_assigns[:unread] ] do %>
+      <span class="room-item__prefix" aria-hidden="true">#</span>
+      <span class="overflow-ellipsis"><%= room.name %></span>
     <% end %>
-  <% end %>
+
+    <div class="room-item__row-actions">
+      <%= link_to new_rooms_open_path(project_id: room.project_id, parent_room_id: room.id),
+            class: "btn room-item__row-action room-item__row-action--plus",
+            aria: { label: "Create room in #{room.name}" },
+            title: "Create room in #{room.name}" do %>
+        <span aria-hidden="true">+</span>
+      <% end %>
+
+      <%= link_to room_settings_path(room),
+            class: "btn room-item__row-action room-item__row-action--edit",
+            aria: { label: "#{room.name} settings" },
+            title: "#{room.name} settings",
+            data: {
+              action: "click->room-settings-modal#open",
+              room_settings_modal_url_param: room_settings_path(room)
+            } do %>
+        <%= image_tag "pencil.svg", size: 12, aria: { hidden: "true" } %>
+      <% end %>
+    </div>
+  </div>
 </div>

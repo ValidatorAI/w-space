@@ -34,20 +34,6 @@ class Messages::ByBotsControlleTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "create does not trigger a webhook to the sending bot if it mentions itself" do
-    body = "<div>Hey #{mention_attachment_for(:bender)}</div>"
-
-    assert_no_enqueued_jobs only: Bot::WebhookJob do
-      post room_bot_messages_url(@room, users(:bender).bot_key), params: body
-    end
-  end
-
-  test "create does not trigger a webhook to the sending bot in a direct room" do
-    assert_no_enqueued_jobs only: Bot::WebhookJob do
-      post room_bot_messages_url(rooms(:bender_and_kevin), users(:bender).bot_key), params: +"Talking to myself again!"
-    end
-  end
-
   test "create can't be abused to post messages as any user" do
     user = users(:kevin)
     bot_key = "#{user.id}-"

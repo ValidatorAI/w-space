@@ -1,29 +1,86 @@
 <% @page_title = "Edit bot" %>
+<% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
-  <div class="flex-item-justify-start">
-    <%= link_back_to account_bots_path(return_to: params[:return_to]) %>
+  <div class="room-shell-topbar" aria-label="Workspace header">
+    <div class="room-shell-topbar__brand">
+      <span class="room-shell-topbar__brand-symbol" aria-hidden="true">W</span>
+      <span>PWR <strong>WORK</strong></span>
+    </div>
+
+    <div class="room-shell-topbar__workspace">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Workspace</span>
+    </div>
+
+    <div class="room-shell-topbar__search-wrap" data-controller="search-dropdown" data-action="click@window->search-dropdown#closeOnOutside keydown.esc->search-dropdown#close">
+      <div class="room-shell-topbar__search-bar" aria-label="Search or ask W">
+        <span class="room-shell-topbar__search-form-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="room-shell-topbar__search-input"
+          placeholder="Search or ask W"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search or ask W"
+          data-search-dropdown-target="input"
+        >
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="room-search-panel" class="room-shell-topbar__search-panel hidden" data-search-dropdown-target="panel" role="dialog" aria-label="Search or ask W">
+        <div class="room-shell-topbar__search-results" data-search-dropdown-target="results"></div>
+        <div class="room-shell-topbar__search-actions">
+          <a href="/searches" class="btn btn--ghost room-shell-topbar__ask-button">Ask from W</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="room-shell-topbar__end">
+      <span class="room-shell-topbar__dot" aria-hidden="true"></span>
+      <span>Context updated <%= time_ago_in_words(Current.user.updated_at) %> ago</span>
+      <%= avatar_tag(Current.user) %>
+    </div>
   </div>
 <% end %>
 
-<section class="panel" style="view-transition-name: chat-bot-<%= @bot.id %>">
-  <%= form_with model: @bot, url: account_bot_path(@bot, return_to: params[:return_to]), class: "flex flex-column gap" do |form| %>
-    <%= render "accounts/bots/form", form: form, bot: @bot %>
-  <% end %>
+<div class="workspace-room workspace-room--context-hidden"
+     data-controller="room-shell"
+     data-action="click->room-shell#closeWorkspaceIfOpen">
+  <aside id="workspace-navigation" class="workspace-room__workspace" data-room-shell-target="workspace" aria-label="Workspace navigation">
+    <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
+  </aside>
 
-  <hr class="separator full-width margin-block-double">
+  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+    <div id="message-area" class="message-area company-settings-area">
+      <div class="company-settings-feed">
+        <div class="settings-container">
+          <section class="settings-card account-bot-form-card" aria-label="Edit chat bot" style="view-transition-name: chat-bot-<%= @bot.id %>">
+            <div class="settings-section-title settings-section-title--spread">
+              <span>✏️ Edit chat bot</span>
+              <%= link_back_to account_bots_path(return_to: params[:return_to]) %>
+            </div>
 
-  <div class="flex align-center gap justify-space-between">
-    <%= button_to account_bot_path(@bot), method: :delete, params: { return_to: params[:return_to] }, class: "btn txt--small btn--negative", aria: { label: "Delete this chat bot" },
-          data: { turbo_confirm: "Are you sure you want to permanently remove this bot from the account? This can’t be undone." } do %>
-      <%= image_tag "trash.svg", aria: { hidden: "true" }, size: 20 %>
-      <%= image_tag "bot.svg", aria: { hidden: "true" }, size: 20 %>
-    <% end %>
+            <%= form_with model: @bot, url: account_bot_path(@bot, return_to: params[:return_to]), class: "account-bot-form-grid" do |form| %>
+              <%= render "accounts/bots/form", form: form, bot: @bot %>
+            <% end %>
 
-    <%= button_to account_bot_key_path(@bot, return_to: params[:return_to]), method: :put, class: "btn full-width txt--small btn--negative", aria: { label: "Generate a new key" },
-          data: { turbo_confirm: "Are you sure you want to change the bot key? All usage of this bot must be updated." } do %>
-      <%= image_tag "refresh.svg", aria: { hidden: "true" }, size: 20 %>
-      <%= image_tag "key.svg", aria: { hidden: "true" }, size: 20 %>
-    <% end %>
-  </div>
-</section>
+            <div class="account-bot-form-actions">
+              <%= button_to account_bot_path(@bot), method: :delete, params: { return_to: params[:return_to] }, class: "action-btn action-btn--small btn--negative", aria: { label: "Delete this chat bot" },
+                    data: { turbo_confirm: "Are you sure you want to permanently remove this bot from the account? This can’t be undone." } do %>
+                <%= image_tag "trash.svg", aria: { hidden: "true" }, size: 16 %>
+                <span>Delete</span>
+              <% end %>
+
+              <%= button_to account_bot_key_path(@bot, return_to: params[:return_to]), method: :put, class: "action-btn action-btn--small btn--negative", aria: { label: "Generate a new key" },
+                    data: { turbo_confirm: "Are you sure you want to change the bot key? All usage of this bot must be updated." } do %>
+                <%= image_tag "refresh.svg", aria: { hidden: "true" }, size: 16 %>
+                <span>Rotate key</span>
+              <% end %>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

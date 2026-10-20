@@ -3,7 +3,6 @@ class ApprovalRequest < ApplicationRecord
 
   belongs_to :room, optional: true
   belongs_to :message, optional: true
-  belongs_to :agent, optional: true
   belongs_to :resolved_by, class_name: "User", optional: true
   has_many :approval_request_actions, dependent: :delete_all
 
@@ -22,6 +21,46 @@ class ApprovalRequest < ApplicationRecord
     return unless payload.is_a?(Hash)
 
     payload["decision"] || payload["title"] || payload["summary"] || payload["text"]
+  end
+
+  def review_title
+    return request_type.to_s.humanize if payload.blank?
+
+    decision_text.presence || (payload.is_a?(Hash) ? payload["title"].presence : nil) || request_type.to_s.humanize
+  end
+
+  def review_summary
+    return unless payload.is_a?(Hash)
+
+    payload["summary"] || payload["rationale"] || payload["description"] || payload["reason"] || payload["text"] || payload["decision"]
+  end
+
+  def review_options
+    return [] unless payload.is_a?(Hash)
+
+    options = payload["options"]
+
+    case options
+    when Array
+      options.filter_map do |option|
+        normalize_option(option)
+      end
+    when Hash
+      option_entries = []
+      if options["option_a"].present? || options["a"].present?
+        option_entries << { label: "Option A", value: options["option_a"] || options["a"] }
+      end
+      if options["option_b"].present? || options["b"].present?
+        option_entries << { label: "Option B", value: options["option_b"] || options["b"] }
+      end
+      option_entries
+    else
+      []
+    end
+  end
+
+  def review_owner_name
+    room&.creator&.name.presence || "Room owner"
   end
 
   def approve!(actor = Current.user, note: nil)
@@ -90,15 +129,22 @@ class ApprovalRequest < ApplicationRecord
     title = decision_text.presence || "Decision from #{room.name}"
     identifier = "ADR-#{Time.current.strftime('%Y%m%d%H%M%S')}"
 
-    ProjectAdr.create!(
+    decision_adr = ProjectAdr.create!(
       project: project,
       identifier: identifier,
       title: title.to_s.truncate(255),
       status: "accepted",
       decision_date: Date.current
     )
+
+    if room.present?
+      DecisionRoom.find_or_create_by!(room: room, project_adr: decision_adr)
+    end
+
+    decision_adr
   rescue StandardError => e
     Rails.logger.error("Failed to auto-record decision from approval request #{id}: #{e.message}")
+    nil
   end
 
   def record_output_event(action, actor, decision_adr)
@@ -133,5 +179,18 @@ class ApprovalRequest < ApplicationRecord
     return if payload.blank? || payload.is_a?(Hash)
 
     errors.add(:payload, "must be a JSON object")
+  end
+
+  def normalize_option(option)
+    case option
+    when Hash
+      label = option["label"].presence || option["title"].presence || option["name"].presence
+      value = option["value"].presence || option["decision"].presence || option["text"].presence
+      return if label.blank? && value.blank?
+
+      { label: label.presence || "Option", value: value.presence || label }
+    when String
+      { label: "Option", value: option }
+    end
   end
 end
