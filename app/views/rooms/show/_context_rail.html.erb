@@ -23,8 +23,36 @@
         <strong><%= next_decision.decision_text.presence || "Decision request pending" %></strong>
         <span>Requested <%= time_ago_in_words(next_decision.requested_at) %> ago</span>
       </div>
+      <button type="button"
+              class="action-btn secondary"
+              onclick="document.getElementById('review_decision_modal_<%= next_decision.id %>').showModal();">
+        Review decision
+      </button>
     <% else %>
       <p>No pending decision approval in this room.</p>
+    <% end %>
+  </section>
+
+  <section class="room-context-rail__section">
+    <span class="room-context-rail__eyebrow">ECONOMICS &amp; RISK</span>
+    <% if @room_economics.present? %>
+      <div class="room-context-rail__metrics">
+        <div>
+          <span>Research round effort</span>
+          <strong><%= @room_economics.research_effort.presence || "-" %></strong>
+        </div>
+        <div>
+          <span>Guided build effort</span>
+          <strong><%= @room_economics.guided_build_effort.presence || "-" %></strong>
+        </div>
+        <div>
+          <span>Expected learning value</span>
+          <strong><%= @room_economics.expected_learning_value.presence || "-" %></strong>
+        </div>
+      </div>
+      <p><strong><%= @room_economics.risk_label %></strong> — <%= @room_economics.risk_note.presence || "Uncertainty remains but the room has a clear path to decide." %></p>
+    <% else %>
+      <p>No decision trade-off framing has been recorded for this room yet.</p>
     <% end %>
   </section>
 
@@ -56,8 +84,6 @@
             <strong><%= participant.name %></strong>
             <% if participant == @room.creator %>
               <small>Room owner</small>
-            <% elsif participant.is_a?(Agent) %>
-              <small>AI collaborator</small>
             <% else %>
               <small>Room member</small>
             <% end %>
@@ -72,12 +98,18 @@
     <% if @artifact_assets.any? %>
       <% @artifact_assets.first(4).each do |asset| %>
         <% href = asset.external_source? ? asset.url : user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url) %>
+        <% room_evidence = asset.room_provenance_for(@room) %>
         <%= link_to href,
               class: "room-context-rail__link",
               target: ("_blank" if asset.external_source?),
               rel: ("noopener noreferrer" if asset.external_source?),
               data: { turbo: false } do %>
-          <%= asset.title %>
+          <span><%= asset.title %></span>
+          <% if room_evidence.present? %>
+            <small><%= room_evidence.freshness_label %> • <%= room_evidence.visibility_label %> • <%= room_evidence.author_name.presence || "Project source" %></small>
+          <% elsif asset.display_meta.present? %>
+            <small><%= asset.display_meta %></small>
+          <% end %>
         <% end %>
       <% end %>
     <% elsif @room_project.present? %>

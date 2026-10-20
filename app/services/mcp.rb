@@ -133,6 +133,16 @@ module Mcp
     # Messaging & Rooms
     Registry.register(Tools::Messaging::ListRoomsTool.new, scopes: %i[all read action])
     Registry.register(Tools::Messaging::SearchRoomsTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetRoomMembersTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetUsersTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetProjectsTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetSingleProjectTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetProjectUsersTool.new, scopes: %i[all read action])
+    Registry.register(Tools::Messaging::GetUserProjectsTool.new, scopes: %i[all read action])
+    Registry.register(Tools::RoomContext::RoomDecisionContextTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomEvidenceTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomEconomicsTool.new, scopes: %i[all read])
+    Registry.register(Tools::RoomContext::RoomContextSummaryTool.new, scopes: %i[all read])
     Registry.register(Tools::Messaging::AddMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::DeleteMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::AddLoadingMessageTool.new, scopes: %i[all action])
@@ -177,6 +187,9 @@ module Mcp
       Tools::Topics::CreateTopicTool.new,
       Tools::Topics::UpdateTopicTool.new,
       Tools::Topics::DeleteTopicTool.new,
+      Tools::Topics::RoomTopicTreeTool.new,
+      Tools::Topics::SearchTopicsTool.new,
+      Tools::Topics::SearchMessagesOfRoomTool.new,
       Tools::Topics::MessageAnalysisTool.new,
       Tools::Topics::GetMessageAnalysisTool.new,
       Tools::Topics::CreateMessageAnalysisTool.new,

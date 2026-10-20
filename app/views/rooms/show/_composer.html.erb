@@ -11,6 +11,18 @@
         <div class="flex flex-column">
           <div class="composer__filelist flex flex--align-center gap flex-wrap" data-composer-target="fileList"></div>
 
+          <div class="composer__mode-switch" role="radiogroup" aria-label="Choose message mode">
+            <button type="button" class="composer__mode-toggle is-active" data-action="composer#selectMode" data-mode-value="message" aria-pressed="true">
+              Message to room
+            </button>
+            <button type="button" class="composer__mode-toggle" data-action="composer#selectMode" data-mode-value="ask" aria-pressed="false">
+              Ask PWR about this room
+            </button>
+          </div>
+
+          <%= form.radio_button :mode, "message", checked: true, class: "composer__mode-radio", data: { composer_target: "modeField" } %>
+          <%= form.radio_button :mode, "ask", class: "composer__mode-radio", data: { composer_target: "modeField" } %>
+
           <div class="flex composer__input input input--actor fill-white min-width" style="--input-border-radius: 1.3rem">
             <div class="flex align-end gap full-width">
               <span class="composer__input-hint composer__emoji-icon" aria-hidden="true" style="view-transition-name: input-btn;">💬</span>

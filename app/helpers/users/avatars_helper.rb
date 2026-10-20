@@ -18,13 +18,11 @@ module Users::AvatarsHelper
     end
   end
 
-  # Polymorphic avatar tag that handles both User and Agent
+  # Polymorphic avatar tag for participants that are currently user-backed
   def participant_avatar_tag(participant, **options)
     case participant
     when User
       avatar_tag(participant, **options)
-    when Agent
-      agent_avatar_tag(participant, **options)
     else
       content_tag :span, "?", class: "btn avatar avatar--unknown", title: "Unknown"
     end

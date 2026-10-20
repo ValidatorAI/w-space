@@ -16,7 +16,6 @@ class Membership < ApplicationRecord
 
   # Scopes for filtering by participant type
   scope :users, -> { where(participant_type: "User") }
-  scope :agents, -> { where(participant_type: "Agent") }
 
   def read
     update!(unread_at: nil)
@@ -29,10 +28,6 @@ class Membership < ApplicationRecord
   # Backwards compatibility helpers
   def user
     participant if participant_type == "User"
-  end
-
-  def agent
-    participant if participant_type == "Agent"
   end
 
   private

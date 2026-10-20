@@ -15,6 +15,96 @@ class RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "show renders room composer mode selector for message and AI ask actions" do
+    room = users(:david).rooms.last
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select ".composer__mode-toggle", text: /Message to room/i
+    assert_select ".composer__mode-toggle", text: /Ask PWR about this room/i
+    assert_select "input[name='message[mode]'][value='message']", 1
+    assert_select "input[name='message[mode]'][value='ask']", 1
+  end
+
+  test "show renders a review modal for pending room decisions" do
+    project = Project.create!(path: "/tmp/room-review-modal-project-#{SecureRandom.uuid}", name: "Review Modal Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Decision Review", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+    room.approval_requests.create!(
+      request_type: "decision",
+      payload: {
+        "decision" => "Ship the onboarding flow",
+        "summary" => "This reduces user churn by removing friction before first value.",
+        "options" => [
+          { "label" => "Option A", "value" => "Ship the onboarding flow" },
+          { "label" => "Option B", "value" => "Keep the current flow" }
+        ]
+      },
+      status: :pending
+    )
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select "dialog[aria-label='Review decision']", 1
+    assert_select "button", text: "Review decision"
+    assert_select "dialog", text: /Human decision required/i
+  end
+
+  test "show renders room evidence cards with room-specific summary metadata" do
+    project = Project.create!(path: "/tmp/room-evidence-project-#{SecureRandom.uuid}", name: "Evidence Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Evidence Room", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+
+    asset = project.external_assets.create!(
+      title: "Launch brief",
+      source_type: "external_url",
+      url: "https://example.com/brief",
+      meta_text: "Q3 review"
+    )
+    item = project.knowledge_items.create!(
+      title: "Customer insight",
+      description: "Users want a simpler onboarding flow.",
+      badge: "Research"
+    )
+    RoomEvidence.create!(room: room, project_external_asset: asset, summary: "Relevant to this room decision")
+    RoomEvidence.create!(room: room, project_knowledge_item: item, summary: "Used in the room narrative")
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select "h2", text: /Artifacts and evidence/i
+    assert_select ".workspace-room__artifact-card", text: /Launch brief/i
+    assert_select ".workspace-room__knowledge-list", text: /Customer insight/i
+    assert_select ".workspace-room__artifact-card", text: /Relevant to this room decision/i
+    assert_select "small", text: /Updated|Recent|Fresh|Project scoped/i
+  end
+
+  test "show renders room economics and risk framing for active decision rooms" do
+    project = Project.create!(path: "/tmp/room-economics-project-#{SecureRandom.uuid}", name: "Economics Project")
+    room = project.rooms.create!(type: "Rooms::Project", name: "Economics Room", creator: users(:david))
+    room.memberships.grant_to(users(:david))
+    decision = project.adrs.create!(identifier: "ADR-ECON-001", title: "Use a guided build", decision_date: Date.current, status: "accepted")
+    decision_room = DecisionRoom.create!(room: room, project_adr: decision)
+    DecisionRoomEconomics.create!(
+      decision_room: decision_room,
+      research_effort: 3,
+      guided_build_effort: 1,
+      expected_learning_value: 8,
+      risk_level: "medium",
+      risk_note: "Shallow validation risk remains if the user flow is wrong."
+    )
+
+    get room_url(room)
+
+    assert_response :success
+    assert_select ".room-context-rail__section", text: /ECONOMICS & RISK/i
+    assert_select ".room-context-rail__section", text: /Research round effort/i
+    assert_select ".room-context-rail__section", text: /Guided build effort/i
+    assert_select ".room-context-rail__section", text: /Medium risk/i
+  end
+
   test "shows records the last room visited in a cookie" do
     get room_url(users(:david).rooms.last)
     assert response.cookies[:last_room] = users(:david).rooms.last.id

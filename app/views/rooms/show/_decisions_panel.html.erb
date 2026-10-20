@@ -7,6 +7,7 @@
     <div class="workspace-room__decision-cards">
       <%= render partial: "approval_requests/card", collection: @open_decision_requests, as: :approval_request %>
     </div>
+    <%= render partial: "approval_requests/review_modal", collection: @open_decision_requests, as: :approval_request %>
   <% else %>
     <p class="workspace-room__empty">No pending decision approvals in this room right now.</p>
   <% end %>

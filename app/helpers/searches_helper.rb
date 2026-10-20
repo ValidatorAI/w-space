@@ -9,4 +9,11 @@ module SearchesHelper
       search_results_formatted_class: "message--formatted"
     }, &
   end
+
+  def char_truncate(text, max_chars)
+    value = text.to_s
+    return value if value.length <= max_chars
+
+    "#{value[0, max_chars].rstrip}..."
+  end
 end

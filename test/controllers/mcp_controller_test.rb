@@ -148,4 +148,43 @@ class McpControllerTest < ActionDispatch::IntegrationTest
       assert data.dig("result", "tools").is_a?(Array)
     end
   end
+
+  test "all native MCP routes expose every tool and dispatch tool calls without transport failures" do
+    route_to_scope = {
+      "/mcp" => :all,
+      "/action-mcp" => :action,
+      "/read-mcp" => :read,
+      "/knowledge-mcp" => :knowledge,
+      "/task-mcp" => :task
+    }
+
+    route_to_scope.each do |endpoint, scope|
+      post endpoint,
+           params: { jsonrpc: "2.0", id: "list_#{scope}", method: "tools/list", params: {} }.to_json,
+           headers: { "Content-Type" => "application/json" }
+
+      assert_response :success, "Expected #{endpoint} to respond successfully to tools/list"
+      data = response.parsed_body
+      tools = data.dig("result", "tools") || []
+      assert tools.is_a?(Array), "Expected #{endpoint} to return an array of tools"
+      assert tools.any?, "Expected #{endpoint} to expose at least one tool"
+
+      tools.each do |tool|
+        tool_name = tool["name"]
+        post endpoint,
+             params: {
+               jsonrpc: "2.0",
+               id: "call_#{scope}_#{tool_name}",
+               method: "tools/call",
+               params: { name: tool_name, arguments: {} }
+             }.to_json,
+             headers: { "Content-Type" => "application/json" }
+
+        assert_response :success, "Expected #{endpoint} to dispatch #{tool_name} without HTTP failure"
+        payload = response.parsed_body
+        assert payload.key?("jsonrpc"), "Expected JSON-RPC envelope from #{endpoint} for #{tool_name}"
+        assert payload.key?("result") || payload.key?("error"), "Expected either a result or error payload for #{endpoint} #{tool_name}"
+      end
+    end
+  end
 end

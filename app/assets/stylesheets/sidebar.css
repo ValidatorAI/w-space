@@ -28,15 +28,6 @@
   }
 }
 
-.sidebar__bottom-row {
-  align-items: center;
-  background: var(--surface);
-  border-top: 1px solid color-mix(in oklab, var(--color-text), transparent 90%);
-  display: flex;
-  gap: 0.75rem;
-  justify-content: space-between;
-  padding: 0.5rem var(--sidebar-inline-space) calc(var(--block-space) * 1.2);
-}
 
 .sidebar__tool--contacts,
 .sidebar__tool--settings {
@@ -364,10 +355,15 @@
   align-items: center;
   cursor: pointer;
   display: flex;
+  gap: 0.5rem;
   justify-content: space-between;
   list-style: none;
   margin: 0;
   user-select: none;
+}
+
+.sidebar-direct-messages__summary > span {
+  flex: 1;
 }
 
 .sidebar-direct-messages__summary::-webkit-details-marker,
@@ -377,9 +373,47 @@
 
 .sidebar-direct-messages__summary::after {
   color: color-mix(in oklab, var(--color-text), transparent 45%);
-  content: "▾";
+  content: none;
   font-size: 0.72rem;
   transition: transform 150ms ease;
+}
+
+.sidebar-direct-messages__add-btn {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-border-radius: 999px;
+  --btn-border-size: 0;
+  --btn-padding: 0.08em 0.18em;
+
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  margin-inline-start: auto;
+  min-inline-size: auto;
+  padding: 0.08em 0.18em !important;
+}
+
+.sidebar-direct-messages__add-btn span {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.sidebar-direct-messages__add-btn:hover,
+.sidebar-direct-messages__add-btn:focus,
+.sidebar-direct-messages__add-btn:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #adc0d0 !important;
 }
 
 .sidebar-direct-messages:not([open]) > .sidebar-direct-messages__summary::after {

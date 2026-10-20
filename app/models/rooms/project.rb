@@ -7,11 +7,6 @@ class Rooms::Project < Room
     "mentions"
   end
 
-  def auto_join_agent(agent)
-    memberships.grant_to(agent)
-    SystemMessage.agent_joined(room: self, agent: agent)
-  end
-
   def auto_join_user(user)
     memberships.grant_to(user)
   end

@@ -20,7 +20,9 @@ class MessagesController < ApplicationController
 
   def create
     set_room
-    @message = @room.messages.create_with_attachment!(message_params)
+    params_to_create = message_params
+    @message_mode = params_to_create.delete(:mode).to_s
+    @message = @room.messages.create_with_attachment!(params_to_create)
 
     @message.broadcast_create
     record_created_message_events
@@ -98,7 +100,7 @@ class MessagesController < ApplicationController
 
 
     def message_params
-      params.require(:message).permit(:body, :attachment, :client_message_id)
+      params.require(:message).permit(:body, :attachment, :client_message_id, :mode)
     end
 
     def record_created_message_events
@@ -126,7 +128,10 @@ class MessagesController < ApplicationController
       end
 
       bot_ids = bot_recipients_for(@message)
-      return if !@message.from_user? || bot_ids.empty?
+      return if !@message.from_user?
+
+      should_record_ai_question = (@message_mode == "ask") || bot_ids.present?
+      return unless should_record_ai_question
 
       OutputEvents::Recorder.record(
         event_type: "ai_question_asked",
@@ -134,7 +139,7 @@ class MessagesController < ApplicationController
         group_id: group_id,
         actor: @message.creator,
         target_type: "Message",
-        data: { "room_id" => @room.id, "bot_user_ids" => bot_ids }
+        data: { "room_id" => @room.id, "bot_user_ids" => bot_ids, "mode" => @message_mode.presence || "message" }
       )
     end
 
@@ -143,7 +148,6 @@ class MessagesController < ApplicationController
       recipients = @room.users.active_bots if @room.direct?
       recipients.pluck(:id)
     end
-
 
     def serialize_message(message)
       {

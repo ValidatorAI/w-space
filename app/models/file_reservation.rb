@@ -1,6 +1,5 @@
 class FileReservation < ApplicationRecord
   belongs_to :project
-  belongs_to :agent
 
   validates :patterns, presence: true
   validates :expires_at, presence: true
@@ -73,20 +72,22 @@ class FileReservation < ApplicationRecord
   def broadcast_acquired
     return unless project.project_room
 
-    SystemMessage.reservation_acquired(
+    SystemMessage.post(
       room: project.project_room,
-      agent: agent,
-      patterns: patterns
+      type: :reservation_acquired,
+      mirror_to_meta: false,
+      data: { patterns: Array(patterns).join(", ") }
     )
   end
 
   def broadcast_released
     return unless project.project_room
 
-    SystemMessage.reservation_released(
+    SystemMessage.post(
       room: project.project_room,
-      agent: agent,
-      patterns: patterns
+      type: :reservation_released,
+      mirror_to_meta: false,
+      data: { patterns: Array(patterns).join(", ") }
     )
   end
 end

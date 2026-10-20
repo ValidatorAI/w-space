@@ -29,7 +29,15 @@ module Api
       room = Room.find_by(id: params[:room_id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
-      room_history_topic = RoomHistoryTopic.new(room: room, created_date: parse_datetime(params[:created_date]), last_state: params[:last_state])
+      topic = Topic.find_by(id: params[:topic_id])
+      return render json: { error: "Topic not found" }, status: :not_found unless topic
+
+      room_history_topic = RoomHistoryTopic.new(
+        room: room,
+        topic: topic,
+        created_date: parse_datetime(params[:created_date]),
+        last_state: params[:last_state]
+      )
       unless room_history_topic.save
         return render json: { error: room_history_topic.errors.full_messages.to_sentence }, status: :unprocessable_entity
       end
@@ -46,6 +54,13 @@ module Api
         return render json: { error: "Room not found" }, status: :not_found if params[:room_id].present? && room.nil?
 
         room_history_topic.room = room if room
+      end
+
+      if params[:topic_id].present? || params.key?(:topic_id)
+        topic = Topic.find_by(id: params[:topic_id])
+        return render json: { error: "Topic not found" }, status: :not_found if params[:topic_id].present? && topic.nil?
+
+        room_history_topic.topic = topic if topic
       end
 
       room_history_topic.created_date = parse_datetime(params[:created_date]) if params.key?(:created_date)
@@ -73,6 +88,10 @@ module Api
 
       if params[:room_id].present?
         scope = scope.where(room_id: params[:room_id])
+      end
+
+      if params[:topic_id].present?
+        scope = scope.where(topic_id: params[:topic_id])
       end
 
       if params[:created_date].present?

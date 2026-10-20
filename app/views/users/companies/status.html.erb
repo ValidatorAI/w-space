@@ -58,6 +58,17 @@
          data-company-status-periods-value="<%= json_escape((@periods_payload || {}).to_json) %>"
          data-company-status-selected-period-value="<%= @selected_period&.slug.presence || 'august-2026' %>"
          data-action="keydown.esc@window->company-status#closeDrawer">
+      <div class="company-status-header">
+        <h1>Shared Direction &amp; Status</h1>
+        <%= form_with url: user_company_status_path(user_id: "me"), method: :get, class: "company-status-period-picker" do %>
+          <label for="company-month-selector" class="sr-only">Select reporting period</label>
+          <select id="company-month-selector" name="period">
+            <% @periods.each do |period| %>
+              <option value="<%= period.slug %>" <%= "selected" if period == @selected_period %>><%= period.name %></option>
+            <% end %>
+          </select>
+        <% end %>
+      </div>
       <div class="company-status-content" id="company-status-content" data-company-status-target="content">
         <div class="company-card company-card-full">
           <div class="company-card-header">

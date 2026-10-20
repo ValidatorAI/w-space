@@ -40,6 +40,14 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#shared_rooms", count: 0
   end
 
+  test "direct-message summary exposes a plus action and the footer row is gone" do
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select ".sidebar__bottom-row", count: 0
+    assert_select "summary.sidebar-direct-messages__summary button.sidebar-direct-messages__add-btn[data-action='click->direct-contacts-modal#open']", count: 1
+  end
+
   test "unread directs" do
     rooms(:david_and_jason).messages.create! client_message_id: 999, body: "Hello", creator: users(:jason)
 

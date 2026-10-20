@@ -1,5 +1,7 @@
 class ProjectAdr < ApplicationRecord
   belongs_to :project
+  has_many :decision_rooms, dependent: :destroy
+  has_many :rooms, through: :decision_rooms
 
   validates :identifier, presence: true
   validates :title, presence: true

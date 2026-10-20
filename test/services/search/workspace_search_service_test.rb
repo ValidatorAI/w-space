@@ -1,6 +1,6 @@
 require "test_helper"
 
-class Search::WorkspaceSearchServiceTest < ActiveSupport::TestCase
+class Searches::WorkspaceSearchServiceTest < ActiveSupport::TestCase
   test "fuzzy workspace search matches room and message data and sorts newest first" do
     room = rooms(:designers)
     room.update!(name: "Revenue planning room")
@@ -8,7 +8,7 @@ class Search::WorkspaceSearchServiceTest < ActiveSupport::TestCase
     older_message = room.messages.create!(body: "The team reviewed last quarter revenue", client_message_id: "old-revenue", creator: users(:david))
     newer_message = room.messages.create!(body: "Latest revenue forecast is up 12%", client_message_id: "new-revenue", creator: users(:david))
 
-    results = Search::WorkspaceSearchService.new(user: users(:david), query: "revenue", page: 1, per_page: 10).call
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "revenue", page: 1, per_page: 10).call
 
     assert_operator results.size, :>=, 2
     assert_includes results.map { |result| result[:title] }, "Revenue planning room"
@@ -23,8 +23,34 @@ class Search::WorkspaceSearchServiceTest < ActiveSupport::TestCase
       room.messages.create!(body: "Revenue search result #{index}", client_message_id: "preview-#{index}", creator: users(:david))
     end
 
-    results = Search::WorkspaceSearchService.new(user: users(:david), query: "revenue", page: 1, per_page: 5).call
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "revenue", page: 1, per_page: 5).call
 
     assert_equal 5, results.size
+  end
+
+  test "search includes project-backed knowledge and ADR entities" do
+    project = Project.create!(name: "Platform rollout", path: "/tmp/platform-rollout", slug: "platform-rollout", short_code: "PR")
+    users(:david).projects << project
+    project.knowledge_items.create!(title: "Launch checklist", description: "Review rollout readiness and customer comms")
+    project.adrs.create!(identifier: "ADR-120", title: "Rollout approach", status: "proposed")
+
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "rollout", page: 1, per_page: 10).call
+
+    assert_operator results.size, :>=, 2
+    assert_includes results.map { |result| result[:title] }, "Launch checklist"
+    assert_includes results.map { |result| result[:title] }, "Rollout approach"
+  end
+
+  test "project-backed results include real navigation links" do
+    project = Project.create!(name: "Platform rollout", path: "/tmp/platform-rollout", slug: "platform-rollout", short_code: "PR")
+    users(:david).projects << project
+    project.todos.create!(title: "Ship launch checklist", meta_text: "Due this week")
+
+    results = Searches::WorkspaceSearchService.new(user: users(:david), query: "launch", page: 1, per_page: 10).call
+    todo_result = results.find { |result| result[:type] == "todo" }
+
+    assert_not_nil todo_result
+    assert_not_equal "#", todo_result[:url]
+    assert_match %r{/company/projects/#{project.id}/status$}, todo_result[:url]
   end
 end

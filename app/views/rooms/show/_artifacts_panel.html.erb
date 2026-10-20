@@ -15,13 +15,21 @@
                     user_company_project_knowledge_file_path(user_id: "me", id: @room_project.id, path: asset.url)
                   end %>
           <% turbo_options = asset.external_source? ? { turbo: false } : { turbo: false, turbo_frame: "_top" } %>
+          <% room_evidence = asset.room_provenance_for(@room) %>
+          <% room_summary = asset.room_summary_for(@room) %>
           <%= link_to href,
                 class: "workspace-room__artifact-card",
                 target: ("_blank" if asset.external_source?),
                 rel: ("noopener noreferrer" if asset.external_source?),
                 data: turbo_options do %>
             <strong><%= asset.title %></strong>
-            <span><%= asset.doc_type.presence || "Reference" %></span>
+            <span><%= asset.display_type %></span>
+            <% provenance = room_evidence&.provenance_summary.presence || asset.display_meta.presence || (asset.external_source? ? "External source" : "Project source") %>
+            <% if room_summary.present? %>
+              <small><%= room_summary %> • <%= provenance %></small>
+            <% else %>
+              <small><%= provenance %></small>
+            <% end %>
           <% end %>
         <% end %>
       </div>
@@ -35,7 +43,13 @@
         <% @artifact_knowledge_items.each do |item| %>
           <li>
             <strong><%= item.title %></strong>
-            <span><%= item.description.truncate(180) %></span>
+            <span class="workspace-room__knowledge-badge"><%= item.display_badge %></span>
+            <% room_evidence = item.room_provenance_for(@room) %>
+            <% summary = item.room_summary_for(@room) %>
+            <span><%= summary.to_s.truncate(180) %></span>
+            <% if room_evidence.present? %>
+              <small><%= room_evidence.freshness_label %> • <%= room_evidence.visibility_label %> • <%= room_evidence.author_name.presence || "Project source" %></small>
+            <% end %>
           </li>
         <% end %>
       </ul>
