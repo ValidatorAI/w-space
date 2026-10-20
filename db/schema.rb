@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_16_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -647,8 +647,11 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_16_000000) do
     t.datetime "created_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.text "last_state"
     t.integer "room_id", null: false
+    t.integer "topic_id"
     t.datetime "updated_at", null: false
+    t.index ["room_id", "topic_id"], name: "index_room_history_topics_on_room_id_and_topic_id"
     t.index ["room_id"], name: "index_room_history_topics_on_room_id"
+    t.index ["topic_id"], name: "index_room_history_topics_on_topic_id"
   end
 
   create_table "rooms", force: :cascade do |t|
@@ -814,6 +817,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_16_000000) do
   add_foreign_key "room_evidences", "project_knowledge_items"
   add_foreign_key "room_evidences", "rooms"
   add_foreign_key "room_history_topics", "rooms"
+  add_foreign_key "room_history_topics", "topics"
   add_foreign_key "rooms", "projects"
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"

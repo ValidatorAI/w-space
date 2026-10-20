@@ -749,7 +749,15 @@ module Mcp
         def name = "room_history_topics"
         def description = "List or get room history topics"
         def aliases = %w[list_room_history_topics RoomHistoryTopics room_history]
-        def input_schema = { type: "object", properties: { room_history_topic_id: { type: %w[string integer] }, id: { type: %w[string integer] }, room_id: { type: %w[string integer] } } }
+        def input_schema = {
+          type: "object",
+          properties: {
+            room_history_topic_id: { type: %w[string integer] },
+            id: { type: %w[string integer] },
+            room_id: { type: %w[string integer] },
+            topic_id: { type: %w[string integer] }
+          }
+        }
 
         def execute(args)
           target_id = args[:room_history_topic_id].presence || args[:id]
@@ -759,6 +767,7 @@ module Mcp
 
           scope = RoomHistoryTopic.all
           scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
+          scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
           success(paginate(scope.order(created_at: :desc), args).map(&:as_json))
         end
       end
@@ -780,11 +789,20 @@ module Mcp
         def name = "create_room_history_topic"
         def description = "Create room history topic"
         def aliases = ["CreateRoomHistoryTopic"]
-        def input_schema = { type: "object", properties: { room_id: { type: %w[string integer] }, last_state: { type: "string" }, created_date: { type: "string" } }, required: ["room_id"] }
+        def input_schema = {
+          type: "object",
+          properties: {
+            room_id: { type: %w[string integer] },
+            topic_id: { type: %w[string integer] },
+            last_state: { type: "string" },
+            created_date: { type: "string" }
+          },
+          required: ["room_id", "topic_id"]
+        }
 
         def execute(args)
           c_date = args[:created_date].present? ? Time.zone.parse(args[:created_date].to_s) : Time.current
-          success(RoomHistoryTopic.create!(room_id: args[:room_id], last_state: args[:last_state], created_date: c_date).as_json)
+          success(RoomHistoryTopic.create!(room_id: args[:room_id], topic_id: args[:topic_id], last_state: args[:last_state], created_date: c_date).as_json)
         end
       end
 
@@ -792,14 +810,28 @@ module Mcp
         def name = "update_room_history_topic"
         def description = "Update room history topic"
         def aliases = ["UpdateRoomHistoryTopic"]
-        def input_schema = { type: "object", properties: { room_history_topic_id: { type: %w[string integer] }, id: { type: %w[string integer] }, last_state: { type: "string" } } }
+        def input_schema = {
+          type: "object",
+          properties: {
+            room_history_topic_id: { type: %w[string integer] },
+            id: { type: %w[string integer] },
+            room_id: { type: %w[string integer] },
+            topic_id: { type: %w[string integer] },
+            last_state: { type: "string" },
+            created_date: { type: "string" }
+          }
+        }
 
         def execute(args)
           target_id = args[:room_history_topic_id].presence || args[:id]
           raise ArgumentError, "room_history_topic_id is required" if target_id.blank?
 
           rht = RoomHistoryTopic.find(target_id)
-          rht.update!(last_state: args[:last_state])
+          rht.room = Room.find(args[:room_id]) if args[:room_id].present?
+          rht.topic = Topic.find(args[:topic_id]) if args[:topic_id].present?
+          rht.created_date = Time.zone.parse(args[:created_date].to_s) if args[:created_date].present?
+          rht.last_state = args[:last_state] if args.key?(:last_state)
+          rht.save!
           success(rht.as_json)
         end
       end

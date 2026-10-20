@@ -29,7 +29,7 @@ class Api::TopicRelatedEntitiesControllerTest < ActionDispatch::IntegrationTest
     )
 
     @message_topic = MessageTopic.create!(topic: @topic, message: @message, created_date: Time.current)
-    @room_history_topic = RoomHistoryTopic.create!(room: @room, last_state: "open", created_date: Time.current)
+    @room_history_topic = RoomHistoryTopic.create!(room: @room, topic: @topic, last_state: "open", created_date: Time.current)
   end
 
   teardown do

@@ -68,8 +68,10 @@ class TopicsAndTasksEnhancementTest < ActiveSupport::TestCase
   end
 
   test "room history topic tools including get and update" do
+    topic = Topic.create!(name: "Architecture Review", project: @project, active: true, need_an_action: false)
+
     create_tool = Mcp::Registry.find_tool("create_room_history_topic", scope: :action)
-    res = create_tool.call(room_id: @room.id, last_state: "Active discussion")
+    res = create_tool.call(room_id: @room.id, topic_id: topic.id, last_state: "Active discussion")
     assert_equal false, res[:isError]
 
     rht = RoomHistoryTopic.last
@@ -80,9 +82,35 @@ class TopicsAndTasksEnhancementTest < ActiveSupport::TestCase
     assert_includes res_get[:content].first[:text], "Active discussion"
 
     update_tool = Mcp::Registry.find_tool("update_room_history_topic", scope: :action)
-    res_up = update_tool.call(room_history_topic_id: rht.id, last_state: "Resolved")
+    res_up = update_tool.call(room_history_topic_id: rht.id, topic_id: topic.id, last_state: "Resolved")
     assert_equal false, res_up[:isError]
     assert_equal "Resolved", rht.reload.last_state
+  end
+
+  test "room history topic snapshots preserve the real topic_id contract" do
+    topic = Topic.create!(name: "Market Research", project: @project, active: true, need_an_action: false)
+
+    create_tool = Mcp::Registry.find_tool("create_room_history_topic", scope: :action)
+    assert create_tool.present?
+
+    result = create_tool.call(
+      room_id: @room.id,
+      topic_id: topic.id,
+      last_state: "Customer demand is strong; pricing is above target and competitor comparison is required before launch review."
+    )
+
+    assert_equal false, result[:isError]
+
+    snapshot = RoomHistoryTopic.last
+    assert_equal @room.id, snapshot.room_id
+    assert_equal topic.id, snapshot.topic_id
+
+    get_tool = Mcp::Registry.find_tool("get_room_history_topic", scope: :read)
+    payload = get_tool.call(room_history_topic_id: snapshot.id)
+
+    assert_equal false, payload[:isError]
+    body = JSON.parse(payload[:content].first[:text])
+    assert_equal topic.id, body["topic_id"]
   end
 
   test "search_messages_of_room returns newest-first filtered results" do
