@@ -4,7 +4,7 @@ module OutputEvents
       "ProjectKnowledgeItem" => "items",
       "ProjectExternalAsset" => "external-assets",
       "ProjectDirectoryItem" => "directory-items",
-      "ProjectObsidianNote" => "obsidian-notes",
+      "ProjectNote" => "notes",
       "ProjectKnowledgeActivity" => "activities",
       "ProjectAdr" => "adrs"
     }.freeze
@@ -13,7 +13,7 @@ module OutputEvents
       "knowledge_item_id" => "items",
       "external_asset_id" => "external-assets",
       "directory_item_id" => "directory-items",
-      "obsidian_note_id" => "obsidian-notes",
+      "note_id" => "notes",
       "knowledge_activity_id" => "activities",
       "adr_id" => "adrs"
     }.freeze

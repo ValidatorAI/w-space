@@ -257,8 +257,8 @@ Rails.application.routes.draw do
       resources :knowledge_activities, only: %i[ index show create update destroy ], controller: "project_knowledge_activities"
       resources :project_directory_items, only: %i[ index show create update destroy ]
       resources :directory_items, only: %i[ index show create update destroy ], controller: "project_directory_items"
-      resources :project_obsidian_notes, only: %i[ index show create update destroy ]
-      resources :obsidian_notes, only: %i[ index show create update destroy ], controller: "project_obsidian_notes"
+      resources :project_notes, only: %i[ index show create update destroy ]
+      resources :notes, only: %i[ index show create update destroy ], controller: "project_notes"
       resources :project_bottlenecks, only: %i[ index show create update destroy ]
       resources :bottlenecks, only: %i[ index show create update destroy ], controller: "project_bottlenecks"
       resources :project_todos, only: %i[ index show create update destroy ]

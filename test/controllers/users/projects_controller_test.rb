@@ -351,19 +351,19 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
 
   test "knowledge" do
     project = create_project_for(users(:david))
-    project.obsidian_notes.create!(
+    project.notes.create!(
       title: "Smart Contract Vault (V1)",
       tags: "#architecture #smart-contracts",
       content: "Core vault logic.",
       html_source_type: "internal_file",
-      html_source_path: "obsidian/graph.html"
+      html_source_path: "notes/graph.html"
     )
-    project.obsidian_notes.create!(
+    project.notes.create!(
       title: "Archived Vault",
       tags: "#archived",
       content: "Old note.",
       html_source_type: "internal_file",
-      html_source_path: "obsidian/archived.html",
+      html_source_path: "notes/archived.html",
       active: false
     )
     project.adrs.create!(
@@ -442,11 +442,11 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match project.display_name, @response.body
     assert_match "Knowledge Base", @response.body
-    assert_match "Networked Notes (Obsidian Sync)", @response.body
-    assert_match "id=\"obsidian-container\"", @response.body
-    assert_match "class=\"obsidian-iframe\"", @response.body
-    assert_match "path=obsidian%2Fgraph.html", @response.body
-    assert_no_match "obsidian/archived.html", @response.body
+    assert_match "Networked Notes", @response.body
+    assert_match "id=\"notes-container\"", @response.body
+    assert_match "class=\"notes-iframe\"", @response.body
+    assert_match "path=notes%2Fgraph.html", @response.body
+    assert_no_match "notes/archived.html", @response.body
     assert_match "External Assets &amp; Playbooks", @response.body
     assert_match "Trail of Bits Audit", @response.body
     assert_match "https://example.com/audit.pdf", @response.body
@@ -481,14 +481,14 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_includes json["rendered_html"], "<li>Mainnet launch</li>"
   end
 
-  test "knowledge does not show obsidian section when project has no obsidian file" do
+  test "knowledge does not show notes section when project has no note file" do
     project = create_project_for(users(:david))
 
     get user_company_project_knowledge_url(id: project.id)
 
     assert_response :success
-    assert_no_match "Networked Notes (Obsidian Sync)", @response.body
-    assert_no_match "obsidian-container", @response.body
+    assert_no_match "Networked Notes", @response.body
+    assert_no_match "notes-container", @response.body
     assert_match "No files or directories found in this project.", @response.body
     assert_match "No decision records found in this project.", @response.body
     assert_match "No recent knowledge activity found in this project.", @response.body

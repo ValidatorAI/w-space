@@ -487,14 +487,14 @@ if b2b_project.project_all_hands_takeaways.empty? && b2b_project.project_all_han
   ])
 end
 
-if b2b_project.obsidian_notes.empty?
-  b2b_project.obsidian_notes.create!([
+if b2b_project.notes.empty?
+  b2b_project.notes.create!([
     {
       title: "Smart Contract Vault (V1)",
       tags: "#architecture #smart-contracts",
       content: "This document outlines the core vault logic for the institutional liquidity settlement layer. The vault is designed to hold collateral securely while allowing sub-second state channels to finalize.\n\n**Dependencies:** We are relying heavily on the updated [[ERC-4337 Gas Optimization]] patterns discussed in last week's sync.\n\n### Security Clearances\nAs per the decision logged in the [[August 17 All-Hands]], the mainnet deployment requires a [[Multi-Sig Threshold]] of 3-of-5.",
       html_source_type: "internal_file",
-      html_source_path: "obsidian/graph.html",
+      html_source_path: "notes/graph.html",
       position: 1
     }
   ])

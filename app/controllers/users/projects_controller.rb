@@ -116,8 +116,8 @@ class Users::ProjectsController < ApplicationController
   end
 
   def knowledge
-    @obsidian_notes = @project.obsidian_notes.active.ordered
-    @primary_note = @obsidian_notes.first
+    @notes = @project.notes.active.ordered
+    @primary_note = @notes.first
     @external_assets = @project.external_assets.active.ordered
     @adrs = @project.adrs.active.ordered
     @knowledge_activities = @project.knowledge_activities.active.ordered
