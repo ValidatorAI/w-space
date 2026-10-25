@@ -1,7 +1,7 @@
 module Api
   class TasksController < Api::BaseController
     def index
-      tasks = filter_tasks(Task.order(created_at: :desc, id: :desc))
+      tasks = filter_tasks(AiTask.order(created_at: :desc, id: :desc))
 
       render json: {
         count: tasks.count,
@@ -10,14 +10,14 @@ module Api
     end
 
     def show
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       render json: serialize(task)
     end
 
     def create
-      task = Task.new(task_params)
+      task = AiTask.new(task_params)
       if task.save
         render json: serialize(task), status: :created
       else
@@ -26,7 +26,7 @@ module Api
     end
 
     def update
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       if task.update(task_params)
@@ -37,7 +37,7 @@ module Api
     end
 
     def destroy
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       task.destroy
@@ -45,7 +45,7 @@ module Api
     end
 
     def task_cost
-      task = Task.find_by(id: params[:task_id])
+      task = AiTask.find_by(id: params[:task_id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       task.apply_task_cost!(params[:token_used], params[:usd_used])
@@ -53,7 +53,7 @@ module Api
     end
 
     def children
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       descendants = collect_descendants(task)
@@ -64,7 +64,7 @@ module Api
     end
 
     def parents
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       ancestors = collect_ancestors(task)

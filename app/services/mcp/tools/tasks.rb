@@ -4,9 +4,9 @@ module Mcp
       class TasksTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
-        def name = "tasks"
-        def description = "List, get, or manage project tasks"
-        def aliases = %w[list_tasks Tasks]
+        def name = "ai_tasks"
+        def description = "List, get, or manage AI tasks"
+        def aliases = %w[tasks list_ai_tasks list_tasks Tasks]
 
         def input_schema
           {
@@ -27,10 +27,10 @@ module Mcp
 
         def execute(args)
           if args[:task_id].present?
-            return success(Task.find(args[:task_id]).as_json)
+            return success(AiTask.find(args[:task_id]).as_json)
           end
 
-          scope = Task.all
+          scope = AiTask.all
           scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
           scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
@@ -44,17 +44,17 @@ module Mcp
       end
 
       class GetTaskTool < Mcp::BaseTool
-        def name = "get_task"
-        def description = "Get a single task by ID"
-        def aliases = ["GetTask"]
+        def name = "get_ai_task"
+        def description = "Get a single AI task by ID"
+        def aliases = %w[get_task GetTask GetAITask]
         def input_schema = { type: "object", properties: { task_id: { type: %w[string integer] } }, required: ["task_id"] }
-        def execute(args) = success(Task.find(args[:task_id]).as_json)
+        def execute(args) = success(AiTask.find(args[:task_id]).as_json)
       end
 
       class CreateTaskTool < Mcp::BaseTool
-        def name = "create_task"
-        def description = "Create a project task"
-        def aliases = ["CreateTask"]
+        def name = "create_ai_task"
+        def description = "Create a project AI task"
+        def aliases = %w[create_task CreateTask CreateAITask]
 
         def input_schema
           {
@@ -78,7 +78,7 @@ module Mcp
         end
 
         def execute(args)
-          task = Task.create!(
+          task = AiTask.create!(
             description: args[:description],
             project_id: args[:project_id],
             room_id: args[:room_id],
@@ -97,9 +97,9 @@ module Mcp
       end
 
       class UpdateTaskTool < Mcp::BaseTool
-        def name = "update_task"
-        def description = "Update a project task"
-        def aliases = ["UpdateTask"]
+        def name = "update_ai_task"
+        def description = "Update a project AI task"
+        def aliases = %w[update_task UpdateTask UpdateAITask]
 
         def input_schema
           {
@@ -117,7 +117,7 @@ module Mcp
         end
 
         def execute(args)
-          task = Task.find(args[:task_id])
+          task = AiTask.find(args[:task_id])
           attrs = {
             description: args[:description],
             adder_profile: args[:adder_profile],
@@ -131,26 +131,25 @@ module Mcp
       end
 
       class DeleteTaskTool < Mcp::BaseTool
-        def name = "delete_task"
-        def description = "Delete a project task"
-        def aliases = ["DeleteTask"]
+        def name = "delete_ai_task"
+        def description = "Delete a project AI task"
+        def aliases = %w[delete_task DeleteTask DeleteAITask]
         def input_schema = { type: "object", properties: { task_id: { type: %w[string integer] } }, required: ["task_id"] }
         def execute(args)
-          t = Task.find(args[:task_id])
+          t = AiTask.find(args[:task_id])
           t.destroy!
           success(status: "deleted", id: t.id)
         end
       end
 
-      # Hierarchy
       class GetTaskChildrenTool < Mcp::BaseTool
-        def name = "get_task_children"
-        def description = "Get all descendant children of a task (recursively)"
-        def aliases = %w[get_all_children_tasks GetTaskChildren]
+        def name = "get_ai_task_children"
+        def description = "Get all descendant children of an AI task (recursively)"
+        def aliases = %w[get_task_children get_all_children_tasks GetTaskChildren GetAITaskChildren]
         def input_schema = { type: "object", properties: { task_id: { type: %w[string integer] } }, required: ["task_id"] }
 
         def execute(args)
-          task = Task.find(args[:task_id])
+          task = AiTask.find(args[:task_id])
           descendants = collect_descendants(task)
           success(descendants.map(&:as_json))
         end
@@ -162,18 +161,18 @@ module Mcp
 
           visited << task.id
           task.child_tasks.flat_map do |child|
-            [ child ] + collect_descendants(child, visited)
+            [child] + collect_descendants(child, visited)
           end
         end
       end
 
       class GetTaskParentsTool < Mcp::BaseTool
-        def name = "get_task_parents"
-        def description = "Get parent hierarchy of a task"
-        def aliases = %w[get_all_parent_tasks GetTaskParents]
+        def name = "get_ai_task_parents"
+        def description = "Get parent hierarchy of an AI task"
+        def aliases = %w[get_task_parents get_all_parent_tasks GetTaskParents GetAITaskParents]
         def input_schema = { type: "object", properties: { task_id: { type: %w[string integer] } }, required: ["task_id"] }
         def execute(args)
-          task = Task.find(args[:task_id])
+          task = AiTask.find(args[:task_id])
           parents = []
           curr = task.parent_task
           while curr
@@ -184,11 +183,10 @@ module Mcp
         end
       end
 
-      # Task Cost
       class TaskCostTool < Mcp::BaseTool
-        def name = "task_cost"
-        def description = "Update token and USD costs for a task and roll up to ancestors"
-        def aliases = %w[update_task_cost TaskCost]
+        def name = "ai_task_cost"
+        def description = "Update token and USD costs for an AI task and roll up to ancestors"
+        def aliases = %w[task_cost update_task_cost TaskCost AITaskCost]
 
         def input_schema
           {
@@ -203,7 +201,7 @@ module Mcp
         end
 
         def execute(args)
-          task = Task.find(args[:task_id])
+          task = AiTask.find(args[:task_id])
           task.apply_task_cost!(args[:token_used], args[:usd_used])
           success(task.as_json)
         end

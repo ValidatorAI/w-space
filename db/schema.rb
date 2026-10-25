@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_25_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_10_25_010000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -114,6 +114,31 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_25_000001) do
     t.string "label"
     t.integer "setting_value"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "ai_tasks", force: :cascade do |t|
+    t.boolean "added_to_kanban", default: false, null: false
+    t.text "adder_profile"
+    t.text "assigneee_profile"
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.integer "grand_parent_id"
+    t.integer "importance", default: 0, null: false
+    t.integer "level", default: 0, null: false
+    t.integer "parent_task_id"
+    t.integer "project_id"
+    t.integer "room_id"
+    t.boolean "runned", default: false, null: false
+    t.integer "token_budget"
+    t.integer "token_used"
+    t.datetime "updated_at", null: false
+    t.float "usd_budget"
+    t.float "usd_usage"
+    t.float "usd_used"
+    t.index ["grand_parent_id"], name: "index_ai_tasks_on_grand_parent_id"
+    t.index ["parent_task_id"], name: "index_ai_tasks_on_parent_task_id"
+    t.index ["project_id"], name: "index_ai_tasks_on_project_id"
+    t.index ["room_id"], name: "index_ai_tasks_on_room_id"
   end
 
   create_table "approval_request_actions", force: :cascade do |t|
@@ -699,31 +724,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_25_000001) do
     t.string "name", null: false
     t.text "skill_text"
     t.datetime "updated_at", null: false
-  end
-
-  create_table "tasks", force: :cascade do |t|
-    t.boolean "added_to_kanban", default: false, null: false
-    t.text "adder_profile"
-    t.text "assigneee_profile"
-    t.datetime "created_at", null: false
-    t.text "description", null: false
-    t.integer "grand_parent_id"
-    t.integer "importance", default: 0, null: false
-    t.integer "level", default: 0, null: false
-    t.integer "parent_task_id"
-    t.integer "project_id"
-    t.integer "room_id"
-    t.boolean "runned", default: false, null: false
-    t.integer "token_budget"
-    t.integer "token_used"
-    t.datetime "updated_at", null: false
-    t.float "usd_budget"
-    t.float "usd_usage"
-    t.float "usd_used"
-    t.index ["grand_parent_id"], name: "index_tasks_on_grand_parent_id"
-    t.index ["parent_task_id"], name: "index_tasks_on_parent_task_id"
-    t.index ["project_id"], name: "index_tasks_on_project_id"
-    t.index ["room_id"], name: "index_tasks_on_room_id"
   end
 
   create_table "tools", force: :cascade do |t|
