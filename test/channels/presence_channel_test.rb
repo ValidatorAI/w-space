@@ -48,4 +48,12 @@ class PresenceChannelTest < ActionCable::Channel::TestCase
       unsubscribe
     end
   end
+
+  test "rejects subscription when current_user is nil" do
+    stub_connection(current_user: nil)
+
+    subscribe room_id: users(:david).rooms.first.id
+
+    assert subscription.rejected?
+  end
 end
