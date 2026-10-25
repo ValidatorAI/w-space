@@ -357,6 +357,164 @@ module Mcp
         end
       end
 
+      class TopicToolCallLogsTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "topic_tool_call_logs"
+        def description = "List topic tool call log entries with filters for topic, room, project, and date range"
+        def aliases = %w[TopicToolCallLogs topic_tool_call_log]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              topic_tool_call_log_id: { type: %w[string integer] },
+              topic_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
+              project_id: { type: %w[string integer] },
+              used_tool_name: { type: "string" },
+              start_date: { type: "string" },
+              end_date: { type: "string" },
+              page: { type: "integer" },
+              per_page: { type: "integer" }
+            }
+          }
+        end
+
+        def execute(args)
+          if args[:topic_tool_call_log_id].present?
+            return success(TopicToolCallLog.find(args[:topic_tool_call_log_id]).as_json)
+          end
+
+          scope = TopicToolCallLog.all
+          scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
+          scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
+          scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
+          scope = scope.where(used_tool_name: args[:used_tool_name]) if args[:used_tool_name].present?
+
+          if args[:start_date].present?
+            start_date = parse_date(args[:start_date])
+            scope = scope.where("created_date >= ?", start_date.beginning_of_day) if start_date
+          end
+          if args[:end_date].present?
+            end_date = parse_date(args[:end_date])
+            scope = scope.where("created_date <= ?", end_date.end_of_day) if end_date
+          end
+
+          items = paginate(scope.ordered, args)
+          success(items.map(&:as_json))
+        end
+
+        private
+
+        def parse_date(value)
+          Time.zone.parse(value.to_s)
+        rescue ArgumentError
+          nil
+        end
+      end
+
+      class GetTopicToolCallLogTool < Mcp::BaseTool
+        def name = "get_topic_tool_call_log"
+        def description = "Fetch one topic tool call log entry by ID"
+        def aliases = ["GetTopicToolCallLog"]
+        def input_schema = { type: "object", properties: { topic_tool_call_log_id: { type: %w[string integer] } }, required: ["topic_tool_call_log_id"] }
+
+        def execute(args)
+          success(TopicToolCallLog.find(args[:topic_tool_call_log_id]).as_json)
+        end
+      end
+
+      class CreateTopicToolCallLogTool < Mcp::BaseTool
+        def name = "create_topic_tool_call_log"
+        def description = "Create a topic tool call log entry"
+        def aliases = ["CreateTopicToolCallLog"]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              topic_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
+              project_id: { type: %w[string integer] },
+              created_date: { type: "string" },
+              used_tool_name: { type: "string" },
+              target_entity_id: { type: %w[string integer] },
+              change_log: { type: "string" },
+              why_was_it_required: { type: "string" }
+            },
+            required: ["used_tool_name"]
+          }
+        end
+
+        def execute(args)
+          record = TopicToolCallLog.create!(
+            topic_id: args[:topic_id],
+            room_id: args[:room_id],
+            project_id: args[:project_id],
+            created_date: args[:created_date].present? ? Time.zone.parse(args[:created_date].to_s) || Time.current : Time.current,
+            used_tool_name: args[:used_tool_name],
+            target_entity_id: args[:target_entity_id].presence,
+            change_log: args[:change_log],
+            why_was_it_required: args[:why_was_it_required]
+          )
+          success(record.as_json)
+        end
+      end
+
+      class UpdateTopicToolCallLogTool < Mcp::BaseTool
+        def name = "update_topic_tool_call_log"
+        def description = "Update a topic tool call log entry"
+        def aliases = ["UpdateTopicToolCallLog"]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              topic_tool_call_log_id: { type: %w[string integer] },
+              topic_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
+              project_id: { type: %w[string integer] },
+              created_date: { type: "string" },
+              used_tool_name: { type: "string" },
+              target_entity_id: { type: %w[string integer] },
+              change_log: { type: "string" },
+              why_was_it_required: { type: "string" }
+            },
+            required: ["topic_tool_call_log_id"]
+          }
+        end
+
+        def execute(args)
+          record = TopicToolCallLog.find(args[:topic_tool_call_log_id])
+          attrs = {
+            topic_id: args[:topic_id],
+            room_id: args[:room_id],
+            project_id: args[:project_id],
+            created_date: args[:created_date].present? ? Time.zone.parse(args[:created_date].to_s) : nil,
+            used_tool_name: args[:used_tool_name],
+            target_entity_id: args[:target_entity_id].presence,
+            change_log: args[:change_log],
+            why_was_it_required: args[:why_was_it_required]
+          }.compact
+          record.update!(attrs)
+          success(record.as_json)
+        end
+      end
+
+      class DeleteTopicToolCallLogTool < Mcp::BaseTool
+        def name = "delete_topic_tool_call_log"
+        def description = "Delete a topic tool call log entry"
+        def aliases = ["DeleteTopicToolCallLog"]
+        def input_schema = { type: "object", properties: { topic_tool_call_log_id: { type: %w[string integer] } }, required: ["topic_tool_call_log_id"] }
+
+        def execute(args)
+          record = TopicToolCallLog.find(args[:topic_tool_call_log_id])
+          record.destroy!
+          success(status: "deleted", id: record.id)
+        end
+      end
+
       # --- Message Analysis ---
       class SearchMessagesOfRoomTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
