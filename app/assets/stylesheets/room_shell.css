@@ -1644,6 +1644,10 @@ body.room-shell .workspace-room__main .create-project-page {
   overflow-y: auto;
 }
 
+body.room-shell .workspace-room__main .create-project-message-area {
+  padding-top: 25.6rem !important;
+}
+
 body.room-shell .workspace-room__main .create-project-message-area,
 body.room-shell .workspace-room__main .create-project-feed {
   display: flex;
@@ -1652,7 +1656,7 @@ body.room-shell .workspace-room__main .create-project-feed {
 
 body.room-shell .workspace-room__main .create-project-message-area {
   scroll-padding-top: 1rem;
-  padding-top: 0.6rem;
+  padding-top: 0.8rem;
 }
 
 body.room-shell .workspace-room__main .settings-card {
@@ -1752,7 +1756,7 @@ body.room-shell .workspace-room__main .room-form-readout {
 body.room-shell .workspace-room__main .create-project-page {
   width: 100%;
   max-width: none;
-  padding: 0.4rem 1.4rem 2rem;
+  padding: 0.8rem 1.4rem 2rem;
 }
 
 .workspace-room__header {
