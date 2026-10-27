@@ -165,11 +165,18 @@ body.room-shell .workspace-room__main .project-settings-actions {
 }
 
 body.room-shell .workspace-room__main .project-settings-actions .btn,
-body.room-shell .workspace-room__main .create-project-card .btn {
-  background: #10273b;
-  border: 1px solid #10273b;
+body.room-shell .workspace-room__main .create-project-card .btn,
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn,
+body.room-shell .workspace-room__main .project-settings-card--channels .btn,
+body.room-shell .workspace-room__main .project-settings-card--teammates .btn {
+  --btn-background: #10273b;
+  --btn-border-color: #10273b;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
   border-radius: 0.55rem;
-  color: #ffffff;
+  color: var(--btn-color) !important;
   cursor: pointer;
   font-weight: 700;
   line-height: 1.2;
@@ -242,14 +249,28 @@ body.room-shell .workspace-room__main .project-settings-inline-actions {
 }
 
 body.room-shell .workspace-room__main .project-settings-inline-actions .btn {
-  background: #10273b;
-  border: 1px solid #10273b;
+  --btn-background: #10273b;
+  --btn-border-color: #10273b;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
   border-radius: 0.55rem;
-  color: #ffffff;
+  color: var(--btn-color) !important;
   font-weight: 700;
   line-height: 1.2;
   min-height: 2.2rem;
   padding: 0.45rem 0.9rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn--negative {
+  --btn-background: #e74c3c;
+  --btn-border-color: #d83c2f;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border-color: var(--btn-border-color) !important;
+  color: var(--btn-color) !important;
 }
 
 body.room-shell .workspace-room__main .project-settings-readonly {
