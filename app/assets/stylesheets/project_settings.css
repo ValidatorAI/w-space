@@ -41,6 +41,27 @@ body.room-shell .workspace-room__main .create-project-card {
   overflow: hidden;
 }
 
+body.room-shell .workspace-room__main .create-project-card--danger {
+  background: #fce9e7;
+  border: 1px solid #efb8b2;
+  box-shadow: none;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .create-project-card__header {
+  border-bottom: 1px solid #efb8b2;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .create-project-card__title {
+  color: #2e2e2e;
+}
+
+body.room-shell .workspace-room__main .project-settings-danger-copy {
+  color: #5e3b36;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 1rem 1.25rem 1.1rem;
+}
+
 body.room-shell .workspace-room__main .create-project-card__header {
   border-bottom: 1px solid #e7edf3;
   padding: 1.1rem 1.25rem 0.8rem;
