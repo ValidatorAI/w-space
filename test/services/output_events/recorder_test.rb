@@ -37,13 +37,15 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
 
   test "omits knowledge_path when no project context can be inferred" do
     actor = users(:david)
+    room = rooms(:watercooler)
+    message = room.messages.create_with_attachment!(body: "Project-free event", creator: actor)
 
     event = OutputEvents::Recorder.record(
-      event_type: "user_banned",
-      event_id: actor.id,
+      event_type: "message_created",
+      event_id: message.id,
       actor: actor,
-      target_type: "User",
-      data: {}
+      target_type: "Message",
+      data: { "room_id" => room.id, "content_type" => "text" }
     )
 
     assert_nil event.event_data["knowledge_path"]
@@ -60,6 +62,25 @@ class OutputEvents::RecorderTest < ActiveSupport::TestCase
           actor: actor,
           target_type: "Room",
           data: { "room_id" => rooms(:watercooler).id }
+        )
+
+        assert_nil result
+      end
+    end
+  end
+
+  test "does not persist event types marked as excluded from external delivery" do
+    actor = users(:david)
+    project = Project.create!(name: "Hidden Output Event Project", path: "/tmp/project-hidden-#{SecureRandom.hex(6)}")
+
+    assert_no_difference -> { OutputEvent.count } do
+      assert_no_enqueued_jobs only: OutputEvents::DeliverJob do
+        result = OutputEvents::Recorder.record(
+          event_type: "project_deleted",
+          event_id: project.id,
+          actor: actor,
+          target_type: "Project",
+          data: {}
         )
 
         assert_nil result

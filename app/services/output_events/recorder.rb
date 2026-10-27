@@ -1,6 +1,35 @@
 module OutputEvents
   class Recorder
-    FILTERED_EVENT_TYPES = %w[typing_start typing_stop].freeze
+    FILTERED_EVENT_TYPES = %w[
+      typing_start
+      typing_stop
+      account_settings_updated
+      account_bot_access_updated
+      bot_created
+      bot_updated
+      bot_deleted
+      user_activated
+      user_deactivated
+      user_banned
+      user_unbanned
+      room_created
+      room_updated
+      room_deleted
+      room_member_added
+      room_member_removed
+      room_involvement_changed
+      room_privacy_changed
+      room_archived
+      room_unarchived
+      direct_conversation_created
+      project_deleted
+      project_archived
+      project_unarchived
+      project_member_added
+      project_member_removed
+      project_first_joined
+      ai_config_reset
+    ].freeze
 
     def self.record(event_type:, event_id: nil, group_id: nil, actor: nil, target_type: nil, data: {})
       return if filtered_event_type?(event_type)
