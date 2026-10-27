@@ -1644,10 +1644,6 @@ body.room-shell .workspace-room__main .create-project-page {
   overflow-y: auto;
 }
 
-body.room-shell .workspace-room__main .create-project-message-area {
-  padding-top: 25.6rem !important;
-}
-
 body.room-shell .workspace-room__main .create-project-message-area,
 body.room-shell .workspace-room__main .create-project-feed {
   display: flex;
@@ -1656,7 +1652,7 @@ body.room-shell .workspace-room__main .create-project-feed {
 
 body.room-shell .workspace-room__main .create-project-message-area {
   scroll-padding-top: 1rem;
-  padding-top: 0.8rem;
+  padding-top: 0;
 }
 
 body.room-shell .workspace-room__main .settings-card {
