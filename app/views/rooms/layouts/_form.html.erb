@@ -1,25 +1,40 @@
-<%= form_with model: room, class: "create-project-form" do |form| %>
-  <section class="form-section" aria-label="Room details">
+<%= form_with model: room, class: "create-project-form room-settings-form" do |form| %>
+  <section class="form-section room-form-section" aria-label="Room details">
     <h3 class="form-section-title">📝 Room details</h3>
 
-    <div class="form-group">
+    <div class="room-form-body">
       <% if Current.user.can_administer?(room) %>
-        <%= translation_button(:room_name) %>
+        <div class="room-form-field">
+          <%= form.label :name, "Room name", class: "room-form-label", for: "room_name" %>
+          <%= form.text_field :name, name: "room[name]", id: "room_name", class: "input full-width room-form-input",
+                required: true, autofocus: true, placeholder: "Name the room",
+                data: { turbo_permanent: true, action: "keydown.enter->form#submit:prevent" } %>
+        </div>
 
-        <%= form.label :name, "Room name", for: "room_name" %>
-        <%= form.text_field :name, name: "room[name]", id: "room_name", class: "input full-width",
-              required: true, autofocus: true, placeholder: "Name the room",
-              data: { turbo_permanent: true, action: "keydown.enter->form#submit:prevent" } %>
-        <span class="for-screen-reader">Name this room</span>
+        <div class="room-form-field">
+          <%= form.label :description, "Description", class: "room-form-label", for: "room_description" %>
+          <%= form.text_area :description, id: "room_description", class: "input full-width room-form-input room-form-textarea",
+                rows: 4, placeholder: "Add a short description for this room" %>
+        </div>
       <% else %>
-        <h1 class="flex-item-grow txt-x-large">
-          <%= room.name %>
-        </h1>
+        <div class="room-form-field">
+          <p class="room-form-label">Room name</p>
+          <h1 class="flex-item-grow txt-x-large">
+            <%= room.name %>
+          </h1>
+        </div>
+
+        <% if room.description.present? %>
+          <div class="room-form-field">
+            <p class="room-form-label">Description</p>
+            <p class="room-form-readout"><%= room.description %></p>
+          </div>
+        <% end %>
       <% end %>
     </div>
   </section>
 
-  <section class="form-section" aria-label="Room access">
+  <section class="form-section room-form-section" aria-label="Room access">
     <h3 class="form-section-title">👥 Access</h3>
     <p class="form-section-copy">Choose how this room is shared.</p>
 
