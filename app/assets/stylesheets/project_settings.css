@@ -1,0 +1,356 @@
+/* Project settings / create-edit page - isolated from other screens */
+body.room-shell .workspace-room__main--project-settings {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main--project-settings .create-project-message-area {
+  display: flex;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  padding-top: 0;
+}
+
+body.room-shell .workspace-room__main--project-settings .create-project-feed {
+  display: flex;
+  flex: 1 1 auto;
+  height: 100%;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main--project-settings .create-project-page {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  margin: 0 auto;
+  max-width: 1240px;
+  padding: 1rem 1.5rem 2rem;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main .create-project-card {
+  background: #ffffff;
+  border: 1px solid #dfe6ee;
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 22px rgba(15, 31, 52, 0.04);
+  margin: 0 0 1.5rem;
+  overflow: hidden;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger {
+  background: #fce9e7;
+  border: 1px solid #efb8b2;
+  box-shadow: none;
+  padding-bottom: 1.2rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .create-project-card__header {
+  border-bottom: 1px solid #efb8b2;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .create-project-card__title {
+  color: #2e2e2e;
+}
+
+body.room-shell .workspace-room__main .project-settings-danger-copy {
+  color: #5e3b36;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 1rem 1.25rem 1.1rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .project-settings-inline-actions {
+  margin: 0 0 0.25rem;
+  padding: 0 1.25rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .project-settings-inline-actions .btn:first-child {
+  --btn-background: #ffffff;
+  --btn-border-color: #10273b;
+  --btn-color: #10273b;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
+  color: var(--btn-color) !important;
+  box-shadow: none;
+}
+
+body.room-shell .workspace-room__main .create-project-card__header {
+  border-bottom: 1px solid #e7edf3;
+  padding: 1.1rem 1.25rem 0.8rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card__header--inline {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card__title {
+  color: #1d2e42;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+body.room-shell .workspace-room__main .create-project-card__subtitle {
+  color: #667892;
+  font-size: 0.88rem;
+  margin: 0.25rem 0 0;
+}
+
+body.room-shell .workspace-room__main .create-project-form {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+body.room-shell .workspace-room__main .form-section {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+body.room-shell .workspace-room__main .form-section:first-child {
+  padding-top: 0;
+}
+
+body.room-shell .workspace-room__main .form-section-title {
+  color: #21324a;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+body.room-shell .workspace-room__main .form-section-copy {
+  color: #667892;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+body.room-shell .workspace-room__main .form-group {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+body.room-shell .workspace-room__main .form-group label {
+  color: #2a3f58;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+body.room-shell .workspace-room__main .create-project-form .input,
+body.room-shell .workspace-room__main .create-project-form textarea,
+body.room-shell .workspace-room__main .create-project-form select {
+  background: #ffffff;
+  border: 1px solid #ccd7e3;
+  border-radius: 0.6rem;
+  box-sizing: border-box;
+  color: #1d2d3d;
+  font: inherit;
+  min-height: 2.7rem;
+  padding: 0.7rem 0.8rem;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main .create-project-form textarea {
+  min-height: 6.4rem;
+  resize: vertical;
+}
+
+body.room-shell .workspace-room__main .create-project-form .input:focus,
+body.room-shell .workspace-room__main .create-project-form textarea:focus,
+body.room-shell .workspace-room__main .create-project-form select:focus {
+  border-color: #2d5ea8;
+  box-shadow: 0 0 0 3px rgba(45, 94, 168, 0.12);
+  outline: none;
+}
+
+body.room-shell .workspace-room__main .form-row {
+  display: grid;
+  gap: 1rem;
+}
+
+body.room-shell .workspace-room__main .form-row--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.room-shell .workspace-room__main .form-checkbox {
+  align-items: center;
+  color: #233a52;
+  display: inline-flex;
+  font-size: 0.92rem;
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+}
+
+body.room-shell .workspace-room__main .form-checkbox-input {
+  accent-color: #1a3555;
+}
+
+body.room-shell .workspace-room__main .project-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.25rem 1.25rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-actions .btn,
+body.room-shell .workspace-room__main .create-project-card .btn,
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn,
+body.room-shell .workspace-room__main .project-settings-card--channels .btn,
+body.room-shell .workspace-room__main .project-settings-card--teammates .btn {
+  --btn-background: #10273b;
+  --btn-border-color: #10273b;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
+  border-radius: 0.55rem;
+  color: var(--btn-color) !important;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+}
+
+body.room-shell .workspace-room__main .project-settings-table-wrap {
+  overflow-x: auto;
+  padding: 0 1.25rem 1.25rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main .project-settings-table th,
+body.room-shell .workspace-room__main .project-settings-table td {
+  border-bottom: 1px solid #edf1f5;
+  color: #314560;
+  font-size: 0.92rem;
+  padding: 0.9rem 0.6rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+body.room-shell .workspace-room__main .project-settings-table th {
+  color: #5d7187;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body.room-shell .workspace-room__main .project-settings-member {
+  align-items: center;
+  display: flex;
+  gap: 0.7rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.32rem 0.65rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-badge--ai,
+body.room-shell .workspace-room__main .project-settings-badge--human,
+body.room-shell .workspace-room__main .project-settings-badge--active,
+body.room-shell .workspace-room__main .project-settings-badge--public {
+  background: #e8f5eb;
+  color: #1f7d4b;
+}
+
+body.room-shell .workspace-room__main .project-settings-badge--offline,
+body.room-shell .workspace-room__main .project-settings-badge--private {
+  background: #f3f5f8;
+  color: #4f6278;
+}
+
+body.room-shell .workspace-room__main .project-settings-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn {
+  --btn-background: #10273b;
+  --btn-border-color: #10273b;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
+  border-radius: 0.55rem;
+  color: var(--btn-color) !important;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.9rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn--negative {
+  --btn-background: #e74c3c;
+  --btn-border-color: #d83c2f;
+  --btn-color: #ffffff;
+
+  background: var(--btn-background) !important;
+  border-color: var(--btn-border-color) !important;
+  color: var(--btn-color) !important;
+}
+
+body.room-shell .workspace-room__main .project-settings-readonly {
+  color: #21324a;
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.25rem;
+}
+
+body.room-shell .workspace-room__main .create-project-errors {
+  background: #fff3f3;
+  border: 1px solid #f4c5c5;
+  border-radius: 0.6rem;
+  color: #723737;
+  margin: 1rem 1.25rem 0;
+  padding: 0.9rem 1rem;
+}
+
+body.room-shell .workspace-room__main .create-project-errors ul {
+  margin: 0.4rem 0 0 1.1rem;
+  padding: 0;
+}
+
+@media (max-width: 780px) {
+  body.room-shell .workspace-room__main .create-project-page {
+    padding: 0.8rem 0.9rem 1.5rem;
+  }
+
+  body.room-shell .workspace-room__main .form-row--two {
+    grid-template-columns: 1fr;
+  }
+
+  body.room-shell .workspace-room__main .create-project-card__header--inline {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.room-shell .workspace-room__main .project-settings-actions {
+    justify-content: stretch;
+  }
+
+  body.room-shell .workspace-room__main .project-settings-actions .btn {
+    width: 100%;
+  }
+}
