@@ -45,6 +45,7 @@ body.room-shell .workspace-room__main .create-project-card--danger {
   background: #fce9e7;
   border: 1px solid #efb8b2;
   box-shadow: none;
+  padding-bottom: 1.2rem;
 }
 
 body.room-shell .workspace-room__main .create-project-card--danger .create-project-card__header {
@@ -60,6 +61,22 @@ body.room-shell .workspace-room__main .project-settings-danger-copy {
   font-size: 1rem;
   line-height: 1.55;
   margin: 1rem 1.25rem 1.1rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .project-settings-inline-actions {
+  margin: 0 0 0.25rem;
+  padding: 0 1.25rem;
+}
+
+body.room-shell .workspace-room__main .create-project-card--danger .project-settings-inline-actions .btn:first-child {
+  --btn-background: #ffffff;
+  --btn-border-color: #10273b;
+  --btn-color: #10273b;
+
+  background: var(--btn-background) !important;
+  border: 1px solid var(--btn-border-color) !important;
+  color: var(--btn-color) !important;
+  box-shadow: none;
 }
 
 body.room-shell .workspace-room__main .create-project-card__header {
