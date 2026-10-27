@@ -166,13 +166,15 @@ body.room-shell .workspace-room__main .project-settings-actions {
 
 body.room-shell .workspace-room__main .project-settings-actions .btn,
 body.room-shell .workspace-room__main .create-project-card .btn {
-  background: #131f2d;
-  border: 1px solid #131f2d;
+  background: #10273b;
+  border: 1px solid #10273b;
   border-radius: 0.55rem;
   color: #ffffff;
   cursor: pointer;
   font-weight: 700;
-  padding: 0.72rem 1.15rem;
+  line-height: 1.2;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.9rem;
   text-decoration: none;
 }
 
@@ -237,6 +239,17 @@ body.room-shell .workspace-room__main .project-settings-inline-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+body.room-shell .workspace-room__main .project-settings-inline-actions .btn {
+  background: #10273b;
+  border: 1px solid #10273b;
+  border-radius: 0.55rem;
+  color: #ffffff;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.9rem;
 }
 
 body.room-shell .workspace-room__main .project-settings-readonly {
