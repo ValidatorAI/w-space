@@ -1,19 +1,31 @@
 /* Project settings / create-edit page - isolated from other screens */
-body.room-shell .workspace-room__main .create-project-message-area {
+body.room-shell .workspace-room__main--project-settings {
   display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main--project-settings .create-project-message-area {
+  display: flex;
+  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
   padding-top: 0;
 }
 
-body.room-shell .workspace-room__main .create-project-feed {
+body.room-shell .workspace-room__main--project-settings .create-project-feed {
   display: flex;
   flex: 1 1 auto;
+  height: 100%;
   width: 100%;
 }
 
-body.room-shell .workspace-room__main .create-project-page {
+body.room-shell .workspace-room__main--project-settings .create-project-page {
   box-sizing: border-box;
+  flex: 1 1 auto;
   margin: 0 auto;
   max-width: 1240px;
   padding: 1rem 1.5rem 2rem;
