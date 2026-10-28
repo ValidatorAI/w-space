@@ -11,6 +11,8 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h1", text: "AI Config"
     assert_select "section[aria-label='Profile list']"
+    assert_select "main#conversation", count: 1
+    assert_select "main#conversation[style]", count: 0
     assert_select "form[action='#{user_company_ai_admin_reset_ai_config_path(user_id: "me")}'] button", text: "Reset all AI Config"
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "General AI Settings"
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "MCPs"
