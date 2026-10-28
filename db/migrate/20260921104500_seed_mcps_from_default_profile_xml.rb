@@ -26,9 +26,13 @@ class SeedMcpsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
   end
 
   def down
-    return unless table_exists?(:mcps)
+    return unless table_exists?(:mcps) && table_exists?(:ai_profile_mcps)
 
-    mcps_relation.where(name: DEFAULT_PROFILE_MCP_NAMES).delete_all
+    mcp_ids = mcps_relation.where(name: DEFAULT_PROFILE_MCP_NAMES).pluck(:id)
+    return if mcp_ids.empty?
+
+    ai_profile_mcps_relation.where(mcp_id: mcp_ids).delete_all
+    mcps_relation.where(id: mcp_ids).delete_all
   end
 
   private
@@ -62,6 +66,12 @@ class SeedMcpsFromDefaultProfileXml < ActiveRecord::Migration[8.0]
   def mcps_relation
     @mcps_relation ||= Class.new(ActiveRecord::Base) do
       self.table_name = "mcps"
+    end
+  end
+
+  def ai_profile_mcps_relation
+    @ai_profile_mcps_relation ||= Class.new(ActiveRecord::Base) do
+      self.table_name = "ai_profile_mcps"
     end
   end
 end

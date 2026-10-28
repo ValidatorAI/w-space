@@ -10,7 +10,10 @@ const VISIBILITY_CHANGE_DELAY = 5000 // 5 seconds
 
 export default class extends Controller {
   async connect() {
-    this.channel = await cable.subscribeTo({ channel: "PresenceChannel", room_id: Current.room.id }, {
+    const roomId = Current?.room?.id
+    if (!roomId) return
+
+    this.channel = await cable.subscribeTo({ channel: "PresenceChannel", room_id: roomId }, {
       connected: this.#websocketConnected,
       disconnected: this.#websocketDisconnected
     })
@@ -18,7 +21,7 @@ export default class extends Controller {
     this.wasVisible = true
 
     await nextFrame()
-    this.dispatch("present", { detail: { roomId: Current.room.id } })
+    this.dispatch("present", { detail: { roomId } })
   }
 
   disconnect() {

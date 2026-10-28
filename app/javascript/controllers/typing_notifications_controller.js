@@ -9,11 +9,13 @@ export default class extends Controller {
   static classes = [ "active" ]
 
   async connect() {
-    if (!pageIsTurboPreview()) {
+    const roomId = Current?.room?.id
+
+    if (!pageIsTurboPreview() && roomId) {
       this.tracker = new TypingTracker(this.#update.bind(this))
 
       this.channel = await cable.subscribeTo(
-        { channel: "TypingNotificationsChannel", room_id: Current.room.id },
+        { channel: "TypingNotificationsChannel", room_id: roomId },
         { received: this.#received.bind(this) }
       )
     }
