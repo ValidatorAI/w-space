@@ -1700,6 +1700,64 @@ body.room-shell .workspace-room__main .settings-card {
   padding: 1.25rem 1.35rem 1.4rem;
 }
 
+body.room-shell .workspace-room__main .action-btn,
+body.room-shell .workspace-room__main .action-btn:visited {
+  --action-btn-background: #ffffff;
+  --action-btn-border-color: var(--workspace-room-line);
+  --action-btn-color: #1d2d3e;
+
+  appearance: none;
+  background: var(--action-btn-background);
+  border: 1px solid var(--action-btn-border-color);
+  border-radius: 0.7rem;
+  color: var(--action-btn-color);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 0.45rem;
+  line-height: 1.2;
+  padding: 0.55rem 0.9rem;
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+body.room-shell .workspace-room__main .action-btn:hover,
+body.room-shell .workspace-room__main .action-btn:focus-visible {
+  background: #f8fafc;
+  border-color: #b7c6d8;
+  box-shadow: 0 4px 14px rgb(15 31 52 / 0.06);
+  outline: none;
+}
+
+body.room-shell .workspace-room__main .action-btn--small {
+  font-size: 0.78rem;
+  padding: 0.45rem 0.75rem;
+}
+
+body.room-shell .workspace-room__main .action-btn.primary,
+body.room-shell .workspace-room__main .action-btn-primary {
+  --action-btn-background: #2d3f59;
+  --action-btn-border-color: #2d3f59;
+  --action-btn-color: #ffffff;
+}
+
+body.room-shell .workspace-room__main .action-btn.primary:hover,
+body.room-shell .workspace-room__main .action-btn-primary:hover,
+body.room-shell .workspace-room__main .action-btn.primary:focus-visible,
+body.room-shell .workspace-room__main .action-btn-primary:focus-visible {
+  background: #233650;
+  border-color: #233650;
+  color: #ffffff;
+}
+
+body.room-shell .workspace-room__main .action-btn.secondary,
+body.room-shell .workspace-room__main .action-btn--secondary {
+  --action-btn-background: #f5f7fb;
+  --action-btn-border-color: var(--workspace-room-line);
+  --action-btn-color: #1d2d3e;
+}
+
 body.room-shell .workspace-room__main .settings-section-title {
   align-items: center;
   border-bottom: 1px solid var(--workspace-room-line);
