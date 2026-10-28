@@ -73,6 +73,66 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_equal "Advice recorded", Hermes::PromptBuilder.extract_reply_text(result["response"])
   end
 
+  test "routes AI setting events to the AI settings profile and message events to the message profile" do
+    ai_event = OutputEvent.create!(
+      event_type: "ai_setting_created",
+      event_id: 500,
+      group_id: "grp-500",
+      event_data: { "label" => "max_workers", "setting_value" => 3 }
+    )
+
+    message_event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 501,
+      group_id: "grp-501",
+      event_data: { "room_id" => 1, "message_id" => 501, "content" => "Hello" }
+    )
+
+    ai_group = OutputEventDispatchGroup.create!(
+      dedupe_key: "ai_setting:grp-500",
+      lead_output_event_id: ai_event.id,
+      status: "pending"
+    )
+
+    message_group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-501:1:501",
+      lead_output_event_id: message_event.id,
+      status: "pending"
+    )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/ai_settings/v1/chat/completions")
+      .to_return(
+        status: 200,
+        body: { choices: [{ message: { content: "config ok" } }] }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/delegator/v1/chat/completions")
+      .to_return(
+        status: 200,
+        body: { choices: [{ message: { content: "message ok" } }] }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      ai_event.id,
+      stage: :dispatch,
+      dispatch_group_id: ai_group.id
+    )
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      message_event.id,
+      stage: :dispatch,
+      dispatch_group_id: message_group.id
+    )
+
+    ai_result = JSON.parse(ai_group.reload.result)
+    message_result = JSON.parse(message_group.reload.result)
+
+    assert_equal "ai_settings", ai_result["profile"]
+    assert_equal "delegator", message_result["profile"]
+  end
+
   test "throttles dispatch when Hermes active agents exceed threshold" do
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(

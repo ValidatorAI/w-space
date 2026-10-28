@@ -60,8 +60,8 @@ module OutputEvents
         unresolved_attachments: unresolved
       )
 
-      # Determine target profile (fallback to delegator)
-      target_profile = resolve_profile(merged_data)
+      # Determine target profile based on event type and configured env overrides
+      target_profile = resolve_profile(merged_type, merged_data)
 
       # Check Hermes gateway concurrency throttle before dispatching
       hermes_client = Hermes::Client.new
@@ -136,7 +136,15 @@ module OutputEvents
       Rails.logger.info("[OutputEvents::ProcessAndDispatchJob] Successfully dispatched group #{group.id} (key: #{group.dedupe_key}) to Hermes profile #{target_profile}")
     end
 
-    def resolve_profile(event_data)
+    def resolve_profile(event_type, event_data)
+      configured_profile = if ai_settings_profile_event?(event_type)
+        ENV["OUTPUT_AI_SETTING_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
+      else
+        ENV["OUTPUT_MESSAGE_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
+      end
+
+      return configured_profile if configured_profile.present?
+
       # If bot users were targeted, check if any has an AiProfile with matching bot_name
       bot_ids = Array(event_data["bot_user_ids"]).compact
       if bot_ids.any?
@@ -149,6 +157,12 @@ module OutputEvents
       end
 
       Hermes.configuration.default_profile
+    end
+
+    def ai_settings_profile_event?(event_type)
+      return false if event_type.blank?
+
+      event_type.to_s.start_with?("ai_setting_", "ai_profile_", "mcp_", "skill_", "ai_config_")
     end
 
     def resolve_group_events(group, lead_event)

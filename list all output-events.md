@@ -51,6 +51,7 @@ Asterisk (`*`) means the event is intentionally not sent to `OUTPUT_EVENTS_URL`.
 - `approval_request_denied`
 - `approval_request_canceled`
 - `decision_approved`
+
 - `ai_setting_created` #
 - `ai_setting_updated` #
 - `ai_setting_deleted` #
