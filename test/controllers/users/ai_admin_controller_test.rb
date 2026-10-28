@@ -20,29 +20,18 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "Skills"
   end
 
-  test "admin can restart w-bridge from ai config page" do
-    previous_url = ENV["OUTPUT_EVENTS_URL"]
-    previous_token = ENV["OUTPUT_EVENTS_TOKEN"]
-    ENV["OUTPUT_EVENTS_URL"] = "http://localhost:8031/space_events"
-    ENV["OUTPUT_EVENTS_TOKEN"] = "abc123"
-
-    stub_request(:post, "http://localhost:8031/restart")
-      .with(headers: { "Authorization" => "Bearer abc123" })
-      .to_return(status: 200, body: { status: "ok" }.to_json, headers: { "Content-Type" => "application/json" })
+  test "admin can restart hermes from ai config page" do
+    Users::AiAdminController.any_instance.expects(:system).with("hermes gateway restart").returns(true)
 
     get user_company_ai_admin_url(user_id: "me")
     assert_response :ok
-    assert_select "form[action='#{user_company_ai_admin_restart_w_bridge_path(user_id: "me")}'] button", text: "Restart W-Bridge"
+    assert_select "form[action='#{user_company_ai_admin_restart_w_bridge_path(user_id: "me")}'] button", text: "Restart Hermes"
 
     post user_company_ai_admin_restart_w_bridge_url(user_id: "me")
 
     assert_response :redirect
     assert_redirected_to user_company_ai_admin_url(user_id: "me")
-    assert_equal "W-Bridge restart triggered", flash[:notice]
-    assert_requested :post, "http://localhost:8031/restart"
-  ensure
-    ENV["OUTPUT_EVENTS_URL"] = previous_url
-    ENV["OUTPUT_EVENTS_TOKEN"] = previous_token
+    assert_equal "Hermes gateway restart triggered", flash[:notice]
   end
 
   test "admin can open dedicated ai settings pages" do

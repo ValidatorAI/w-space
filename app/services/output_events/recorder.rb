@@ -28,7 +28,6 @@ module OutputEvents
       project_member_added
       project_member_removed
       project_first_joined
-      ai_config_reset
     ].freeze
 
     def self.record(event_type:, event_id: nil, group_id: nil, actor: nil, target_type: nil, data: {})
