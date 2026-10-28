@@ -1682,6 +1682,9 @@ body.room-shell .workspace-room__main .company-settings-feed {
 }
 
 body.room-shell .workspace-room__main .settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   margin: 0 auto;
   max-width: 52rem;
   padding: 2rem 2.5rem;
@@ -1693,6 +1696,7 @@ body.room-shell .workspace-room__main .settings-card {
   border: 1px solid var(--workspace-room-line);
   border-radius: 1rem;
   box-shadow: 0 8px 24px rgb(15 31 52 / 0.04);
+  margin: 0;
   padding: 1.25rem 1.35rem 1.4rem;
 }
 
