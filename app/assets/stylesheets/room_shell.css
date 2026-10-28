@@ -1887,6 +1887,13 @@ body.room-shell .workspace-room__main .bot-card-role {
   line-height: 1.45;
 }
 
+body.room-shell .workspace-room__main .profile-list-card--link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
 body.room-shell .workspace-room__main .profile-list-card__identity {
   align-items: center;
   display: flex;
@@ -1903,7 +1910,7 @@ body.room-shell .workspace-room__main .profile-list-card__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  margin-top: 0.7rem;
+  margin-top: auto;
 }
 
 body.room-shell .workspace-room__main .profile-list-card__chip {
