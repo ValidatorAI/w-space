@@ -1800,12 +1800,13 @@ body.room-shell .workspace-room__main .settings-section-title--spread {
   justify-content: space-between;
 }
 
-body.room-shell .workspace-room__main .settings-section-actions {
+body.room-shell .workspace-room__main .settings-section-actions,
+body.room-shell .workspace-room__main .settings-row-actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 body.room-shell .workspace-room__main .settings-section-copy {
