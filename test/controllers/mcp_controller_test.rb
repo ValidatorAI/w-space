@@ -138,7 +138,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "scoped endpoints respond properly" do
-    %w[/action-mcp /read-mcp /knowledge-mcp /task-mcp].each do |endpoint|
+    %w[/action-mcp /read-mcp /knowledge-mcp /config-mcp /task-mcp].each do |endpoint|
       post endpoint,
            params: { jsonrpc: "2.0", id: "scope_test", method: "tools/list", params: {} }.to_json,
            headers: { "Content-Type" => "application/json" }
@@ -155,6 +155,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
       "/action-mcp" => :action,
       "/read-mcp" => :read,
       "/knowledge-mcp" => :knowledge,
+      "/config-mcp" => :config,
       "/task-mcp" => :task
     }
 

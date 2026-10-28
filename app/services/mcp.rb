@@ -3,7 +3,7 @@ module Mcp
     Registry.reset!
 
     # Baseline tool
-    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge task])
+    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge config task])
 
     # Attention Items
     attention_tools = [
@@ -178,7 +178,7 @@ module Mcp
       Tools::AiConfig::ListAiProfileMcpsTool.new,
       Tools::AiConfig::GetAiProfileMcpTool.new
     ]
-    ai_config_tools.each { |tool| Registry.register(tool, scopes: %i[all read]) }
+    ai_config_tools.each { |tool| Registry.register(tool, scopes: %i[all read config]) }
 
     # Topics & Analysis
     topic_tools = [

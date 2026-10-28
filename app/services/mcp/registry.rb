@@ -15,6 +15,7 @@ module Mcp
         action: Set.new,
         read: Set.new,
         knowledge: Set.new,
+        config: Set.new,
         task: Set.new,
         all: Set.new
       }

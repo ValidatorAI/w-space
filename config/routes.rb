@@ -273,6 +273,7 @@ Rails.application.routes.draw do
   post "action-mcp", to: "mcp#action"
   post "read-mcp", to: "mcp#read"
   post "knowledge-mcp", to: "mcp#knowledge"
+  post "config-mcp", to: "mcp#config_endpoint"
   post "task-mcp", to: "mcp#task"
 
   get "up" => "rails/health#show", as: :rails_health_check

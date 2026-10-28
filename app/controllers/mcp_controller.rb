@@ -21,6 +21,10 @@ class McpController < ActionController::API
     process_jsonrpc(:knowledge)
   end
 
+  def config_endpoint
+    process_jsonrpc(:config)
+  end
+
   def task
     process_jsonrpc(:task)
   end
