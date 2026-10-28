@@ -92,7 +92,7 @@
 
                 <div class="mcp-list-card__actions">
                   <%= link_to "Edit", user_company_ai_admin_edit_mcp_path(user_id: "me", id: mcp.id), class: "action-btn action-btn--small" %>
-                  <%= button_to "Delete", user_company_ai_admin_mcp_destroy_path(user_id: "me", id: mcp.id), method: :delete, class: "action-btn action-btn--small" %>
+                  <%= button_to "Delete", user_company_ai_admin_mcp_destroy_path(user_id: "me", id: mcp.id), method: :delete, class: "action-btn action-btn--small action-btn--danger" %>
                 </div>
               </article>
             <% end %>

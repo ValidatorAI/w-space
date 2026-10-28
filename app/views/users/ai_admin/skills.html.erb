@@ -89,7 +89,7 @@
                 </td>
                 <td class="flex gap">
                   <%= link_to "Edit", user_company_ai_admin_edit_skill_path(user_id: "me", id: skill.id), class: "action-btn action-btn--small" %>
-                  <%= button_to "Delete", user_company_ai_admin_skill_destroy_path(user_id: "me", id: skill.id), method: :delete, class: "action-btn action-btn--small" %>
+                  <%= button_to "Delete", user_company_ai_admin_skill_destroy_path(user_id: "me", id: skill.id), method: :delete, class: "action-btn action-btn--small action-btn--danger" %>
                 </td>
               </tr>
             <% end %>

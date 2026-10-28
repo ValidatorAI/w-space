@@ -1758,6 +1758,32 @@ body.room-shell .workspace-room__main .action-btn--secondary {
   --action-btn-color: #1d2d3e;
 }
 
+body.room-shell .workspace-room__main .action-btn--warning {
+  --action-btn-background: #fff7d6;
+  --action-btn-border-color: #e8c96b;
+  --action-btn-color: #6b4d00;
+}
+
+body.room-shell .workspace-room__main .action-btn--warning:hover,
+body.room-shell .workspace-room__main .action-btn--warning:focus-visible {
+  background: #fef0b7;
+  border-color: #dcb54c;
+  color: #4f3a00;
+}
+
+body.room-shell .workspace-room__main .action-btn--danger {
+  --action-btn-background: #fff1f2;
+  --action-btn-border-color: #e58d8d;
+  --action-btn-color: #8d1b1b;
+}
+
+body.room-shell .workspace-room__main .action-btn--danger:hover,
+body.room-shell .workspace-room__main .action-btn--danger:focus-visible {
+  background: #ffe2e4;
+  border-color: #d64d4d;
+  color: #6e0e17;
+}
+
 body.room-shell .workspace-room__main .settings-section-title {
   align-items: center;
   border-bottom: 1px solid var(--workspace-room-line);
