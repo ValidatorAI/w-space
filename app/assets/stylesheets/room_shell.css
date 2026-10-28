@@ -1691,6 +1691,10 @@ body.room-shell .workspace-room__main .settings-container {
   width: 100%;
 }
 
+body.room-shell .workspace-room__main .settings-container.user-settings-content {
+  max-width: 60rem;
+}
+
 body.room-shell .workspace-room__main .settings-card {
   background: #ffffff;
   border: 1px solid var(--workspace-room-line);
@@ -1698,6 +1702,89 @@ body.room-shell .workspace-room__main .settings-card {
   box-shadow: 0 8px 24px rgb(15 31 52 / 0.04);
   margin: 0;
   padding: 1.25rem 1.35rem 1.4rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  width: 100%;
+}
+
+body.room-shell .workspace-room__main .user-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-card-header {
+  border-bottom: 1px solid var(--workspace-room-line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-bottom: 0.9rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-card-title {
+  color: #1d2d3e;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+body.room-shell .workspace-room__main .user-settings-card-title--small {
+  font-size: 0.98rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-card-desc {
+  color: var(--workspace-room-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+body.room-shell .workspace-room__main .avatar-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-avatar {
+  align-items: center;
+  background: #f3f6fb;
+  border: 1px solid var(--workspace-room-line);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 4rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 4rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-avatar img {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+body.room-shell .workspace-room__main .user-settings-help {
+  color: var(--workspace-room-muted);
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-form {
+  display: grid;
+  gap: 1rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 body.room-shell .workspace-room__main .action-btn,
