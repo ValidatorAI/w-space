@@ -135,6 +135,11 @@ body.room-shell .workspace-room__main .form-section-copy {
   margin: 0;
 }
 
+body.room-shell .workspace-room__main .company-settings-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
 body.room-shell .workspace-room__main .form-group {
   display: grid;
   gap: 0.45rem;
