@@ -1646,7 +1646,8 @@ body.room-shell .workspace-room__main .message-area:has(.settings-container) {
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
   place-content: initial;
   place-items: initial;
 }
@@ -1673,6 +1674,7 @@ body.room-shell .workspace-room__main .create-project-message-area {
 body.room-shell .workspace-room__main .feed-container,
 body.room-shell .workspace-room__main .company-settings-feed {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 1.25rem;
   margin-top: 0.5rem;
