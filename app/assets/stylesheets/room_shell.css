@@ -1918,6 +1918,19 @@ body.room-shell .workspace-room__main .profile-list-card__meta {
   margin-top: auto;
 }
 
+body.room-shell .workspace-room__main .mcp-list-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+body.room-shell .workspace-room__main .mcp-list-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
 body.room-shell .workspace-room__main .profile-list-card__chip {
   background: #f4f7fb;
   border: 1px solid #dfe8f3;
