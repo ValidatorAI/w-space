@@ -3,7 +3,7 @@ module Mcp
     Registry.reset!
 
     # Baseline tool
-    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge config task])
+    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge task])
 
     # Attention Items
     attention_tools = [

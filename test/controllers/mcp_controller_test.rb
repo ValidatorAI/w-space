@@ -149,6 +149,32 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "config endpoint serves the AI config tool family" do
+    post "/config-mcp",
+         params: { jsonrpc: "2.0", id: "config_tools", method: "tools/list", params: {} }.to_json,
+         headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    tool_names = response.parsed_body.dig("result", "tools").map { |tool| tool["name"] }
+
+    assert_includes tool_names, "list_ai_profiles"
+    assert_includes tool_names, "get_ai_profile"
+    assert_includes tool_names, "list_ai_settings"
+    assert_includes tool_names, "get_ai_setting"
+    assert_includes tool_names, "list_mcps"
+    assert_includes tool_names, "get_mcp"
+    assert_includes tool_names, "list_tools"
+    assert_includes tool_names, "get_tool"
+    assert_includes tool_names, "list_skills"
+    assert_includes tool_names, "get_skill"
+    assert_includes tool_names, "list_ai_profile_tools"
+    assert_includes tool_names, "get_ai_profile_tool"
+    assert_includes tool_names, "list_ai_profile_skills"
+    assert_includes tool_names, "get_ai_profile_skill"
+    assert_includes tool_names, "list_ai_profile_mcps"
+    assert_includes tool_names, "get_ai_profile_mcp"
+  end
+
   test "all native MCP routes expose every tool and dispatch tool calls without transport failures" do
     route_to_scope = {
       "/mcp" => :all,
