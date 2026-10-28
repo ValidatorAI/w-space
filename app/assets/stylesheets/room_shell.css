@@ -1638,6 +1638,19 @@ body:is(.room-shell, .workspace-shell) .workspace-room__workspace .sidebar__tool
   overflow: hidden;
 }
 
+body.room-shell .workspace-room__main .message-area:has(.feed-container),
+body.room-shell .workspace-room__main .message-area:has(.company-settings-feed),
+body.room-shell .workspace-room__main .message-area:has(.settings-container) {
+  block-size: auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: visible;
+  place-content: initial;
+  place-items: initial;
+}
+
 body.room-shell .workspace-room__main .message-area,
 body.room-shell .workspace-room__main .create-project-message-area,
 body.room-shell .workspace-room__main .create-project-feed,
