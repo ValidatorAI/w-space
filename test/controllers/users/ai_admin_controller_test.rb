@@ -9,7 +9,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     get user_company_ai_admin_url(user_id: "me")
 
     assert_response :ok
-    assert_select "h1", text: "AI Config"
+    assert_select "h1", count: 0
     assert_select "section[aria-label='Profile list']"
     assert_select "main#conversation", count: 1
     assert_select "main#conversation[style]", count: 0
@@ -48,11 +48,11 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
   test "admin can open dedicated ai settings pages" do
     get user_company_ai_admin_general_settings_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "General AI Settings"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_mcps_page_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "MCPs"
+    assert_select "h1", count: 0
 
     mcp = Mcp::Server.create!(
       name: "mcp_page_#{SecureRandom.hex(3)}",
@@ -64,37 +64,37 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
 
     get user_company_ai_admin_new_mcp_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "Add MCP"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_edit_mcp_url(user_id: "me", id: mcp.id)
     assert_response :ok
-    assert_select "h1", text: "Edit MCP"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_tools_page_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "Tools"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_skills_page_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "Skills"
+    assert_select "h1", count: 0
 
     skill = Skill.create!(name: "skill_page_#{SecureRandom.hex(3)}")
 
     get user_company_ai_admin_new_skill_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "Add Skill"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_edit_skill_url(user_id: "me", id: skill.id)
     assert_response :ok
-    assert_select "h1", text: "Edit Skill"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_skill_learn_page_url(user_id: "me")
     assert_response :ok
-    assert_select "h1", text: "Learn Skill"
+    assert_select "h1", count: 0
 
     get user_company_ai_admin_new_profile_url(user_id: "me", return_to: user_company_ai_admin_path(user_id: "me"))
     assert_response :ok
-    assert_select "h1", text: "New AI Profile"
+    assert_select "h1", count: 0
   end
 
   test "non admin cannot open ai admin page" do
@@ -238,7 +238,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_select "h1", text: "Add MCP"
+    assert_select "h1", count: 0
   end
 
   test "stdio mcp requires command and args and can be created" do
@@ -256,7 +256,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_select "h1", text: "Add MCP"
+    assert_select "h1", count: 0
 
     assert_difference -> { Mcp::Server.count }, 1 do
       post user_company_ai_admin_mcps_url(user_id: "me"), params: {
@@ -632,7 +632,7 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
 
     get user_company_ai_admin_profile_url(user_id: "me", id: profile.id)
     assert_response :ok
-    assert_select "h1", text: "Edit Profile"
+    assert_select "h1", count: 0
     assert_no_match(/General AI Settings/i, @response.body)
     assert_no_match(/main_model/i, @response.body)
     assert_no_match(/fallback_model/i, @response.body)
