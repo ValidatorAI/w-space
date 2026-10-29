@@ -28,6 +28,21 @@ class McpTaskToolsTests < ActionDispatch::IntegrationTest
     response.parsed_body
   end
 
+  test "task-mcp tools/list excludes the hello tool" do
+    post "/task-mcp",
+         params: {
+           jsonrpc: "2.0",
+           id: "task_tools_list",
+           method: "tools/list",
+           params: {}
+         }.to_json,
+         headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    tool_names = response.parsed_body.dig("result", "tools").map { |tool| tool["name"] }
+    refute_includes tool_names, "hello"
+  end
+
   test "tasks endpoint reads the real task data from the database" do
     payload = call_tool("/task-mcp", "tasks", { task_id: @task.id })
     assert_equal false, payload.dig("result", "isError")
