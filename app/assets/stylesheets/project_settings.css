@@ -8,6 +8,10 @@ body.room-shell .workspace-room__main--project-settings {
   width: 100%;
 }
 
+div.form-group {
+  margin-top: 0.75rem !important;
+}
+
 body.room-shell .workspace-room__main--project-settings .create-project-message-area {
   display: flex;
   flex: 1 1 auto;
@@ -140,10 +144,26 @@ body.room-shell .workspace-room__main .company-settings-form {
   gap: 0.9rem;
 }
 
+body.room-shell .workspace-room__main .user-settings-form {
+  display: grid;
+  gap: 1rem;
+}
+
+body.room-shell .workspace-room__main .user-settings-form .form-group {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0;
+}
+
+body.room-shell .workspace-room__main .user-settings-form .form-group:first-child {
+  margin-top: 0.9rem;
+}
+
 body.room-shell .workspace-room__main .form-group {
   display: grid;
   gap: 0.45rem;
   margin: 0;
+  margin-top: 0.75rem !important;
 }
 
 body.room-shell .workspace-room__main .form-group label {

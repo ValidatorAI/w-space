@@ -1652,6 +1652,10 @@ body.room-shell .workspace-room__main .message-area:has(.settings-container) {
   place-items: initial;
 }
 
+div.form-group {
+  margin-top: 0.75rem !important;
+}
+
 body.room-shell .workspace-room__main .message-area,
 body.room-shell .workspace-room__main .create-project-message-area,
 body.room-shell .workspace-room__main .create-project-feed,
@@ -1773,11 +1777,6 @@ body.room-shell .workspace-room__main .user-settings-help {
   display: block;
   font-size: 0.75rem;
   margin-top: 0.4rem;
-}
-
-body.room-shell .workspace-room__main .user-settings-form {
-  display: grid;
-  gap: 1rem;
 }
 
 body.room-shell .workspace-room__main .user-settings-page-actions {
