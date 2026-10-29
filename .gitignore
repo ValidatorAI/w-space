@@ -44,3 +44,4 @@ app/assets/builds/*
 # Ignore our exported zipfiles
 /*.zip
 ruby-*.tar.gz
+scratch workspace soul.md
