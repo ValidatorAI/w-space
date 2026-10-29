@@ -11,7 +11,6 @@ class TaskTest < ActiveSupport::TestCase
       description: "Write API",
       importance: 3,
       level: 1,
-      usd_usage: 12.5,
       usd_budget: 99.99,
       parent_task_id: parent_task.id,
       grand_parent_id: parent_task.id,
@@ -26,7 +25,6 @@ class TaskTest < ActiveSupport::TestCase
     assert_equal parent_task.id, task.parent_task_id
     assert_equal parent_task.id, task.grand_parent_id
     assert_equal "Write API", task.description
-    assert_equal 12.5, task.usd_usage
     assert_equal 99.99, task.usd_budget
   end
 end

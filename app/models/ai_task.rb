@@ -16,7 +16,7 @@ class AiTask < ApplicationRecord
   validates :importance, :level, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :token_used, numericality: { only_integer: true, allow_nil: true }
   validates :usd_used, numericality: true, allow_nil: true
-  validates :usd_usage, :usd_budget, numericality: true, allow_nil: true
+  validates :usd_budget, numericality: true, allow_nil: true
 
   def as_json(options = nil)
     json = super(options)
