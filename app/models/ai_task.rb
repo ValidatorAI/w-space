@@ -5,6 +5,7 @@ class AiTask < ApplicationRecord
   alias_attribute :runned, :finished
 
   belongs_to :project, optional: true
+  belongs_to :topic, optional: true
   belongs_to :room, optional: true
   belongs_to :parent_task, class_name: "AiTask", optional: true, foreign_key: :parent_task_id, inverse_of: :child_tasks
   has_many :child_tasks, class_name: "AiTask", foreign_key: :parent_task_id, dependent: :nullify, inverse_of: :parent_task
@@ -19,6 +20,7 @@ class AiTask < ApplicationRecord
 
   def as_json(options = nil)
     json = super(options)
+    json["topic_id"] = topic_id
     json["dispatched"] = dispatched
     json["finished"] = finished
     json["added_to_kanban"] = dispatched

@@ -92,6 +92,7 @@ module Api
         :finished,
         :added_to_kanban,
         :runned,
+        :topic_id,
         :parent_task_id,
         :grand_parent_id,
         :importance,
@@ -120,6 +121,10 @@ module Api
       if params.key?(:finished) || params.key?(:runned)
         finished_value = params.key?(:finished) ? params[:finished] : params[:runned]
         scope = scope.where(finished: ActiveModel::Type::Boolean.new.cast(finished_value))
+      end
+
+      if params[:topic_id].present? || params.key?(:topic_id)
+        scope = scope.where(topic_id: params[:topic_id])
       end
 
       scope
