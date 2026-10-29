@@ -14,6 +14,9 @@
 #   # Every minute - reconcile stale event dispatches & query Hermes health
 #   * * * * * cd /path/to/app && bin/rails runner "OutputEvents::ReconcileDispatchesJob.perform_later"
 #
+#   # Every 1 second - dispatch the next undispatched AI task to Hermes via the configured profile
+#   * * * * * cd /path/to/app && AI_TASK_DISPATCH_INTERVAL_SECONDS=1 bin/rails runner "AiTaskDispatchPollJob.perform_later"
+#
 # == Resque Scheduler ==
 #
 #   # config/resque_schedule.yml
