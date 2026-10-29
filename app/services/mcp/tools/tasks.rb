@@ -17,6 +17,8 @@ module Mcp
               room_id: { type: %w[string integer] },
               grand_parent_id: { type: %w[string integer] },
               parent_task_id: { type: %w[string integer] },
+              dispatched: { type: "boolean" },
+              finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" },
               page: { type: "integer" },
@@ -35,8 +37,16 @@ module Mcp
           scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
           scope = scope.where(grand_parent_id: args[:grand_parent_id]) if args[:grand_parent_id].present?
-          scope = scope.where(added_to_kanban: boolean_param(args[:added_to_kanban])) if args.key?(:added_to_kanban)
-          scope = scope.where(runned: boolean_param(args[:runned])) if args.key?(:runned)
+
+          if args.key?(:dispatched) || args.key?(:added_to_kanban)
+            dispatched_value = args.key?(:dispatched) ? args[:dispatched] : args[:added_to_kanban]
+            scope = scope.where(dispatched: boolean_param(dispatched_value))
+          end
+
+          if args.key?(:finished) || args.key?(:runned)
+            finished_value = args.key?(:finished) ? args[:finished] : args[:runned]
+            scope = scope.where(finished: boolean_param(finished_value))
+          end
 
           items = paginate(scope.order(created_at: :desc), args)
           success(items.map(&:as_json))
@@ -67,6 +77,10 @@ module Mcp
               grand_parent_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              dispatched: { type: "boolean" },
+              finished: { type: "boolean" },
+              added_to_kanban: { type: "boolean" },
+              runned: { type: "boolean" },
               token_used: { type: "integer" },
               usd_used: { type: "number" },
               usd_budget: { type: "number" },
@@ -86,6 +100,8 @@ module Mcp
             grand_parent_id: args[:grand_parent_id],
             adder_profile: args[:adder_profile],
             assigneee_profile: args[:assigneee_profile],
+            dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : false),
+            finished: args.key?(:finished) ? boolean_param(args[:finished]) : (args.key?(:runned) ? boolean_param(args[:runned]) : false),
             token_used: args[:token_used],
             usd_used: args[:usd_used],
             usd_budget: args[:usd_budget],
@@ -109,6 +125,8 @@ module Mcp
               description: { type: "string" },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              dispatched: { type: "boolean" },
+              finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" }
             },
@@ -122,8 +140,8 @@ module Mcp
             description: args[:description],
             adder_profile: args[:adder_profile],
             assigneee_profile: args[:assigneee_profile],
-            added_to_kanban: args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : nil,
-            runned: args.key?(:runned) ? boolean_param(args[:runned]) : nil
+            dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : nil),
+            finished: args.key?(:finished) ? boolean_param(args[:finished]) : (args.key?(:runned) ? boolean_param(args[:runned]) : nil)
           }.compact
           task.update!(attrs)
           success(task.as_json)

@@ -17,8 +17,8 @@ class TaskTest < ActiveSupport::TestCase
     )
 
     assert_equal project.id, task.project_id
-    assert_equal false, task.added_to_kanban
-    assert_equal false, task.runned
+    assert_equal false, task.dispatched
+    assert_equal false, task.finished
     assert_equal parent_task.id, task.parent_task_id
     assert_equal parent_task.id, task.grand_parent_id
     assert_equal "Write API", task.description

@@ -88,6 +88,8 @@ module Api
         :project_id,
         :description,
         :assigneee_profile,
+        :dispatched,
+        :finished,
         :added_to_kanban,
         :runned,
         :parent_task_id,
@@ -110,12 +112,14 @@ module Api
         scope = scope.where(grand_parent_id: params[:grand_parent_id])
       end
 
-      if params.key?(:added_to_kanban)
-        scope = scope.where(added_to_kanban: ActiveModel::Type::Boolean.new.cast(params[:added_to_kanban]))
+      if params.key?(:dispatched) || params.key?(:added_to_kanban)
+        dispatched_value = params.key?(:dispatched) ? params[:dispatched] : params[:added_to_kanban]
+        scope = scope.where(dispatched: ActiveModel::Type::Boolean.new.cast(dispatched_value))
       end
 
-      if params.key?(:runned)
-        scope = scope.where(runned: ActiveModel::Type::Boolean.new.cast(params[:runned]))
+      if params.key?(:finished) || params.key?(:runned)
+        finished_value = params.key?(:finished) ? params[:finished] : params[:runned]
+        scope = scope.where(finished: ActiveModel::Type::Boolean.new.cast(finished_value))
       end
 
       scope

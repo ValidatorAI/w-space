@@ -1,6 +1,9 @@
 class AiTask < ApplicationRecord
   self.table_name = "ai_tasks"
 
+  alias_attribute :added_to_kanban, :dispatched
+  alias_attribute :runned, :finished
+
   belongs_to :project, optional: true
   belongs_to :room, optional: true
   belongs_to :parent_task, class_name: "AiTask", optional: true, foreign_key: :parent_task_id, inverse_of: :child_tasks
@@ -13,6 +16,15 @@ class AiTask < ApplicationRecord
   validates :token_used, numericality: { only_integer: true, allow_nil: true }
   validates :usd_used, numericality: true, allow_nil: true
   validates :usd_usage, :usd_budget, numericality: true, allow_nil: true
+
+  def as_json(options = nil)
+    json = super(options)
+    json["dispatched"] = dispatched
+    json["finished"] = finished
+    json["added_to_kanban"] = dispatched
+    json["runned"] = finished
+    json
+  end
 
   def apply_task_cost!(new_token_used, new_usd_used)
     old_token_used = token_used.to_i
