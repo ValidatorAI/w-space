@@ -166,6 +166,8 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_equal "workspace", job.send(:resolve_profile, "all_hands_action_item_reopened", { "project_id" => 10 })
     assert_equal "workspace", job.send(:resolve_profile, "project_todo_completed", { "project_id" => 10 })
     assert_equal "workspace", job.send(:resolve_profile, "project_todo_reopened", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "decision_waiting_resolved", { "target_type" => "AttentionItem" })
+    assert_equal "workspace", job.send(:resolve_profile, "risk_approved", { "target_type" => "CompanyStatusItem" })
 
     ENV["OUTPUT_MESSAGE_PROFILE"] = previous_message_profile
     ENV["OUTPUT_WORKSPACE_PROFILE"] = previous_workspace_profile

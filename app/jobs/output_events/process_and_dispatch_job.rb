@@ -139,7 +139,7 @@ module OutputEvents
     def resolve_profile(event_type, event_data)
       configured_profile = if ai_settings_profile_event?(event_type)
         ENV["OUTPUT_AI_SETTING_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
-      elsif workspace_profile_event?(event_type)
+      elsif workspace_profile_event?(event_type, event_data)
         ENV["OUTPUT_WORKSPACE_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
       else
         ENV["OUTPUT_MESSAGE_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
@@ -167,8 +167,11 @@ module OutputEvents
       event_type.to_s.start_with?("ai_setting_", "ai_profile_", "mcp_", "skill_", "ai_config_")
     end
 
-    def workspace_profile_event?(event_type)
+    def workspace_profile_event?(event_type, event_data = {})
       return false if event_type.blank?
+
+      target_type = event_data["target_type"].to_s
+      return true if %w[AttentionItem CompanyStatusItem].include?(target_type)
 
       event_type.to_s.start_with?(
         "project_created",
@@ -176,7 +179,21 @@ module OutputEvents
         "all_hands_action_item_completed",
         "all_hands_action_item_reopened",
         "project_todo_completed",
-        "project_todo_reopened"
+        "project_todo_reopened",
+        "decision_waiting_",
+        "blocker_",
+        "outcome_review_",
+        "mention_",
+        "material_change_",
+        "ai_confirm_",
+        "knowledge_proposal_",
+        "priority_",
+        "progress_",
+        "risk_",
+        "dependency_",
+        "change_",
+        "learning_",
+        "attention_item_"
       )
     end
 
