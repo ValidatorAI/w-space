@@ -4,6 +4,9 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
   self.fixture_table_names = []
 
   setup do
+    ENV["OUTPUT_MESSAGE_PROFILE"] = "message_analyzer"
+    ENV["OUTPUT_AI_SETTING_PROFILE"] = "ai_settings"
+
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(
         status: 200,
@@ -48,7 +51,7 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
       status: "pending"
     )
 
-    stub_request(:post, "http://127.0.0.1:8642/p/delegator/v1/chat/completions")
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
       .to_return(
         status: 200,
         body: { choices: [{ message: { content: "Advice recorded" } }] }.to_json,
@@ -107,7 +110,7 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
         headers: { "Content-Type" => "application/json" }
       )
 
-    stub_request(:post, "http://127.0.0.1:8642/p/delegator/v1/chat/completions")
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
       .to_return(
         status: 200,
         body: { choices: [{ message: { content: "message ok" } }] }.to_json,
@@ -130,7 +133,42 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     message_result = JSON.parse(message_group.reload.result)
 
     assert_equal "ai_settings", ai_result["profile"]
-    assert_equal "delegator", message_result["profile"]
+    assert_equal "message_analyzer", message_result["profile"]
+  end
+
+  test "uses OUTPUT_MESSAGE_PROFILE for room and message family events when configured" do
+    previous_message_profile = ENV["OUTPUT_MESSAGE_PROFILE"]
+    previous_ai_setting_profile = ENV["OUTPUT_AI_SETTING_PROFILE"]
+    ENV["OUTPUT_MESSAGE_PROFILE"] = "message_analyzer"
+    ENV["OUTPUT_AI_SETTING_PROFILE"] = "ai_settings"
+
+    job = OutputEvents::ProcessAndDispatchJob.new
+
+    assert_equal "message_analyzer", job.send(:resolve_profile, "message_created", { "room_id" => 1 })
+    assert_equal "message_analyzer", job.send(:resolve_profile, "approval_request_approved", { "room_id" => 1 })
+    assert_equal "message_analyzer", job.send(:resolve_profile, "decision_approved", { "room_id" => 1 })
+
+    ENV["OUTPUT_MESSAGE_PROFILE"] = previous_message_profile
+    ENV["OUTPUT_AI_SETTING_PROFILE"] = previous_ai_setting_profile
+  end
+
+  test "uses OUTPUT_WORKSPACE_PROFILE for project and task workspace events when configured" do
+    previous_message_profile = ENV["OUTPUT_MESSAGE_PROFILE"]
+    previous_workspace_profile = ENV["OUTPUT_WORKSPACE_PROFILE"]
+    ENV["OUTPUT_MESSAGE_PROFILE"] = "message_analyzer"
+    ENV["OUTPUT_WORKSPACE_PROFILE"] = "workspace"
+
+    job = OutputEvents::ProcessAndDispatchJob.new
+
+    assert_equal "workspace", job.send(:resolve_profile, "project_created", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "project_updated", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "all_hands_action_item_completed", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "all_hands_action_item_reopened", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "project_todo_completed", { "project_id" => 10 })
+    assert_equal "workspace", job.send(:resolve_profile, "project_todo_reopened", { "project_id" => 10 })
+
+    ENV["OUTPUT_MESSAGE_PROFILE"] = previous_message_profile
+    ENV["OUTPUT_WORKSPACE_PROFILE"] = previous_workspace_profile
   end
 
   test "throttles dispatch when Hermes active agents exceed threshold" do

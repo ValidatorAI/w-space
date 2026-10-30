@@ -59,7 +59,13 @@ module Api
       item = CompanyStatusItem.find_by(id: params[:id])
       return render json: { error: "Company status item not found" }, status: :not_found unless item
 
+      action = params[:action].presence || params[:status].presence || "update"
+      old_status = item.status
       if item.update(item_params)
+        new_status = item.status.presence || old_status
+        if action.present? && action.to_s != "update"
+          item.record_action_event!(actor: Current.user || User.first, action: action, status: new_status)
+        end
         render json: serialize(item)
       else
         render json: { error: item.errors.full_messages.to_sentence }, status: :unprocessable_entity
@@ -72,6 +78,8 @@ module Api
       item = CompanyStatusItem.find_by(id: params[:id])
       return render json: { error: "Company status item not found" }, status: :not_found unless item
 
+      action = params[:action].presence || "delete"
+      item.record_action_event!(actor: Current.user || User.first, action: action, status: item.status.presence || "deleted") if item.respond_to?(:record_action_event!)
       item.destroy
       head :no_content
     end

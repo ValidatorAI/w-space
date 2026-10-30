@@ -139,6 +139,8 @@ module OutputEvents
     def resolve_profile(event_type, event_data)
       configured_profile = if ai_settings_profile_event?(event_type)
         ENV["OUTPUT_AI_SETTING_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
+      elsif workspace_profile_event?(event_type)
+        ENV["OUTPUT_WORKSPACE_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
       else
         ENV["OUTPUT_MESSAGE_PROFILE"].presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
       end
@@ -163,6 +165,19 @@ module OutputEvents
       return false if event_type.blank?
 
       event_type.to_s.start_with?("ai_setting_", "ai_profile_", "mcp_", "skill_", "ai_config_")
+    end
+
+    def workspace_profile_event?(event_type)
+      return false if event_type.blank?
+
+      event_type.to_s.start_with?(
+        "project_created",
+        "project_updated",
+        "all_hands_action_item_completed",
+        "all_hands_action_item_reopened",
+        "project_todo_completed",
+        "project_todo_reopened"
+      )
     end
 
     def resolve_group_events(group, lead_event)

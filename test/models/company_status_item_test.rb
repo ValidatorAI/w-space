@@ -40,4 +40,28 @@ class CompanyStatusItemTest < ActiveSupport::TestCase
     assert_equal "85% Complete", payload[:details][:status]
     assert_equal [ "Mobile polish" ], payload[:details][:actions]
   end
+
+  test "builds category-based action event names and records them" do
+    item = @period.company_status_items.create!(
+      category: "risks",
+      title: "Data migration risk",
+      status: "Open",
+      evidence: "Needs mitigation"
+    )
+
+    assert_equal "risk_approved", item.action_event_type(action: "approve")
+    assert_equal "risk_denied", item.action_event_type(action: "deny")
+
+    assert_difference -> { OutputEvent.count }, +1 do
+      item.record_action_event!(actor: users(:david), action: "approve", status: "approved")
+    end
+
+    event = OutputEvent.order(:id).last
+    assert_equal "risk_approved", event.event_type
+    assert_equal item.id, event.event_id
+    assert_equal "CompanyStatusItem", event.event_data["target_type"]
+    assert_equal "risks", event.event_data["category"]
+    assert_equal "approved", event.event_data["status"]
+    assert_equal "Data migration risk", event.event_data["content"]
+  end
 end
