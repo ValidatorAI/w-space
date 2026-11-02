@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_11_02_000001) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_02_000002) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -126,11 +126,13 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000001) do
     t.boolean "finished", default: false, null: false
     t.integer "grand_parent_id"
     t.integer "importance", default: 0, null: false
+    t.integer "input_event_entity_id"
     t.integer "level", default: 0, null: false
     t.integer "parent_task_id"
     t.integer "project_id"
     t.string "proposed_task_context"
     t.integer "room_id"
+    t.integer "task_id"
     t.integer "token_budget"
     t.integer "token_used"
     t.integer "topic_id"
@@ -138,9 +140,11 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000001) do
     t.float "usd_budget"
     t.float "usd_used"
     t.index ["grand_parent_id"], name: "index_ai_tasks_on_grand_parent_id"
+    t.index ["input_event_entity_id"], name: "index_ai_tasks_on_input_event_entity_id"
     t.index ["parent_task_id"], name: "index_ai_tasks_on_parent_task_id"
     t.index ["project_id"], name: "index_ai_tasks_on_project_id"
     t.index ["room_id"], name: "index_ai_tasks_on_room_id"
+    t.index ["task_id"], name: "index_ai_tasks_on_task_id"
     t.index ["topic_id"], name: "index_ai_tasks_on_topic_id"
   end
 

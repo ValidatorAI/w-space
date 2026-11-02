@@ -22,6 +22,7 @@ module Mcp
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" },
               topic_id: { type: %w[string integer] },
+              input_event_entity_id: { type: %w[string integer] },
               proposed_task_context: { type: "string" },
               actual_task_context: { type: "string" },
               page: { type: "integer" },
@@ -41,6 +42,8 @@ module Mcp
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
           scope = scope.where(grand_parent_id: args[:grand_parent_id]) if args[:grand_parent_id].present?
           scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
+          scope = scope.where(task_id: args[:task_id]) if args[:task_id].present?
+          scope = scope.where(input_event_entity_id: args[:input_event_entity_id]) if args[:input_event_entity_id].present?
           scope = scope.where(proposed_task_context: args[:proposed_task_context]) if args[:proposed_task_context].present?
           scope = scope.where(actual_task_context: args[:actual_task_context]) if args[:actual_task_context].present?
 
@@ -81,6 +84,8 @@ module Mcp
               room_id: { type: %w[string integer] },
               parent_task_id: { type: %w[string integer] },
               grand_parent_id: { type: %w[string integer] },
+              task_id: { type: %w[string integer] },
+              input_event_entity_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
               proposed_task_context: { type: "string" },
@@ -101,6 +106,8 @@ module Mcp
 
         def execute(args)
           task = AiTask.create!(
+            task_id: args[:task_id].presence,
+            input_event_entity_id: args[:input_event_entity_id].presence,
             description: args[:description],
             project_id: args[:project_id],
             room_id: args[:room_id],
@@ -136,6 +143,7 @@ module Mcp
               description: { type: "string" },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              input_event_entity_id: { type: %w[string integer] },
               actual_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
@@ -154,6 +162,8 @@ module Mcp
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
           attrs[:assigneee_profile] = args[:assigneee_profile] if args.key?(:assigneee_profile)
+          attrs[:task_id] = args[:task_id].presence if args.key?(:task_id) && args[:task_id].to_i != task.id.to_i
+          attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)
           attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
           attrs[:proposed_task_context] = nil
 

@@ -69,4 +69,29 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_nil task.proposed_task_context
     assert_equal "Final execution context", task.actual_task_context
   end
+
+  test "task rows persist external task and input event references" do
+    create_task = Mcp::Registry.find_tool("create_task", scope: :task)
+    create_result = create_task.call(
+      description: "Follow up on gated approval",
+      project_id: @project.id,
+      task_id: 987,
+      input_event_entity_id: 654
+    )
+    assert_equal false, create_result[:isError]
+
+    task = Task.last
+    assert_equal 987, task.task_id
+    assert_equal 654, task.input_event_entity_id
+
+    update_task = Mcp::Registry.find_tool("update_task", scope: :task)
+    update_result = update_task.call(
+      task_id: task.id,
+      input_event_entity_id: 777
+    )
+    assert_equal false, update_result[:isError]
+
+    task.reload
+    assert_equal 777, task.input_event_entity_id
+  end
 end

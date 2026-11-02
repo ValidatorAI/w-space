@@ -23,6 +23,8 @@ class AiTask < ApplicationRecord
     json["proposed_task_context"] = proposed_task_context
     json["actual_task_context"] = actual_task_context
     json["topic_id"] = topic_id
+    json["task_id"] = task_id
+    json["input_event_entity_id"] = input_event_entity_id
     json["dispatched"] = dispatched
     json["finished"] = finished
     json["added_to_kanban"] = dispatched
