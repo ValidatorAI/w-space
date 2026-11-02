@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_11_02_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_02_000001) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -729,14 +729,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000000) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "tools", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "topic_tool_call_logs", force: :cascade do |t|
+  create_table "tool_cal_logs", force: :cascade do |t|
     t.text "change_log"
     t.datetime "created_at", null: false
     t.datetime "created_date", null: false
@@ -747,14 +740,21 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000000) do
     t.datetime "updated_at", null: false
     t.string "used_tool_name", null: false
     t.text "why_was_it_required"
-    t.index ["created_date"], name: "index_topic_tool_call_logs_on_created_date"
-    t.index ["project_id", "created_date"], name: "index_topic_tool_call_logs_on_project_id_and_created_date"
-    t.index ["project_id"], name: "index_topic_tool_call_logs_on_project_id"
-    t.index ["room_id", "created_date"], name: "index_topic_tool_call_logs_on_room_id_and_created_date"
-    t.index ["room_id"], name: "index_topic_tool_call_logs_on_room_id"
-    t.index ["topic_id", "created_date"], name: "index_topic_tool_call_logs_on_topic_id_and_created_date"
-    t.index ["topic_id"], name: "index_topic_tool_call_logs_on_topic_id"
-    t.index ["used_tool_name"], name: "index_topic_tool_call_logs_on_used_tool_name"
+    t.index ["created_date"], name: "index_tool_cal_logs_on_created_date"
+    t.index ["project_id", "created_date"], name: "index_tool_cal_logs_on_project_id_and_created_date"
+    t.index ["project_id"], name: "index_tool_cal_logs_on_project_id"
+    t.index ["room_id", "created_date"], name: "index_tool_cal_logs_on_room_id_and_created_date"
+    t.index ["room_id"], name: "index_tool_cal_logs_on_room_id"
+    t.index ["topic_id", "created_date"], name: "index_tool_cal_logs_on_topic_id_and_created_date"
+    t.index ["topic_id"], name: "index_tool_cal_logs_on_topic_id"
+    t.index ["used_tool_name"], name: "index_tool_cal_logs_on_used_tool_name"
+  end
+
+  create_table "tools", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "topics", force: :cascade do |t|
@@ -846,9 +846,9 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000000) do
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"
   add_foreign_key "sessions", "users"
-  add_foreign_key "topic_tool_call_logs", "projects"
-  add_foreign_key "topic_tool_call_logs", "rooms"
-  add_foreign_key "topic_tool_call_logs", "topics"
+  add_foreign_key "tool_cal_logs", "projects"
+  add_foreign_key "tool_cal_logs", "rooms"
+  add_foreign_key "tool_cal_logs", "topics"
   add_foreign_key "topics", "projects"
   add_foreign_key "topics", "topics", column: "parent_topic_id"
 

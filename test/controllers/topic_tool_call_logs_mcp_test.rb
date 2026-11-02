@@ -1,6 +1,6 @@
 require "test_helper"
 
-class TopicToolCallLogsMcpTest < ActionDispatch::IntegrationTest
+class ToolCalLogsMcpTest < ActionDispatch::IntegrationTest
   self.fixture_table_names = []
 
   setup do
@@ -28,9 +28,9 @@ class TopicToolCallLogsMcpTest < ActionDispatch::IntegrationTest
     response.parsed_body
   end
 
-  test "create_topic_tool_call_log persists and read-mcp filters logs by topic, room, project, and date" do
+  test "create_tool_cal_log persists and read-mcp filters logs by topic, room, project, and date" do
     start_datetime = Time.current
-    payload = call_tool("/action-mcp", "create_topic_tool_call_log",
+    payload = call_tool("/action-mcp", "create_tool_cal_log",
                         {
                           topic_id: @topic.id,
                           room_id: @room.id,
@@ -43,13 +43,13 @@ class TopicToolCallLogsMcpTest < ActionDispatch::IntegrationTest
                         })
 
     assert_equal false, payload.dig("result", "isError"), payload.inspect
-    created = TopicToolCallLog.order(:id).last
+    created = ToolCalLog.order(:id).last
     assert_equal @topic.id, created.topic_id
     assert_equal @room.id, created.room_id
     assert_equal @project.id, created.project_id
     assert_equal "create_topic", created.used_tool_name
 
-    read_payload = call_tool("/read-mcp", "topic_tool_call_logs",
+    read_payload = call_tool("/read-mcp", "tool_cal_logs",
                             {
                               topic_id: @topic.id,
                               room_id: @room.id,

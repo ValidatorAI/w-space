@@ -357,17 +357,18 @@ module Mcp
         end
       end
 
-      class TopicToolCallLogsTool < Mcp::BaseTool
+      class ToolCalLogsTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
-        def name = "topic_tool_call_logs"
-        def description = "List topic tool call log entries with filters for topic, room, project, and date range"
-        def aliases = %w[TopicToolCallLogs topic_tool_call_log]
+        def name = "tool_cal_logs"
+        def description = "List tool cal log entries with filters for topic, room, project, and date range"
+        def aliases = %w[ToolCalLogs tool_call_logs TopicToolCallLogs topic_tool_call_log tool_cal_log]
 
         def input_schema
           {
             type: "object",
             properties: {
+              tool_cal_log_id: { type: %w[string integer] },
               topic_tool_call_log_id: { type: %w[string integer] },
               topic_id: { type: %w[string integer] },
               room_id: { type: %w[string integer] },
@@ -382,11 +383,12 @@ module Mcp
         end
 
         def execute(args)
-          if args[:topic_tool_call_log_id].present?
-            return success(TopicToolCallLog.find(args[:topic_tool_call_log_id]).as_json)
+          record_id = args[:tool_cal_log_id].presence || args[:topic_tool_call_log_id].presence
+          if record_id.present?
+            return success(ToolCalLog.find(record_id).as_json)
           end
 
-          scope = TopicToolCallLog.all
+          scope = ToolCalLog.all
           scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
           scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
           scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
@@ -414,21 +416,26 @@ module Mcp
         end
       end
 
-      class GetTopicToolCallLogTool < Mcp::BaseTool
-        def name = "get_topic_tool_call_log"
-        def description = "Fetch one topic tool call log entry by ID"
-        def aliases = ["GetTopicToolCallLog"]
-        def input_schema = { type: "object", properties: { topic_tool_call_log_id: { type: %w[string integer] } }, required: ["topic_tool_call_log_id"] }
+      TopicToolCallLogsTool = ToolCalLogsTool
+
+      class GetToolCalLogTool < Mcp::BaseTool
+        def name = "get_tool_cal_log"
+        def description = "Fetch one tool cal log entry by ID"
+        def aliases = %w[GetToolCalLog GetTopicToolCallLog]
+        def input_schema = { type: "object", properties: { tool_cal_log_id: { type: %w[string integer] }, topic_tool_call_log_id: { type: %w[string integer] } }, required: ["tool_cal_log_id"] }
 
         def execute(args)
-          success(TopicToolCallLog.find(args[:topic_tool_call_log_id]).as_json)
+          record_id = args[:tool_cal_log_id].presence || args[:topic_tool_call_log_id].presence
+          success(ToolCalLog.find(record_id).as_json)
         end
       end
 
-      class CreateTopicToolCallLogTool < Mcp::BaseTool
-        def name = "create_topic_tool_call_log"
-        def description = "Create a topic tool call log entry"
-        def aliases = ["CreateTopicToolCallLog"]
+      GetTopicToolCallLogTool = GetToolCalLogTool
+
+      class CreateToolCalLogTool < Mcp::BaseTool
+        def name = "create_tool_cal_log"
+        def description = "Create a tool cal log entry"
+        def aliases = %w[CreateToolCalLog CreateTopicToolCallLog]
 
         def input_schema
           {
@@ -448,7 +455,7 @@ module Mcp
         end
 
         def execute(args)
-          record = TopicToolCallLog.create!(
+          record = ToolCalLog.create!(
             topic_id: args[:topic_id],
             room_id: args[:room_id],
             project_id: args[:project_id],
@@ -462,15 +469,18 @@ module Mcp
         end
       end
 
-      class UpdateTopicToolCallLogTool < Mcp::BaseTool
-        def name = "update_topic_tool_call_log"
-        def description = "Update a topic tool call log entry"
-        def aliases = ["UpdateTopicToolCallLog"]
+      CreateTopicToolCallLogTool = CreateToolCalLogTool
+
+      class UpdateToolCalLogTool < Mcp::BaseTool
+        def name = "update_tool_cal_log"
+        def description = "Update a tool cal log entry"
+        def aliases = %w[UpdateToolCalLog UpdateTopicToolCallLog]
 
         def input_schema
           {
             type: "object",
             properties: {
+              tool_cal_log_id: { type: %w[string integer] },
               topic_tool_call_log_id: { type: %w[string integer] },
               topic_id: { type: %w[string integer] },
               room_id: { type: %w[string integer] },
@@ -481,12 +491,13 @@ module Mcp
               change_log: { type: "string" },
               why_was_it_required: { type: "string" }
             },
-            required: ["topic_tool_call_log_id"]
+            required: ["tool_cal_log_id"]
           }
         end
 
         def execute(args)
-          record = TopicToolCallLog.find(args[:topic_tool_call_log_id])
+          record_id = args[:tool_cal_log_id].presence || args[:topic_tool_call_log_id].presence
+          record = ToolCalLog.find(record_id)
           attrs = {
             topic_id: args[:topic_id],
             room_id: args[:room_id],
@@ -502,18 +513,23 @@ module Mcp
         end
       end
 
-      class DeleteTopicToolCallLogTool < Mcp::BaseTool
-        def name = "delete_topic_tool_call_log"
-        def description = "Delete a topic tool call log entry"
-        def aliases = ["DeleteTopicToolCallLog"]
-        def input_schema = { type: "object", properties: { topic_tool_call_log_id: { type: %w[string integer] } }, required: ["topic_tool_call_log_id"] }
+      UpdateTopicToolCallLogTool = UpdateToolCalLogTool
+
+      class DeleteToolCalLogTool < Mcp::BaseTool
+        def name = "delete_tool_cal_log"
+        def description = "Delete a tool cal log entry"
+        def aliases = %w[DeleteToolCalLog DeleteTopicToolCallLog]
+        def input_schema = { type: "object", properties: { tool_cal_log_id: { type: %w[string integer] }, topic_tool_call_log_id: { type: %w[string integer] } }, required: ["tool_cal_log_id"] }
 
         def execute(args)
-          record = TopicToolCallLog.find(args[:topic_tool_call_log_id])
+          record_id = args[:tool_cal_log_id].presence || args[:topic_tool_call_log_id].presence
+          record = ToolCalLog.find(record_id)
           record.destroy!
           success(status: "deleted", id: record.id)
         end
       end
+
+      DeleteTopicToolCallLogTool = DeleteToolCalLogTool
 
       # --- Message Analysis ---
       class SearchMessagesOfRoomTool < Mcp::BaseTool
