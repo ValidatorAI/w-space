@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_29_020000) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_02_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -117,6 +117,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_29_020000) do
   end
 
   create_table "ai_tasks", force: :cascade do |t|
+    t.string "actual_task_context"
     t.text "adder_profile"
     t.text "assigneee_profile"
     t.datetime "created_at", null: false
@@ -128,6 +129,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_29_020000) do
     t.integer "level", default: 0, null: false
     t.integer "parent_task_id"
     t.integer "project_id"
+    t.string "proposed_task_context"
     t.integer "room_id"
     t.integer "token_budget"
     t.integer "token_used"

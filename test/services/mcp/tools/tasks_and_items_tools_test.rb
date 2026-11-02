@@ -44,4 +44,29 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_equal 1000, parent.reload.token_used
     assert_in_delta 0.05, parent.usd_used, 0.001
   end
+
+  test "task context fields are split between proposal and actual execution" do
+    create_task = Mcp::Registry.find_tool("create_task", scope: :task)
+    create_result = create_task.call(
+      description: "Ship reporting",
+      project_id: @project.id,
+      proposed_task_context: "Initial proposal context"
+    )
+    assert_equal false, create_result[:isError]
+
+    task = Task.last
+    assert_equal "Initial proposal context", task.proposed_task_context
+    assert_nil task.actual_task_context
+
+    update_task = Mcp::Registry.find_tool("update_task", scope: :task)
+    update_result = update_task.call(
+      task_id: task.id,
+      actual_task_context: "Final execution context"
+    )
+    assert_equal false, update_result[:isError]
+
+    task.reload
+    assert_nil task.proposed_task_context
+    assert_equal "Final execution context", task.actual_task_context
+  end
 end

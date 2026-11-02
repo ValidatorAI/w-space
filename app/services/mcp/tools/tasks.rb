@@ -22,6 +22,8 @@ module Mcp
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" },
               topic_id: { type: %w[string integer] },
+              proposed_task_context: { type: "string" },
+              actual_task_context: { type: "string" },
               page: { type: "integer" },
               per_page: { type: "integer" }
             }
@@ -39,6 +41,8 @@ module Mcp
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
           scope = scope.where(grand_parent_id: args[:grand_parent_id]) if args[:grand_parent_id].present?
           scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
+          scope = scope.where(proposed_task_context: args[:proposed_task_context]) if args[:proposed_task_context].present?
+          scope = scope.where(actual_task_context: args[:actual_task_context]) if args[:actual_task_context].present?
 
           if args.key?(:dispatched) || args.key?(:added_to_kanban)
             dispatched_value = args.key?(:dispatched) ? args[:dispatched] : args[:added_to_kanban]
@@ -79,6 +83,7 @@ module Mcp
               grand_parent_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              proposed_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
@@ -103,6 +108,8 @@ module Mcp
             grand_parent_id: args[:grand_parent_id],
             adder_profile: args[:adder_profile],
             assigneee_profile: args[:assigneee_profile],
+            proposed_task_context: args[:proposed_task_context].presence,
+            actual_task_context: nil,
             dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : false),
             finished: args.key?(:finished) ? boolean_param(args[:finished]) : (args.key?(:runned) ? boolean_param(args[:runned]) : false),
             topic_id: args[:topic_id].presence,
@@ -129,6 +136,7 @@ module Mcp
               description: { type: "string" },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              actual_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
@@ -141,14 +149,24 @@ module Mcp
 
         def execute(args)
           task = AiTask.find(args[:task_id])
-          attrs = {
-            description: args[:description],
-            adder_profile: args[:adder_profile],
-            assigneee_profile: args[:assigneee_profile],
-            dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : nil),
-            finished: args.key?(:finished) ? boolean_param(args[:finished]) : (args.key?(:runned) ? boolean_param(args[:runned]) : nil),
-            topic_id: args.key?(:topic_id) ? args[:topic_id].presence : nil
-          }.compact
+          attrs = {}
+
+          attrs[:description] = args[:description] if args.key?(:description)
+          attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
+          attrs[:assigneee_profile] = args[:assigneee_profile] if args.key?(:assigneee_profile)
+          attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
+          attrs[:proposed_task_context] = nil
+
+          if args.key?(:dispatched) || args.key?(:added_to_kanban)
+            attrs[:dispatched] = args.key?(:dispatched) ? boolean_param(args[:dispatched]) : boolean_param(args[:added_to_kanban])
+          end
+
+          if args.key?(:finished) || args.key?(:runned)
+            attrs[:finished] = args.key?(:finished) ? boolean_param(args[:finished]) : boolean_param(args[:runned])
+          end
+
+          attrs[:topic_id] = args[:topic_id].presence if args.key?(:topic_id)
+
           task.update!(attrs)
           success(task.as_json)
         end

@@ -20,6 +20,8 @@ class AiTask < ApplicationRecord
 
   def as_json(options = nil)
     json = super(options)
+    json["proposed_task_context"] = proposed_task_context
+    json["actual_task_context"] = actual_task_context
     json["topic_id"] = topic_id
     json["dispatched"] = dispatched
     json["finished"] = finished

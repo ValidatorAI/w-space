@@ -87,6 +87,8 @@ module Api
         :project_id,
         :description,
         :assigneee_profile,
+        :proposed_task_context,
+        :actual_task_context,
         :dispatched,
         :finished,
         :added_to_kanban,
