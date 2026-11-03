@@ -4,6 +4,8 @@ class ToolCalLogsMcpTest < ActionDispatch::IntegrationTest
   self.fixture_table_names = []
 
   setup do
+    @mcp_auth_token = "test-mcp-token"
+    ENV["MCP_AUTH_TOKEN"] = @mcp_auth_token
     Mcp.load_tools!
     @user = User.create!(name: "Topic Log User", display_name: "Topic Log User", email_address: "topic-log-#{SecureRandom.hex(4)}@example.com", password: "Password123!", password_confirmation: "Password123!", role: :member)
     @project = Project.find_or_create_by!(path: "topic-log-project-#{SecureRandom.hex(4)}") do |project|
@@ -22,7 +24,7 @@ class ToolCalLogsMcpTest < ActionDispatch::IntegrationTest
            method: "tools/call",
            params: { name: tool_name, arguments: arguments }
          }.to_json,
-         headers: { "Content-Type" => "application/json" }
+         headers: { "Content-Type" => "application/json", "Authorization" => "Bearer #{@mcp_auth_token}" }
 
     assert_response :success, "Expected #{endpoint} to dispatch #{tool_name}"
     response.parsed_body
