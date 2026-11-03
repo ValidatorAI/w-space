@@ -1,4 +1,4 @@
-# Bonfire Page / Entity Reference
+# Space Page / Entity Reference
 
 ## How a record gets onto a page
 
@@ -1034,4 +1034,4 @@ Examples from the live app:
 - `/knowledge-mcp` — knowledge-oriented routing
 - `/task-mcp` — task-oriented routing
 
-This reflects the actual route definitions in Bonfire and the MCP tool grouping in the app.
+This reflects the actual route definitions in Space and the MCP tool grouping in the app.

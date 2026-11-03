@@ -1,10 +1,10 @@
-# Bonfire Knowledge MCP
+# Space Knowledge MCP
 
-This document explains the knowledge-focused Model Context Protocol (MCP) in Bonfire and the database relationships behind it.
+This document explains the knowledge-focused Model Context Protocol (MCP) in Space and the database relationships behind it.
 
 ## What the Knowledge MCP is
 
-The knowledge MCP in Bonfire is the subset of MCP tools registered for knowledge-related workflows. It is defined in [../app/services/mcp.rb](../app/services/mcp.rb) and served from the knowledge endpoint mounted in [../config/routes.rb](../config/routes.rb).
+The knowledge MCP in Space is the subset of MCP tools registered for knowledge-related workflows. It is defined in [../app/services/mcp.rb](../app/services/mcp.rb) and served from the knowledge endpoint mounted in [../config/routes.rb](../config/routes.rb).
 
 The knowledge-scoped tool group covers:
 
@@ -190,7 +190,7 @@ The knowledge MCP is not a single table or single model. It is a layered memory 
 3. message-level topic tagging and analysis
 4. evidence linking between rooms and project knowledge
 
-This gives Bonfire a working structure for:
+This gives Space a working structure for:
 
 - summarizing project knowledge
 - linking messages to topics

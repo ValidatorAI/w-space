@@ -1,6 +1,6 @@
 # Messaging Architecture
 
-This document explains how room messaging works in Bonfire, including message persistence, realtime fan-out, Redis usage, and room subscription/presence behavior.
+This document explains how room messaging works in Space, including message persistence, realtime fan-out, Redis usage, and room subscription/presence behavior.
 
 ## Executive Summary
 

@@ -1,6 +1,6 @@
-# Bonfire Hierarchical Memory Reference
+# Space Hierarchical Memory Reference
 
-A company-rooted memory path map for Bonfire entities and relationships.
+A company-rooted memory path map for Space entities and relationships.
 
 All memory paths in this document start with:
 

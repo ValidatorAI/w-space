@@ -1,6 +1,6 @@
 # Agent Entity Documentation
 
-This document explains what an Agent is in Bonfire MCP, what role it plays in rooms, and which functions it performs during collaboration.
+This document explains what an Agent is in Space MCP, what role it plays in rooms, and which functions it performs during collaboration.
 
 ## 1. What Is an Agent?
 

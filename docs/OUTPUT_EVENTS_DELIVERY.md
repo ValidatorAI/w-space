@@ -1,6 +1,6 @@
 # Output Events Delivery
 
-This document explains how Bonfire sends business events to an external endpoint using OUTPUT_EVENTS_URL.
+This document explains how Space sends business events to an external endpoint using OUTPUT_EVENTS_URL.
 
 ## Environment Variables
 
@@ -100,7 +100,7 @@ Receivers should parse the multipart payload and decode `event` as JSON.
 ```
 
 - If multiple related knowledge locations exist, they are included as multiple `-` list lines inside the same block.
-- If an event is project-backed but no artifact-specific path can be derived, Bonfire sends the project knowledge root.
+- If an event is project-backed but no artifact-specific path can be derived, Space sends the project knowledge root.
 - If an event is not project-backed, `knowledge_path` is omitted.
 
 ## Event Types Currently Sent

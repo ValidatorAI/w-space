@@ -1,6 +1,6 @@
 # Project Entity Documentation
 
-This document explains the `Project` entity in Bonfire MCP: what it represents, how it is created, and how it relates to rooms, agents, and file reservations.
+This document explains the `Project` entity in Space MCP: what it represents, how it is created, and how it relates to rooms, agents, and file reservations.
 
 ## 1. What Is a Project?
 

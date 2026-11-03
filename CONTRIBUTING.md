@@ -1,6 +1,6 @@
-# How to contribute to Bonfire
+# How to contribute to Space
 
-Bonfire uses GitHub
+Space uses GitHub
 [discussions](https://github.com/basecamp/once-bonfire/discussions) to track
 feature requests and questions, rather than [the issue
 tracker](https://github.com/basecamp/once-bonfire/issues). If you're considering
