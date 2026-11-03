@@ -60,7 +60,6 @@
          data-action="keydown.esc@window->company-status#closeDrawer">
       <div class="company-status-header">
         <div class="company-status-period-picker" aria-label="Reporting period">
-          <label for="company-month-selector" class="sr-only">Reporting period</label>
           <select id="company-month-selector" name="period" aria-label="Reporting period" aria-required="false" title="Reporting period">
             <% @periods.each do |period| %>
               <option value="<%= period.slug %>" <%= "selected" if period == @selected_period %>><%= period.name %></option>
