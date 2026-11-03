@@ -60,14 +60,14 @@
          data-action="keydown.esc@window->company-status#closeDrawer">
       <div class="company-status-header">
         <h1>Shared Direction &amp; Status</h1>
-        <%= form_with url: user_company_status_path(user_id: "me"), method: :get, class: "company-status-period-picker" do %>
-          <label for="company-month-selector" class="sr-only">Select reporting period</label>
-          <select id="company-month-selector" name="period">
+        <div class="company-status-period-picker" aria-label="Reporting period">
+          <label for="company-month-selector" class="sr-only">Reporting period</label>
+          <select id="company-month-selector" name="period" aria-label="Reporting period" aria-required="false">
             <% @periods.each do |period| %>
               <option value="<%= period.slug %>" <%= "selected" if period == @selected_period %>><%= period.name %></option>
             <% end %>
           </select>
-        <% end %>
+        </div>
       </div>
       <div class="company-status-content" id="company-status-content" data-company-status-target="content">
         <div class="company-card company-card-full">
