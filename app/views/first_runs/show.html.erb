@@ -262,6 +262,16 @@
     background: rgba(10, 20, 31, 0.96);
   }
 
+  .w-step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .w-step[hidden] {
+    display: none;
+  }
+
   .w-ai-checklist {
     display: grid;
     gap: 10px;
@@ -288,6 +298,11 @@
     margin: 0;
   }
 
+  .w-step-actions {
+    display: grid;
+    gap: 10px;
+  }
+
   .w-button {
     width: 100%;
     border: 1px solid rgba(91, 128, 196, 0.7);
@@ -300,6 +315,12 @@
     cursor: pointer;
     box-shadow: 0 10px 18px rgba(45, 101, 214, 0.28);
     transition: transform 0.15s ease, filter 0.15s ease;
+  }
+
+  .w-button-secondary {
+    border-color: rgba(150, 169, 188, 0.28);
+    background: rgba(15, 27, 39, 0.9);
+    box-shadow: none;
   }
 
   .w-button:hover {
@@ -355,65 +376,113 @@
         </header>
 
         <%= form_with model: @user, url: first_run_path, class: "w-form" do |form| %>
-          <fieldset class="w-field">
-            <label class="avatar__form" data-controller="upload-preview">
-              <div class="btn input--file">
-                <%= image_tag "camera.svg", aria: { hidden: "true" } %>
-                <%= form.file_field :avatar, class: "input", accept: "image/*",
-                      data: { upload_preview_target: "input", action: "upload-preview#previewImage" } %>
-                <span class="for-screen-reader">Add your avatar</span>
+          <div class="w-step" data-step="1">
+            <fieldset class="w-field">
+              <label class="avatar__form" data-controller="upload-preview">
+                <div class="btn input--file">
+                  <%= image_tag "camera.svg", aria: { hidden: "true" } %>
+                  <%= form.file_field :avatar, class: "input", accept: "image/*",
+                        data: { upload_preview_target: "input", action: "upload-preview#previewImage" } %>
+                  <span class="for-screen-reader">Add your avatar</span>
+                </div>
+
+                <div class="btn avatar input--file">
+                  <%= image_tag "default-avatar.svg", aria: { hidden: "true" }, data: { upload_preview_target: "image" }, alt: "Add your avatar" %>
+                  <span class="for-screen-reader">Avatar</span>
+                </div>
+              </label>
+            </fieldset>
+
+            <div class="w-field">
+              <label for="user_name">Name</label>
+              <div class="w-input-wrap">
+                <%= image_tag "person.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.text_field :name, id: "user_name", class: "input", autocomplete: "name",
+                      placeholder: "Name", autofocus: true, required: true, data: { "1p-ignore": true } %>
               </div>
+            </div>
 
-              <div class="btn avatar input--file">
-                <%= image_tag "default-avatar.svg", aria: { hidden: "true" }, data: { upload_preview_target: "image" }, alt: "Add your avatar" %>
-                <span class="for-screen-reader">Avatar</span>
+            <div class="w-field">
+              <label for="user_email_address">Email address</label>
+              <div class="w-input-wrap">
+                <%= image_tag "email.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.email_field :email_address, id: "user_email_address", class: "input",
+                      autocomplete: "username", placeholder: "Email address", required: true %>
               </div>
-            </label>
-          </fieldset>
+            </div>
 
-          <div class="w-field">
-            <label for="user_name">Name</label>
-            <div class="w-input-wrap">
-              <%= image_tag "person.svg", aria: { hidden: "true" }, class: "w-icon" %>
-              <%= form.text_field :name, id: "user_name", class: "input", autocomplete: "name",
-                    placeholder: "Name", autofocus: true, required: true, data: { "1p-ignore": true } %>
+            <div class="w-field">
+              <label for="user_password">Password</label>
+              <div class="w-input-wrap">
+                <%= image_tag "password.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.password_field :password, id: "user_password", class: "input",
+                      autocomplete: "new-password", placeholder: "Password", required: true, maxlength: 72 %>
+              </div>
+            </div>
+
+            <div class="w-step-actions">
+              <button type="button" class="w-button" data-next-step>Next</button>
             </div>
           </div>
 
-          <div class="w-field">
-            <label for="user_email_address">Email address</label>
-            <div class="w-input-wrap">
-              <%= image_tag "email.svg", aria: { hidden: "true" }, class: "w-icon" %>
-              <%= form.email_field :email_address, id: "user_email_address", class: "input",
-                    autocomplete: "username", placeholder: "Email address", required: true %>
+          <div class="w-step" data-step="2" hidden>
+            <div class="w-field">
+              <label>AI coworkers</label>
+              <div class="w-ai-checklist">
+                <% FirstRun.default_ai_profile_names.each do |profile_name| %>
+                  <label class="w-ai-option">
+                    <%= check_box_tag "ai_profile_names[]", profile_name, @selected_ai_profile_names.include?(profile_name), class: "w-ai-checkbox" %>
+                    <span><%= FirstRun.ai_profile_label(profile_name) %></span>
+                  </label>
+                <% end %>
+              </div>
             </div>
-          </div>
 
-          <div class="w-field">
-            <label for="user_password">Password</label>
-            <div class="w-input-wrap">
-              <%= image_tag "password.svg", aria: { hidden: "true" }, class: "w-icon" %>
-              <%= form.password_field :password, id: "user_password", class: "input",
-                    autocomplete: "new-password", placeholder: "Password", required: true, maxlength: 72 %>
-            </div>
-          </div>
-
-          <div class="w-field">
-            <label>AI coworkers</label>
-            <div class="w-ai-checklist">
-              <% FirstRun.default_ai_profile_names.each do |profile_name| %>
-                <label class="w-ai-option">
-                  <%= check_box_tag "ai_profile_names[]", profile_name, @selected_ai_profile_names.include?(profile_name), class: "w-ai-checkbox" %>
-                  <span><%= FirstRun.ai_profile_label(profile_name) %></span>
-                </label>
+            <div class="w-step-actions">
+              <button type="button" class="w-button w-button-secondary" data-prev-step>Back</button>
+              <%= form.button class: "w-button", type: "submit" do %>
+                Create workspace
               <% end %>
             </div>
           </div>
-
-          <%= form.button class: "w-button", type: "submit" do %>
-            Create workspace
-          <% end %>
         <% end %>
+
+        <script>
+          const initFirstRunSteps = () => {
+            const form = document.querySelector(".w-form");
+            if (!form) return;
+
+            const stepOne = form.querySelector("[data-step='1']");
+            const stepTwo = form.querySelector("[data-step='2']");
+            const nextButton = form.querySelector("[data-next-step]");
+            const backButton = form.querySelector("[data-prev-step]");
+
+            if (!stepOne || !stepTwo || !nextButton || !backButton) return;
+
+            const showStep = (step) => {
+              const isFirst = step === "1";
+              stepOne.hidden = !isFirst;
+              stepTwo.hidden = isFirst;
+            };
+
+            nextButton.addEventListener("click", function () {
+              const firstInvalid = stepOne.querySelector("input[required]:invalid");
+              if (firstInvalid) {
+                firstInvalid.reportValidity();
+                return;
+              }
+
+              showStep("2");
+            });
+
+            backButton.addEventListener("click", function () {
+              showStep("1");
+            });
+          };
+
+          document.addEventListener("DOMContentLoaded", initFirstRunSteps);
+          document.addEventListener("turbo:load", initFirstRunSteps);
+        </script>
       </div>
     </section>
   </main>
