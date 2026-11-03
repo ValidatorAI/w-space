@@ -79,3 +79,26 @@ Asterisk (`*`) means the event is intentionally not sent to `OUTPUT_EVENTS_URL`.
 ## Notes
 
 The recorder deliberately filters the starred events before persisting and enqueueing delivery, so they are never sent to `OUTPUT_EVENTS_URL`.
+
+# Events which are sending to workspace profile
+
+- `project_created`
+- `project_updated`
+- `all_hands_action_item_completed`
+- `all_hands_action_item_reopened`
+- `project_todo_completed`
+- `project_todo_reopened`
+- `decision_waiting_*`
+- `blocker_*`
+- `outcome_review_*`
+- `mention_*`
+- `material_change_*`
+- `ai_confirm_*`
+- `knowledge_proposal_*`
+- `priority_*`
+- `progress_*`
+- `risk_*`
+- `dependency_*`
+- `change_*`
+- `learning_*`
+
