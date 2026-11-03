@@ -33,6 +33,19 @@ class Api::RoomsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "legacy api routes are disabled when DISABLE_API_ROUTES is true" do
+    previous = ENV["DISABLE_API_ROUTES"]
+    ENV["DISABLE_API_ROUTES"] = "true"
+    Rails.application.reload_routes!
+
+    assert_raises(ActionController::RoutingError) do
+      Rails.application.routes.recognize_path("/api/projects/#{@project.id}/rooms")
+    end
+  ensure
+    ENV["DISABLE_API_ROUTES"] = previous || "false"
+    Rails.application.reload_routes!
+  end
+
   test "returns not found for an unknown project" do
     get api_project_rooms_url("does-not-exist"), headers: { "Authorization" => "Bearer test-token" }
 
