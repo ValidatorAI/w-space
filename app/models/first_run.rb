@@ -2,21 +2,25 @@ class FirstRun
   ACCOUNT_NAME = "W space"
   FIRST_ROOM_NAME = "All Talk"
   META_ROOM_NAME = "Meta Events"
-  HUMAN_OVERSEER_NAME = "Human Overseer"
-  HUMAN_OVERSEER_EMAIL = "overseer@space.local"
-  HUMAN_OVERSEER_PASSWORD = "PavelLab"
+
+  DEFAULT_ADMIN_NAME = ENV.fetch("DEFAULT_ADMIN_NAME", "Admin").presence || "Admin"
+  DEFAULT_ADMIN_EMAIL = ENV.fetch("DEFAULT_ADMIN_EMAIL", "admin@pwrwork.local").presence || "admin@pwrwork.local"
+  DEFAULT_ADMIN_PASSWORD = ENV.fetch("DEFAULT_ADMIN_PASSWORD", "pwrpassword").presence || "pwrpassword"
+
+  HUMAN_OVERSEER_NAME = DEFAULT_ADMIN_NAME
+  HUMAN_OVERSEER_EMAIL = DEFAULT_ADMIN_EMAIL
+  HUMAN_OVERSEER_PASSWORD = DEFAULT_ADMIN_PASSWORD
   COMPANY_BOT_NAME = "Ask about company"
   COMPANY_BOT_EMAIL = "ask-about-company@space.local"
 
   class << self
-    # Auto-setup without user input - creates Human Overseer automatically
+    # Auto-setup without user input - creates the default admin automatically
     def setup!
       return if Account.any?
 
       ActiveRecord::Base.transaction do
         account = Account.create!(name: ACCOUNT_NAME)
 
-        # Create Human Overseer - the single human user
         overseer = User.create!(
           name: HUMAN_OVERSEER_NAME,
           email_address: HUMAN_OVERSEER_EMAIL,
@@ -25,7 +29,6 @@ class FirstRun
           display_name: HUMAN_OVERSEER_NAME
         )
 
-        Rooms::Open.create_for({ name: FIRST_ROOM_NAME, creator: overseer }, users: [overseer])
         ensure_company_bot!
         overseer
       end
@@ -79,11 +82,6 @@ class FirstRun
           display_name: user_params[:display_name].presence || user_params[:name],
           role: :administrator
         )
-
-        Rooms::Open.find_or_create_by!(name: FIRST_ROOM_NAME, creator: user) do |room|
-          room.private = false
-          room.type = "Rooms::Open"
-        end
 
         user
       end
