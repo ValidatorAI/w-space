@@ -56,7 +56,7 @@
          class="message-area company-status-area"
          data-controller="company-status"
          data-company-status-periods-value="<%= json_escape((@periods_payload || {}).to_json) %>"
-         data-company-status-selected-period-value="<%= @selected_period&.slug.presence || 'august-2026' %>"
+         data-company-status-selected-period-value="<%= @selected_period&.slug.presence || @periods.first&.slug.presence || '' %>"
          data-action="keydown.esc@window->company-status#closeDrawer">
       <div class="company-status-header">
         <h1>Shared Direction &amp; Status</h1>
