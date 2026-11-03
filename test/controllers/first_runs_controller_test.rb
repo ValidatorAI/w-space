@@ -31,6 +31,34 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
     assert parsed_cookies.signed[:session_token]
   end
 
+  test "create initializes selected ai coworker bots by default" do
+    post first_run_url, params: {
+      account: { name: "37signals" },
+      user: { name: "New Person", display_name: "New Person", email_address: "new@37signals.com", password: "secret123456" },
+      ai_profile_names: %w[coder market_research business_analyst project_manager]
+    }
+
+    assert_redirected_to root_url
+    assert User.where(role: :bot, name: "Coder").exists?
+    assert User.where(role: :bot, name: "Market Research").exists?
+    assert User.where(role: :bot, name: "Business Analyst").exists?
+    assert User.where(role: :bot, name: "Project Manager").exists?
+  end
+
+  test "create can skip selected ai coworker bots" do
+    post first_run_url, params: {
+      account: { name: "37signals" },
+      user: { name: "New Person", display_name: "New Person", email_address: "new@37signals.com", password: "secret123456" },
+      ai_profile_names: ["coder"]
+    }
+
+    assert_redirected_to root_url
+    assert User.where(role: :bot, name: "Coder").exists?
+    assert_not User.where(role: :bot, name: "Market Research").exists?
+    assert_not User.where(role: :bot, name: "Business Analyst").exists?
+    assert_not User.where(role: :bot, name: "Project Manager").exists?
+  end
+
   test "create is not vulnerable to race conditions" do
     num_attackers = 5
     url = first_run_url

@@ -5,6 +5,7 @@ class FirstRunsController < ApplicationController
 
   def show
     @user = User.new
+    @selected_ai_profile_names = FirstRun.default_ai_profile_names
   end
 
   def create
@@ -22,6 +23,7 @@ class FirstRunsController < ApplicationController
 
       @user = User.create!(user_params.merge(role: :administrator))
       FirstRun.ensure_company_bot!
+      FirstRun.ensure_selected_ai_profiles!(selected_ai_profile_names)
     end
 
     start_new_session_for @user
@@ -30,6 +32,7 @@ class FirstRunsController < ApplicationController
     redirect_to root_url
   rescue ActiveRecord::RecordInvalid
     @user ||= User.new(user_params.merge(role: :administrator))
+    @selected_ai_profile_names = FirstRun.normalize_ai_profile_names(selected_ai_profile_names)
     render :show, status: :unprocessable_entity
   end
 
@@ -46,5 +49,9 @@ class FirstRunsController < ApplicationController
       params.fetch(:user, {}).permit(:name, :display_name, :email_address, :password).tap do |attrs|
         attrs[:display_name] = attrs[:display_name].presence || attrs[:name]
       end
+    end
+
+    def selected_ai_profile_names
+      params.fetch(:ai_profile_names, [])
     end
 end

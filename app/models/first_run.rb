@@ -12,6 +12,7 @@ class FirstRun
   HUMAN_OVERSEER_PASSWORD = DEFAULT_ADMIN_PASSWORD
   COMPANY_BOT_NAME = "Ask about company"
   COMPANY_BOT_EMAIL = "ask-about-company@space.local"
+  DEFAULT_AI_PROFILE_NAMES = %w[coder market_research business_analyst project_manager].freeze
 
   class << self
     # Auto-setup without user input - creates the default admin automatically
@@ -41,6 +42,52 @@ class FirstRun
           display_name: COMPANY_BOT_NAME,
           email_address: COMPANY_BOT_EMAIL
         )
+    end
+
+    def default_ai_profile_names
+      DEFAULT_AI_PROFILE_NAMES.dup
+    end
+
+    def ai_profile_label(profile_name)
+      label = profile_name.to_s.strip.downcase
+      labels = {
+        "coder" => "Coder",
+        "market_research" => "Market Research",
+        "business_analyst" => "Business Analyst",
+        "project_manager" => "Project Manager"
+      }
+
+      labels.fetch(label, label.tr("_-", " ").split.map(&:capitalize).join(" "))
+    end
+
+    def normalize_ai_profile_names(raw_names)
+      Array(raw_names).flatten.map(&:to_s).map(&:strip).reject(&:blank?).filter_map do |value|
+        normalized = value.to_s.downcase
+        case normalized
+        when "coder"
+          "coder"
+        when "market research", "market_research"
+          "market_research"
+        when "business analyst", "business_analyst"
+          "business_analyst"
+        when "project manager", "project_manager"
+          "project_manager"
+        else
+          nil
+        end
+      end.uniq & default_ai_profile_names
+    end
+
+    def ensure_selected_ai_profiles!(profile_names)
+      normalize_ai_profile_names(profile_names).each do |profile_name|
+        ensure_ai_profile_bot!(profile_name)
+      end
+    end
+
+    def ensure_ai_profile_bot!(profile_name)
+      desired_name = ai_profile_label(profile_name)
+      User.find_by(role: :bot, name: desired_name) ||
+        User.create_bot!(name: desired_name, display_name: desired_name)
     end
 
     def human_overseer
