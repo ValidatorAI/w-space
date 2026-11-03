@@ -27,9 +27,9 @@ class FirstRunsController < ApplicationController
     end
 
     start_new_session_for @user
-    redirect_to root_url
+    redirect_to user_company_home_path(user_id: "me")
   rescue ActiveRecord::RecordNotUnique
-    redirect_to root_url
+    redirect_to user_company_home_path(user_id: "me")
   rescue ActiveRecord::RecordInvalid
     @user ||= User.new(user_params.merge(role: :administrator))
     @selected_ai_profile_names = FirstRun.normalize_ai_profile_names(selected_ai_profile_names)

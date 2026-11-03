@@ -26,7 +26,7 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_redirected_to root_url
+    assert_redirected_to user_company_home_path(user_id: "me")
 
     assert parsed_cookies.signed[:session_token]
   end
@@ -38,7 +38,7 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
       ai_profile_names: %w[coder market_research business_analyst project_manager]
     }
 
-    assert_redirected_to root_url
+    assert_redirected_to user_company_home_path(user_id: "me")
     assert User.where(role: :bot, name: "Coder").exists?
     assert User.where(role: :bot, name: "Market Research").exists?
     assert User.where(role: :bot, name: "Business Analyst").exists?
@@ -52,7 +52,7 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
       ai_profile_names: ["coder"]
     }
 
-    assert_redirected_to root_url
+    assert_redirected_to user_company_home_path(user_id: "me")
     assert User.where(role: :bot, name: "Coder").exists?
     assert_not User.where(role: :bot, name: "Market Research").exists?
     assert_not User.where(role: :bot, name: "Business Analyst").exists?
