@@ -37,7 +37,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_equal "2.0", data["jsonrpc"]
     assert_equal 1, data["id"]
     assert_equal "2024-11-05", data.dig("result", "protocolVersion")
-    assert_equal "bonfire-mcp", data.dig("result", "serverInfo", "name")
+    assert_equal "space-mcp", data.dig("result", "serverInfo", "name")
   end
 
   test "ping method returns empty result" do
@@ -75,7 +75,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
         jsonrpc: "2.0",
         id: 3,
         method: "tools/call",
-        params: { name: "hello", arguments: { name: "Bonfire" } }
+        params: { name: "hello", arguments: { name: "Space" } }
       }
 
       assert_response :success
@@ -84,7 +84,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     data = response.parsed_body
     assert_equal false, data.dig("result", "isError")
     content = data.dig("result", "content").first["text"]
-    assert_equal "Hello, Bonfire!", content
+    assert_equal "Hello, Space!", content
 
     log = McpCallLog.recent.first
     assert_equal "hello", log.tool_call_name

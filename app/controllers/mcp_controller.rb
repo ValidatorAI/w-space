@@ -3,7 +3,7 @@ class McpController < ActionController::API
 
   MCP_PROTOCOL_VERSION = "2024-11-05"
   SERVER_INFO = {
-    name: "bonfire-mcp",
+    name: "space-mcp",
     version: "1.0.0"
   }.freeze
 

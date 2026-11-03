@@ -1,7 +1,7 @@
 module User::Mentionable
   include ActionText::Attachable
 
-  MENTION_CONTENT_TYPE = "application/vnd.bonfire.mention"
+  MENTION_CONTENT_TYPE = "application/vnd.space.mention"
 
   def attachable_content_type
     MENTION_CONTENT_TYPE

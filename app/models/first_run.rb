@@ -3,10 +3,10 @@ class FirstRun
   FIRST_ROOM_NAME = "All Talk"
   META_ROOM_NAME = "Meta Events"
   HUMAN_OVERSEER_NAME = "Human Overseer"
-  HUMAN_OVERSEER_EMAIL = "overseer@bonfire.local"
+  HUMAN_OVERSEER_EMAIL = "overseer@space.local"
   HUMAN_OVERSEER_PASSWORD = "PavelLab"
   COMPANY_BOT_NAME = "Ask about company"
-  COMPANY_BOT_EMAIL = "ask-about-company@bonfire.local"
+  COMPANY_BOT_EMAIL = "ask-about-company@space.local"
 
   class << self
     # Auto-setup without user input - creates Human Overseer automatically

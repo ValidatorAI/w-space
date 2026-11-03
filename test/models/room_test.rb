@@ -36,7 +36,7 @@ class RoomTest < ActiveSupport::TestCase
   end
 
   test "new room membership stays user-scoped" do
-    project = Project.create!(name: "Bonfire Members", path: "/tmp/bonfire-room-members")
+    project = Project.create!(name: "Space Members", path: "/tmp/space-room-members")
     room = Rooms::Closed.create_for({ name: "Ops", creator: users(:david) }, users: [ users(:david) ])
 
     assert room.users.include?(users(:david))

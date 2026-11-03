@@ -1,7 +1,7 @@
 # db/seeds.rb
 # Run with: bin/rails db:seed
 
-puts "Setting up Bonfire..."
+puts "Setting up Space..."
 
 # This creates:
 # - Account (singleton)
