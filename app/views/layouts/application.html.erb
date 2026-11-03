@@ -34,6 +34,15 @@
 
     <nav id="nav">
       <%= yield :nav %>
+
+      <% if Current.user.present? %>
+        <%= form_with url: session_path, method: :delete, data: { controller: "sessions" }, html: { class: "nav-logout-form" } do %>
+          <%= hidden_field_tag :push_subscription_endpoint, nil, data: { sessions_target: "pushSubscriptionEndpoint" } %>
+          <button type="submit" class="btn btn--ghost txt-small" data-action="sessions#logout:prevent">
+            Log out
+          </button>
+        <% end %>
+      <% end %>
     </nav>
 
     <% if notice = flash[:notice] || flash[:alert] %>
