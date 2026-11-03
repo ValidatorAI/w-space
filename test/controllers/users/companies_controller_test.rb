@@ -47,7 +47,7 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     get user_company_status_url(user_id: "me")
 
     assert_response :ok
-    assert_select "h1", "Shared Direction & Status"
+    assert_select "h1", count: 0
     assert_select "select#company-month-selector option[value='september-2026']", text: "September 2026 (Upcoming)"
     assert_select "[data-controller~='company-status']"
     assert_select "#company-detail-drawer"

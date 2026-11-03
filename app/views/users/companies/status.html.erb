@@ -1,4 +1,4 @@
-<% @page_title = "Shared Direction & Status" %>
+<% @page_title = "" %>
 <% @body_class = "room-shell" %>
 
 <% content_for :nav do %>
@@ -59,7 +59,6 @@
          data-company-status-selected-period-value="<%= @selected_period&.slug.presence || @periods.first&.slug.presence || '' %>"
          data-action="keydown.esc@window->company-status#closeDrawer">
       <div class="company-status-header">
-        <h1>Shared Direction &amp; Status</h1>
         <div class="company-status-period-picker" aria-label="Reporting period">
           <label for="company-month-selector" class="sr-only">Reporting period</label>
           <select id="company-month-selector" name="period" aria-label="Reporting period" aria-required="false">

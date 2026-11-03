@@ -63,6 +63,18 @@
   border-color: var(--black, #111827);
 }
 
+.company-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.company-status-period-picker {
+  margin-left: auto;
+}
+
 .company-status-content {
   padding: 32px;
   display: flex;
