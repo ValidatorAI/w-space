@@ -65,6 +65,22 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Deploy V2 Beta", json.dig("september-2026", "priorities", 0, "title")
   end
 
+  test "status creates the current month period when none exists" do
+    CompanyStatusPeriod.delete_all
+
+    get user_company_status_url(user_id: "me")
+
+    assert_response :ok
+    assert_equal 1, CompanyStatusPeriod.count
+
+    period = CompanyStatusPeriod.first
+    assert period.current
+    assert_equal Date.current.beginning_of_month, period.starts_on
+    assert_equal Date.current.end_of_month, period.ends_on
+    assert_equal Date.current.strftime("%B %Y"), period.name
+    assert_equal Date.current.strftime("%B-%Y").downcase, period.slug
+  end
+
   test "settings" do
     get user_company_settings_url(user_id: "me")
 
