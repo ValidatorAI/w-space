@@ -20,6 +20,18 @@ class Users::AiAdminControllerTest < ActionDispatch::IntegrationTest
     assert_select "a.ai-admin-nav-card .bot-card-name", text: "Skills"
   end
 
+  test "admin cannot see ai config link when feature flag is disabled" do
+    old_value = ENV["ENABLE_AI_CONFIG_PAGE"]
+    ENV["ENABLE_AI_CONFIG_PAGE"] = "FALSE"
+
+    get user_sidebar_path
+
+    assert_response :ok
+    assert_select "a[aria-label='AI Config']", count: 0
+  ensure
+    ENV["ENABLE_AI_CONFIG_PAGE"] = old_value
+  end
+
   test "admin can restart hermes from ai config page" do
     Users::AiAdminController.any_instance.expects(:system).with("hermes gateway restart").returns(true)
 

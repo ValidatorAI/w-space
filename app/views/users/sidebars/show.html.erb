@@ -24,7 +24,7 @@
           <span>Company Status</span>
         <% end %>
 
-        <% if Current.user.can_administer? %>
+        <% if Current.user.can_administer? && ai_config_page_enabled? %>
           <%= link_to user_company_ai_admin_path(user_id: "me"), class: "room btn txt-nowrap sidebar-company__button", aria: { label: "AI Config" } do %>
             <span>AI Config</span>
           <% end %>
