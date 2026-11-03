@@ -1,4 +1,6 @@
 class McpController < ActionController::API
+  before_action :authenticate_token!
+
   MCP_PROTOCOL_VERSION = "2024-11-05"
   SERVER_INFO = {
     name: "bonfire-mcp",
@@ -30,6 +32,15 @@ class McpController < ActionController::API
   end
 
   private
+
+  def authenticate_token!
+    expected_token = ENV["MCP_AUTH_TOKEN"].presence
+    return render json: { error: "Server misconfigured" }, status: :internal_server_error unless expected_token
+
+    provided_token = request.headers["Authorization"]&.sub(/\ABearer\s+/, "")
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless provided_token
+    return render json: { error: "Unauthorized" }, status: :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(provided_token, expected_token)
+  end
 
   def process_jsonrpc(scope)
     payload = parse_json_payload
