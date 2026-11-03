@@ -97,9 +97,9 @@
   }
 
   img {
-    filter: none;
-    inline-size: 0.95em;
-    opacity: 0.9;
+    filter: brightness(0) invert(1);
+    inline-size: 1.2em;
+    opacity: 1;
   }
 }
 
