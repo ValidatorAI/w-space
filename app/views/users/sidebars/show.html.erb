@@ -32,26 +32,26 @@
       </div>
     </section>
 
-    <% if @projects.any? %>
-      <section class="sidebar-projects" aria-label="Projects">
-        <div class="sidebar-section-separator" aria-hidden="true"></div>
-        <div class="sidebar-projects__header">
-          <h2 class="sidebar-projects__title">Projects</h2>
-          <%= link_to user_company_project_new_path(user_id: "me"),
-                class: "btn sidebar-projects__add-btn",
-                aria: { label: "New project" },
-                data: { turbo: false, turbo_frame: "_top" } do %>
-            <span aria-hidden="true">+</span>
-          <% end %>
-        </div>
+    <section class="sidebar-projects" aria-label="Projects">
+      <div class="sidebar-section-separator" aria-hidden="true"></div>
+      <div class="sidebar-projects__header">
+        <h2 class="sidebar-projects__title">Projects</h2>
+        <%= link_to user_company_project_new_path(user_id: "me"),
+              class: "btn sidebar-projects__add-btn",
+              aria: { label: "New project" },
+              data: { turbo: false, turbo_frame: "_top" } do %>
+          <span aria-hidden="true">+</span>
+        <% end %>
+      </div>
 
-        <div class="sidebar-projects__list flex flex-column gap">
-          <% project_actions = [
-            ["📌", "Overview"],
-            ["📊", "Status"],
-            ["🗣️", "All-Hands"]
-          ] %>
+      <div class="sidebar-projects__list flex flex-column gap">
+        <% project_actions = [
+          ["📌", "Overview"],
+          ["📊", "Status"],
+          ["🗣️", "All-Hands"]
+        ] %>
 
+        <% if @projects.any? %>
           <% @projects.each do |project| %>
             <% archived_project = project.archived? %>
             <% project_initial = project.display_name.to_s.first.to_s.upcase.presence || "?" %>
@@ -187,9 +187,11 @@
               <% end %>
             </div>
           <% end %>
-        </div>
-      </section>
-    <% end %>
+        <% else %>
+          <span class="room btn txt-nowrap sidebar-projects__empty">No projects yet</span>
+        <% end %>
+      </div>
+    </section>
 
     <div class="rooms position-relative flex flex-column gap">
       <% if @direct_memberships.any? %>
