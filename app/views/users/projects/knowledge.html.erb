@@ -57,15 +57,15 @@
          data-knowledge-file-viewer-file-url-value="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id) %>">
       <div class="project-knowledge-content">
 
-        <%# 1. Networked Notes (Obsidian Sync) %>
+        <%# 1. Networked Notes %>
         <% if @primary_note&.html_source_path.present? %>
           <div>
-            <h2 class="knowledge-section-header">🌌 Networked Notes (Obsidian Sync)</h2>
-            <div id="obsidian-container" class="obsidian-container">
+            <h2 class="knowledge-section-header">🌌 Networked Notes</h2>
+            <div id="notes-container" class="notes-container">
               <% if @primary_note.external_source? %>
-                <iframe src="<%= @primary_note.html_source_path %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
+                <iframe src="<%= @primary_note.html_source_path %>" class="notes-iframe" title="Project Note" allowfullscreen></iframe>
               <% else %>
-                <iframe src="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id, path: @primary_note.html_source_path) %>" class="obsidian-iframe" title="Obsidian Sync" allowfullscreen></iframe>
+                <iframe src="<%= user_company_project_knowledge_file_path(user_id: 'me', id: @project.id, path: @primary_note.html_source_path) %>" class="notes-iframe" title="Project Note" allowfullscreen></iframe>
               <% end %>
             </div>
           </div>

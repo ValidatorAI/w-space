@@ -4,13 +4,32 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   self.fixture_table_names = []
 
   setup do
+    @mcp_auth_token = "test-mcp-token"
+    ENV["MCP_AUTH_TOKEN"] = @mcp_auth_token
     Mcp.load_tools!
   end
 
-  test "initialize method returns capabilities and protocolVersion" do
+  def mcp_headers(extra = {})
+    { "Content-Type" => "application/json", "Authorization" => "Bearer #{@mcp_auth_token}" }.merge(extra)
+  end
+
+  def post_mcp(endpoint, payload, extra_headers = {})
+    post endpoint,
+         params: payload.to_json,
+         headers: mcp_headers(extra_headers)
+  end
+
+  test "requires bearer token for MCP requests" do
     post "/mcp",
-         params: { jsonrpc: "2.0", id: 1, method: "initialize", params: {} }.to_json,
+         params: { jsonrpc: "2.0", id: 1, method: "ping", params: {} }.to_json,
          headers: { "Content-Type" => "application/json" }
+
+    assert_response :unauthorized
+    assert_equal "Unauthorized", response.parsed_body["error"]
+  end
+
+  test "initialize method returns capabilities and protocolVersion" do
+    post_mcp "/mcp", { jsonrpc: "2.0", id: 1, method: "initialize", params: {} }
 
     assert_response :success
     data = response.parsed_body
@@ -18,13 +37,11 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     assert_equal "2.0", data["jsonrpc"]
     assert_equal 1, data["id"]
     assert_equal "2024-11-05", data.dig("result", "protocolVersion")
-    assert_equal "bonfire-mcp", data.dig("result", "serverInfo", "name")
+    assert_equal "space-mcp", data.dig("result", "serverInfo", "name")
   end
 
   test "ping method returns empty result" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", id: "ping_1", method: "ping", params: {} }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", id: "ping_1", method: "ping", params: {} }
 
     assert_response :success
     data = response.parsed_body
@@ -35,17 +52,13 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "notifications/initialized returns no_content when no id is provided" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", method: "notifications/initialized" }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", method: "notifications/initialized" }
 
     assert_response :no_content
   end
 
   test "tools/list returns registered tools" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }
 
     assert_response :success
     data = response.parsed_body
@@ -58,14 +71,12 @@ class McpControllerTest < ActionDispatch::IntegrationTest
 
   test "tools/call executes tool successfully and logs to McpCallLog" do
     assert_difference -> { McpCallLog.count }, 1 do
-      post "/mcp",
-           params: {
-             jsonrpc: "2.0",
-             id: 3,
-             method: "tools/call",
-             params: { name: "hello", arguments: { name: "Bonfire" } }
-           }.to_json,
-           headers: { "Content-Type" => "application/json" }
+      post_mcp "/mcp", {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: { name: "hello", arguments: { name: "Space" } }
+      }
 
       assert_response :success
     end
@@ -73,7 +84,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     data = response.parsed_body
     assert_equal false, data.dig("result", "isError")
     content = data.dig("result", "content").first["text"]
-    assert_equal "Hello, Bonfire!", content
+    assert_equal "Hello, Space!", content
 
     log = McpCallLog.recent.first
     assert_equal "hello", log.tool_call_name
@@ -81,14 +92,12 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "tools/call returns error when tool is not found" do
-    post "/action-mcp",
-         params: {
-           jsonrpc: "2.0",
-           id: 4,
-           method: "tools/call",
-           params: { name: "non_existent_tool", arguments: {} }
-         }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/action-mcp", {
+      jsonrpc: "2.0",
+      id: 4,
+      method: "tools/call",
+      params: { name: "non_existent_tool", arguments: {} }
+    }
 
     assert_response :success
     data = response.parsed_body
@@ -99,7 +108,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   test "returns -32700 for malformed json" do
     post "/mcp",
          params: "invalid json string {",
-         headers: { "Content-Type" => "application/json" }
+         headers: mcp_headers
 
     assert_response :bad_request
     data = response.parsed_body
@@ -108,9 +117,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "returns -32600 for missing method" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", id: 5 }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", id: 5 }
 
     assert_response :success
     data = response.parsed_body
@@ -118,9 +125,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "returns -32601 for unknown method" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", id: 6, method: "unknown/method" }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", id: 6, method: "unknown/method" }
 
     assert_response :success
     data = response.parsed_body
@@ -128,9 +133,7 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "returns -32602 for invalid tools/call parameters" do
-    post "/mcp",
-         params: { jsonrpc: "2.0", id: 7, method: "tools/call", params: {} }.to_json,
-         headers: { "Content-Type" => "application/json" }
+    post_mcp "/mcp", { jsonrpc: "2.0", id: 7, method: "tools/call", params: {} }
 
     assert_response :success
     data = response.parsed_body
@@ -138,15 +141,37 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "scoped endpoints respond properly" do
-    %w[/action-mcp /read-mcp /knowledge-mcp /task-mcp].each do |endpoint|
-      post endpoint,
-           params: { jsonrpc: "2.0", id: "scope_test", method: "tools/list", params: {} }.to_json,
-           headers: { "Content-Type" => "application/json" }
+    %w[/action-mcp /read-mcp /knowledge-mcp /config-mcp /task-mcp].each do |endpoint|
+      post_mcp endpoint, { jsonrpc: "2.0", id: "scope_test", method: "tools/list", params: {} }
 
       assert_response :success
       data = response.parsed_body
       assert data.dig("result", "tools").is_a?(Array)
     end
+  end
+
+  test "config endpoint serves the AI config tool family" do
+    post_mcp "/config-mcp", { jsonrpc: "2.0", id: "config_tools", method: "tools/list", params: {} }
+
+    assert_response :success
+    tool_names = response.parsed_body.dig("result", "tools").map { |tool| tool["name"] }
+
+    assert_includes tool_names, "list_ai_profiles"
+    assert_includes tool_names, "get_ai_profile"
+    assert_includes tool_names, "list_ai_settings"
+    assert_includes tool_names, "get_ai_setting"
+    assert_includes tool_names, "list_mcps"
+    assert_includes tool_names, "get_mcp"
+    assert_includes tool_names, "list_tools"
+    assert_includes tool_names, "get_tool"
+    assert_includes tool_names, "list_skills"
+    assert_includes tool_names, "get_skill"
+    assert_includes tool_names, "list_ai_profile_tools"
+    assert_includes tool_names, "get_ai_profile_tool"
+    assert_includes tool_names, "list_ai_profile_skills"
+    assert_includes tool_names, "get_ai_profile_skill"
+    assert_includes tool_names, "list_ai_profile_mcps"
+    assert_includes tool_names, "get_ai_profile_mcp"
   end
 
   test "all native MCP routes expose every tool and dispatch tool calls without transport failures" do
@@ -155,13 +180,12 @@ class McpControllerTest < ActionDispatch::IntegrationTest
       "/action-mcp" => :action,
       "/read-mcp" => :read,
       "/knowledge-mcp" => :knowledge,
+      "/config-mcp" => :config,
       "/task-mcp" => :task
     }
 
     route_to_scope.each do |endpoint, scope|
-      post endpoint,
-           params: { jsonrpc: "2.0", id: "list_#{scope}", method: "tools/list", params: {} }.to_json,
-           headers: { "Content-Type" => "application/json" }
+      post_mcp endpoint, { jsonrpc: "2.0", id: "list_#{scope}", method: "tools/list", params: {} }
 
       assert_response :success, "Expected #{endpoint} to respond successfully to tools/list"
       data = response.parsed_body
@@ -171,14 +195,12 @@ class McpControllerTest < ActionDispatch::IntegrationTest
 
       tools.each do |tool|
         tool_name = tool["name"]
-        post endpoint,
-             params: {
-               jsonrpc: "2.0",
-               id: "call_#{scope}_#{tool_name}",
-               method: "tools/call",
-               params: { name: tool_name, arguments: {} }
-             }.to_json,
-             headers: { "Content-Type" => "application/json" }
+        post_mcp endpoint, {
+          jsonrpc: "2.0",
+          id: "call_#{scope}_#{tool_name}",
+          method: "tools/call",
+          params: { name: tool_name, arguments: {} }
+        }
 
         assert_response :success, "Expected #{endpoint} to dispatch #{tool_name} without HTTP failure"
         payload = response.parsed_body

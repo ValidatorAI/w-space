@@ -1,4 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
+ENV["DISABLE_API_ROUTES"] ||= "false"
+ENV["OUTPUT_EVENTS_URL"] ||= "http://example.test/output-events"
 require_relative "../config/environment"
 
 require "rails/test_help"

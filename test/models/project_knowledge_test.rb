@@ -9,16 +9,16 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     )
   end
 
-  test "creates and associates obsidian notes" do
-    note = @project.obsidian_notes.create!(
+  test "creates and associates project notes" do
+    note = @project.notes.create!(
       title: "Architecture Map",
       tags: "#solidity #vault",
       content: "## Notes\nCore vault logic.",
       html_source_type: "internal_file",
-      html_source_path: "obsidian/graph.html"
+      html_source_path: "notes/graph.html"
     )
 
-    assert_equal 1, @project.obsidian_notes.count
+    assert_equal 1, @project.notes.count
     assert note.active
     assert_equal ["#solidity", "#vault"], note.tag_list
     assert note.internal_source?

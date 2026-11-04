@@ -51,11 +51,11 @@
     <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
   </aside>
 
-  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
-    <div id="message-area" class="message-area">
-      <div class="user-settings-content">
+  <main class="workspace-room__main" id="conversation">
+    <div id="message-area" class="message-area company-settings-area">
+      <div class="settings-container user-settings-content">
         <div class="user-settings-grid">
-          <section class="user-settings-card" aria-label="Profile and identity settings">
+          <section class="settings-card user-settings-card" aria-label="Profile and identity settings">
             <div class="user-settings-card-header">
               <h2 class="user-settings-card-title">Profile &amp; Identity</h2>
               <p class="user-settings-card-desc">Update how you appear to others in the workspace.</p>
@@ -107,7 +107,7 @@
             <% end %>
           </section>
 
-          <section class="user-settings-card" aria-label="Security settings">
+          <section class="settings-card user-settings-card" aria-label="Security settings">
             <div class="user-settings-card-header">
               <h2 class="user-settings-card-title user-settings-card-title--small">Password Reset &amp; Email</h2>
               <p class="user-settings-card-desc">Update your sign-in email and choose a new password.</p>

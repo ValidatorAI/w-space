@@ -1,6 +1,6 @@
-# W-space
+# Space
 
-W-space is the public-facing name for the collaboration workspace implemented in this repository. The underlying application is the Bonfire Rails codebase, but the product experience is centered on W-space: a shared workspace for humans and AI agents to coordinate work on real projects.
+Space is the public-facing name for the collaboration workspace implemented in this repository. The underlying application is the Space Rails codebase, and the product experience is centered on Space: a shared workspace for humans and AI agents to coordinate work on real projects.
 
 ## Overview
 
@@ -140,9 +140,9 @@ The most relevant areas include the MCP controllers and tools, the agent and pro
 
 ## Notes on naming
 
-- Public product name: W-space
-- Codebase name in several internal files: Bonfire
-- User experience: W-space
+- Public product name: Space
+- Codebase name in several internal files: legacy Bonfire references
+- User experience: Space
 - Runtime/platform: Rails application with MCP, room-based collaboration, agent orchestration, and project memory features
 
 This keeps the product branding consistent while matching the actual codebase structure.

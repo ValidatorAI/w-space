@@ -1,5 +1,5 @@
 class SystemMessage
-  SYSTEM_USER_EMAIL = "system@bonfire.local"
+  SYSTEM_USER_EMAIL = "system@space.local"
 
   class << self
     # Post to a specific room, and optionally mirror to the meta events room

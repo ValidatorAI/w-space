@@ -12,6 +12,7 @@ class Users::CompaniesController < ApplicationController
   end
 
   def status
+    ensure_current_month_status_period!
     @periods = CompanyStatusPeriod.includes(:company_status_items).ordered
     @selected_period = if params[:period].present?
       @periods.find { |p| p.slug == params[:period] }
@@ -108,5 +109,29 @@ class Users::CompaniesController < ApplicationController
       return "Global AI integrations updated" if removed_count.zero?
 
       "Global AI integrations updated; removed #{removed_count} bot(s) from all rooms and projects"
+    end
+
+    def ensure_current_month_status_period!
+      month_start = Date.current.beginning_of_month
+      month_end = month_start.end_of_month
+      month_slug = month_start.strftime("%B-%Y").downcase
+
+      period = CompanyStatusPeriod.find_by(slug: month_slug)
+      period ||= CompanyStatusPeriod.find_by(starts_on: month_start, ends_on: month_end)
+
+      if period.present?
+        period.update!(current: true)
+        CompanyStatusPeriod.where.not(id: period.id).update_all(current: false)
+        return
+      end
+
+      CompanyStatusPeriod.create!(
+        name: month_start.strftime("%B %Y"),
+        slug: month_slug,
+        current: true,
+        starts_on: month_start,
+        ends_on: month_end,
+        position: 0
+      )
     end
 end

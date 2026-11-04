@@ -48,7 +48,7 @@ module OutputEvents
         attachment = attachment_for(event)
         return json_request(event) unless attachment
 
-        boundary = "----bonfire-output-events-#{SecureRandom.hex(12)}"
+        boundary = "----space-output-events-#{SecureRandom.hex(12)}"
         body = multipart_body(boundary: boundary, payload_json: payload(event).to_json, attachment: attachment)
 
         Net::HTTP::Post.new(uri, headers.merge("Content-Type" => "multipart/form-data; boundary=#{boundary}")).tap do |post|

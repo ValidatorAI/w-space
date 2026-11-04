@@ -10,8 +10,8 @@ test:
 
 performance:
   <<: *default
-  channel_prefix: bonfire_performance
+  channel_prefix: space_performance
 
 production:
   <<: *default
-  channel_prefix: bonfire_production
+  channel_prefix: space_production

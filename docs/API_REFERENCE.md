@@ -1,6 +1,6 @@
-# Bonfire HTTP API
+# Space HTTP API
 
-Read-only-ish JSON API for automating Bonfire from external services (bots, integrations,
+Read-only-ish JSON API for automating Space from external services (bots, integrations,
 CI, etc.). All endpoints live under `/api` and share one authorization strategy.
 
 ## Authentication
@@ -160,7 +160,7 @@ Note: message ids are globally unique (not scoped per room), so the flat
 
 ## Topic and message-analysis resources
 
-The following resources are also exposed under the same bearer-token auth contract as the rest of the Bonfire API:
+The following resources are also exposed under the same bearer-token auth contract as the rest of the Space API:
 
 | Method | Path | Description |
 |---|---|---|

@@ -1,7 +1,7 @@
 module Api
   class TasksController < Api::BaseController
     def index
-      tasks = filter_tasks(Task.order(created_at: :desc, id: :desc))
+      tasks = filter_tasks(AiTask.order(created_at: :desc, id: :desc))
 
       render json: {
         count: tasks.count,
@@ -10,14 +10,14 @@ module Api
     end
 
     def show
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       render json: serialize(task)
     end
 
     def create
-      task = Task.new(task_params)
+      task = AiTask.new(task_params)
       if task.save
         render json: serialize(task), status: :created
       else
@@ -26,7 +26,7 @@ module Api
     end
 
     def update
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       if task.update(task_params)
@@ -37,7 +37,7 @@ module Api
     end
 
     def destroy
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       task.destroy
@@ -45,7 +45,7 @@ module Api
     end
 
     def task_cost
-      task = Task.find_by(id: params[:task_id])
+      task = AiTask.find_by(id: params[:task_id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       task.apply_task_cost!(params[:token_used], params[:usd_used])
@@ -53,7 +53,7 @@ module Api
     end
 
     def children
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       descendants = collect_descendants(task)
@@ -64,7 +64,7 @@ module Api
     end
 
     def parents
-      task = Task.find_by(id: params[:id])
+      task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
       ancestors = collect_ancestors(task)
@@ -81,15 +81,19 @@ module Api
         :adder_profile,
         :token_used,
         :token_budget,
-        :usd_usage,
         :usd_used,
         :usd_budget,
         :room_id,
         :project_id,
         :description,
         :assigneee_profile,
+        :proposed_task_context,
+        :actual_task_context,
+        :dispatched,
+        :finished,
         :added_to_kanban,
         :runned,
+        :topic_id,
         :parent_task_id,
         :grand_parent_id,
         :importance,
@@ -110,12 +114,18 @@ module Api
         scope = scope.where(grand_parent_id: params[:grand_parent_id])
       end
 
-      if params.key?(:added_to_kanban)
-        scope = scope.where(added_to_kanban: ActiveModel::Type::Boolean.new.cast(params[:added_to_kanban]))
+      if params.key?(:dispatched) || params.key?(:added_to_kanban)
+        dispatched_value = params.key?(:dispatched) ? params[:dispatched] : params[:added_to_kanban]
+        scope = scope.where(dispatched: ActiveModel::Type::Boolean.new.cast(dispatched_value))
       end
 
-      if params.key?(:runned)
-        scope = scope.where(runned: ActiveModel::Type::Boolean.new.cast(params[:runned]))
+      if params.key?(:finished) || params.key?(:runned)
+        finished_value = params.key?(:finished) ? params[:finished] : params[:runned]
+        scope = scope.where(finished: ActiveModel::Type::Boolean.new.cast(finished_value))
+      end
+
+      if params[:topic_id].present? || params.key?(:topic_id)
+        scope = scope.where(topic_id: params[:topic_id])
       end
 
       scope

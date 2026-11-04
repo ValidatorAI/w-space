@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_02_000002) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -114,6 +114,38 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
     t.string "label"
     t.integer "setting_value"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "ai_tasks", force: :cascade do |t|
+    t.string "actual_task_context"
+    t.text "adder_profile"
+    t.text "assigneee_profile"
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.boolean "dispatched", default: false, null: false
+    t.boolean "finished", default: false, null: false
+    t.integer "grand_parent_id"
+    t.integer "importance", default: 0, null: false
+    t.integer "input_event_entity_id"
+    t.integer "level", default: 0, null: false
+    t.integer "parent_task_id"
+    t.integer "project_id"
+    t.string "proposed_task_context"
+    t.integer "room_id"
+    t.integer "task_id"
+    t.integer "token_budget"
+    t.integer "token_used"
+    t.integer "topic_id"
+    t.datetime "updated_at", null: false
+    t.float "usd_budget"
+    t.float "usd_used"
+    t.index ["grand_parent_id"], name: "index_ai_tasks_on_grand_parent_id"
+    t.index ["input_event_entity_id"], name: "index_ai_tasks_on_input_event_entity_id"
+    t.index ["parent_task_id"], name: "index_ai_tasks_on_parent_task_id"
+    t.index ["project_id"], name: "index_ai_tasks_on_project_id"
+    t.index ["room_id"], name: "index_ai_tasks_on_room_id"
+    t.index ["task_id"], name: "index_ai_tasks_on_task_id"
+    t.index ["topic_id"], name: "index_ai_tasks_on_topic_id"
   end
 
   create_table "approval_request_actions", force: :cascade do |t|
@@ -537,7 +569,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
     t.index ["project_id"], name: "index_project_milestones_on_project_id"
   end
 
-  create_table "project_obsidian_notes", force: :cascade do |t|
+  create_table "project_notes", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.text "content"
     t.datetime "created_at", null: false
@@ -548,8 +580,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
     t.string "tags"
     t.string "title", null: false
     t.datetime "updated_at", null: false
-    t.index ["position"], name: "index_project_obsidian_notes_on_position"
-    t.index ["project_id"], name: "index_project_obsidian_notes_on_project_id"
+    t.index ["position"], name: "index_project_notes_on_position"
+    t.index ["project_id"], name: "index_project_notes_on_project_id"
   end
 
   create_table "project_todos", force: :cascade do |t|
@@ -701,29 +733,25 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "tasks", force: :cascade do |t|
-    t.boolean "added_to_kanban", default: false, null: false
-    t.text "adder_profile"
-    t.text "assigneee_profile"
+  create_table "tool_cal_logs", force: :cascade do |t|
+    t.text "change_log"
     t.datetime "created_at", null: false
-    t.text "description", null: false
-    t.integer "grand_parent_id"
-    t.integer "importance", default: 0, null: false
-    t.integer "level", default: 0, null: false
-    t.integer "parent_task_id"
+    t.datetime "created_date", null: false
     t.integer "project_id"
     t.integer "room_id"
-    t.boolean "runned", default: false, null: false
-    t.integer "token_budget"
-    t.integer "token_used"
+    t.string "target_entity_id"
+    t.integer "topic_id"
     t.datetime "updated_at", null: false
-    t.float "usd_budget"
-    t.float "usd_usage"
-    t.float "usd_used"
-    t.index ["grand_parent_id"], name: "index_tasks_on_grand_parent_id"
-    t.index ["parent_task_id"], name: "index_tasks_on_parent_task_id"
-    t.index ["project_id"], name: "index_tasks_on_project_id"
-    t.index ["room_id"], name: "index_tasks_on_room_id"
+    t.string "used_tool_name", null: false
+    t.text "why_was_it_required"
+    t.index ["created_date"], name: "index_tool_cal_logs_on_created_date"
+    t.index ["project_id", "created_date"], name: "index_tool_cal_logs_on_project_id_and_created_date"
+    t.index ["project_id"], name: "index_tool_cal_logs_on_project_id"
+    t.index ["room_id", "created_date"], name: "index_tool_cal_logs_on_room_id_and_created_date"
+    t.index ["room_id"], name: "index_tool_cal_logs_on_room_id"
+    t.index ["topic_id", "created_date"], name: "index_tool_cal_logs_on_topic_id_and_created_date"
+    t.index ["topic_id"], name: "index_tool_cal_logs_on_topic_id"
+    t.index ["used_tool_name"], name: "index_tool_cal_logs_on_used_tool_name"
   end
 
   create_table "tools", force: :cascade do |t|
@@ -807,7 +835,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
   add_foreign_key "project_knowledge_activities", "projects"
   add_foreign_key "project_knowledge_items", "projects"
   add_foreign_key "project_milestones", "projects"
-  add_foreign_key "project_obsidian_notes", "projects"
+  add_foreign_key "project_notes", "projects"
   add_foreign_key "project_todos", "projects"
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
@@ -822,6 +850,9 @@ ActiveRecord::Schema[8.2].define(version: 2026_10_20_000000) do
   add_foreign_key "rooms", "rooms", column: "parent_id"
   add_foreign_key "searches", "users"
   add_foreign_key "sessions", "users"
+  add_foreign_key "tool_cal_logs", "projects"
+  add_foreign_key "tool_cal_logs", "rooms"
+  add_foreign_key "tool_cal_logs", "topics"
   add_foreign_key "topics", "projects"
   add_foreign_key "topics", "topics", column: "parent_topic_id"
 

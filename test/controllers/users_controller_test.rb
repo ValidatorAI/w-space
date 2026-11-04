@@ -11,6 +11,17 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
+  test "settings uses the shared room-shell settings layout" do
+    sign_in :david
+
+    get user_settings_url
+
+    assert_response :ok
+    assert_select ".settings-container", count: 1
+    assert_select ".settings-card", count: 2
+    assert_select ".user-settings-card", count: 2
+  end
+
   test "new" do
     get join_url(@join_code)
     assert_response :success

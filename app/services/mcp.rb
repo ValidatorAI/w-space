@@ -3,7 +3,7 @@ module Mcp
     Registry.reset!
 
     # Baseline tool
-    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge task])
+    Registry.register(Tools::HelloTool.new, scopes: %i[all read action knowledge])
 
     # Attention Items
     attention_tools = [
@@ -104,10 +104,10 @@ module Mcp
       Tools::ProjectKnowledge::AddProjectDecisionRecordTool.new,
       Tools::ProjectKnowledge::EditProjectDecisionRecordTool.new,
       Tools::ProjectKnowledge::DeleteProjectDecisionRecordTool.new,
-      Tools::ProjectKnowledge::ProjectObsidianNoteTool.new,
-      Tools::ProjectKnowledge::AddProjectObsidianNoteTool.new,
-      Tools::ProjectKnowledge::EditProjectObsidianNoteTool.new,
-      Tools::ProjectKnowledge::DeleteProjectObsidianNoteTool.new,
+      Tools::ProjectKnowledge::ProjectNoteTool.new,
+      Tools::ProjectKnowledge::AddProjectNoteTool.new,
+      Tools::ProjectKnowledge::EditProjectNoteTool.new,
+      Tools::ProjectKnowledge::DeleteProjectNoteTool.new,
       Tools::ProjectKnowledge::TreeBasedProjectDirectoryDataTool.new,
       Tools::ProjectKnowledge::AddTreeBasedProjectDirectoryItemTool.new,
       Tools::ProjectKnowledge::EditTreeBasedProjectDirectoryItemTool.new,
@@ -178,7 +178,7 @@ module Mcp
       Tools::AiConfig::ListAiProfileMcpsTool.new,
       Tools::AiConfig::GetAiProfileMcpTool.new
     ]
-    ai_config_tools.each { |tool| Registry.register(tool, scopes: %i[all read]) }
+    ai_config_tools.each { |tool| Registry.register(tool, scopes: %i[all read config]) }
 
     # Topics & Analysis
     topic_tools = [
@@ -189,6 +189,11 @@ module Mcp
       Tools::Topics::DeleteTopicTool.new,
       Tools::Topics::RoomTopicTreeTool.new,
       Tools::Topics::SearchTopicsTool.new,
+      Tools::Topics::ToolCalLogsTool.new,
+      Tools::Topics::GetToolCalLogTool.new,
+      Tools::Topics::CreateToolCalLogTool.new,
+      Tools::Topics::UpdateToolCalLogTool.new,
+      Tools::Topics::DeleteToolCalLogTool.new,
       Tools::Topics::SearchMessagesOfRoomTool.new,
       Tools::Topics::MessageAnalysisTool.new,
       Tools::Topics::GetMessageAnalysisTool.new,

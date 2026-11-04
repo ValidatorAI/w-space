@@ -247,13 +247,13 @@ module Mcp
         end
       end
 
-      # --- Obsidian Notes ---
-      class ProjectObsidianNoteTool < Mcp::BaseTool
+      # --- Project Notes ---
+      class ProjectNoteTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
-        def name = "project_obsidian_note"
-        def description = "List, get, or delete project obsidian notes"
-        def aliases = %w[project_obsidian_notes ProjectObsidianNote]
+        def name = "project_note"
+        def description = "List, get, or delete project notes"
+        def aliases = %w[project_notes ProjectNote]
 
         def input_schema
           {
@@ -271,7 +271,7 @@ module Mcp
 
         def execute(args)
           if args[:note_id].present?
-            n = ProjectObsidianNote.find(args[:note_id])
+            n = ProjectNote.find(args[:note_id])
             if boolean_param(args[:delete])
               n.destroy!
               return success(status: "deleted", id: n.id)
@@ -282,17 +282,17 @@ module Mcp
           project = resolve_project(args) || Project.first
           return failure("Project not found") unless project
 
-          items = paginate(project.obsidian_notes.order(created_at: :desc), args)
+          items = paginate(project.notes.order(created_at: :desc), args)
           success(items.map(&:as_json))
         end
       end
 
-      class AddProjectObsidianNoteTool < Mcp::BaseTool
+      class AddProjectNoteTool < Mcp::BaseTool
         include Mcp::Tools::Concerns::ResolutionHelpers
 
-        def name = "add_project_obsidian_note"
-        def description = "Create a project obsidian note"
-        def aliases = ["AddProjectObsidianNote"]
+        def name = "add_project_note"
+        def description = "Create a project note"
+        def aliases = ["AddProjectNote"]
 
         def input_schema
           {
@@ -314,7 +314,7 @@ module Mcp
           project = resolve_project(args) || Project.first
           return failure("Project not found") unless project
 
-          n = project.obsidian_notes.create!(
+          n = project.notes.create!(
             title: args[:title],
             tags: args[:tags],
             content: args[:content],
@@ -325,10 +325,10 @@ module Mcp
         end
       end
 
-      class EditProjectObsidianNoteTool < Mcp::BaseTool
-        def name = "edit_project_obsidian_note"
-        def description = "Update a project obsidian note"
-        def aliases = ["EditProjectObsidianNote"]
+      class EditProjectNoteTool < Mcp::BaseTool
+        def name = "edit_project_note"
+        def description = "Update a project note"
+        def aliases = ["EditProjectNote"]
 
         def input_schema
           {
@@ -346,7 +346,7 @@ module Mcp
         end
 
         def execute(args)
-          n = ProjectObsidianNote.find(args[:note_id])
+          n = ProjectNote.find(args[:note_id])
           attrs = {
             title: args[:title],
             tags: args[:tags],
@@ -359,14 +359,14 @@ module Mcp
         end
       end
 
-      class DeleteProjectObsidianNoteTool < Mcp::BaseTool
-        def name = "delete_project_obsidian_note"
-        def description = "Delete a project obsidian note"
-        def aliases = ["DeleteProjectObsidianNote"]
+      class DeleteProjectNoteTool < Mcp::BaseTool
+        def name = "delete_project_note"
+        def description = "Delete a project note"
+        def aliases = ["DeleteProjectNote"]
         def input_schema = { type: "object", properties: { note_id: { type: %w[string integer] } }, required: ["note_id"] }
 
         def execute(args)
-          n = ProjectObsidianNote.find(args[:note_id])
+          n = ProjectNote.find(args[:note_id])
           n.destroy!
           success(status: "deleted", id: n.id)
         end

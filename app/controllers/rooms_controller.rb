@@ -60,7 +60,7 @@ class RoomsController < ApplicationController
     end
 
     def room_params
-      params.require(:room).permit(:name)
+      params.require(:room).permit(:name, :description)
     end
 
     def prepare_room_shell_context

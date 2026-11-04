@@ -2,7 +2,7 @@ require "test_helper"
 
 class MessagesControllerTest < ActionDispatch::IntegrationTest
   setup do
-    host! "once.bonfire.test"
+    host! "once.space.test"
 
     sign_in :david
     @room = rooms(:watercooler)
@@ -74,7 +74,7 @@ class MessagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_rendered_turbo_stream_broadcast @room, :messages, action: "append", target: [ @room, :messages ] do
       assert_select ".message__body", text: /New one/
-      assert_copy_link_button room_at_message_url(@room, Message.last, host: "once.bonfire.test")
+      assert_copy_link_button room_at_message_url(@room, Message.last, host: "once.space.test")
     end
   end
 

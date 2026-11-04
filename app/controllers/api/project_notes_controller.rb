@@ -1,5 +1,5 @@
 module Api
-  class ProjectObsidianNotesController < Api::BaseController
+  class ProjectNotesController < Api::BaseController
     DEFAULT_PER_PAGE = 40
     MAX_PER_PAGE = 200
 
@@ -7,7 +7,7 @@ module Api
       project = find_project
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      notes = project.obsidian_notes.ordered
+      notes = project.notes.ordered
       if params[:active].present?
         notes = notes.where(active: ActiveModel::Type::Boolean.new.cast(params[:active]))
       end
@@ -21,7 +21,7 @@ module Api
         count: count,
         page: page,
         per_page: per_page,
-        obsidian_notes: paged_notes.map { |note| serialize(note) }
+        notes: paged_notes.map { |note| serialize(note) }
       }
     end
 
@@ -29,8 +29,8 @@ module Api
       project = find_project
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      note = project.obsidian_notes.find_by(id: params[:id])
-      return render json: { error: "Obsidian note not found" }, status: :not_found unless note
+      note = project.notes.find_by(id: params[:id])
+      return render json: { error: "Note not found" }, status: :not_found unless note
 
       render json: serialize(note)
     end
@@ -39,7 +39,7 @@ module Api
       project = find_project
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      note = project.obsidian_notes.new(obsidian_note_params)
+      note = project.notes.new(note_params)
       process_file_storage(project, note, params[:file])
 
       unless note.save
@@ -57,10 +57,10 @@ module Api
       project = find_project
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      note = project.obsidian_notes.find_by(id: params[:id])
-      return render json: { error: "Obsidian note not found" }, status: :not_found unless note
+      note = project.notes.find_by(id: params[:id])
+      return render json: { error: "Note not found" }, status: :not_found unless note
 
-      note.assign_attributes(obsidian_note_params)
+      note.assign_attributes(note_params)
       process_file_storage(project, note, params[:file])
 
       if note.save
@@ -78,8 +78,8 @@ module Api
       project = find_project
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      note = project.obsidian_notes.find_by(id: params[:id])
-      return render json: { error: "Obsidian note not found" }, status: :not_found unless note
+      note = project.notes.find_by(id: params[:id])
+      return render json: { error: "Note not found" }, status: :not_found unless note
 
       if note.internal_source? && note.html_source_path.present?
         begin
@@ -100,7 +100,7 @@ module Api
       Project.find_by(id: params[:project_id]) || Project.find_by(slug: params[:project_id])
     end
 
-    def obsidian_note_params
+    def note_params
       params.permit(:title, :tags, :content, :html_source_type, :html_source_path, :active, :position)
     end
 

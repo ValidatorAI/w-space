@@ -18,4 +18,14 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to room_url(rooms(:watercooler))
   end
+
+  test "redirects to company home when user has no room or project" do
+    user = users(:david)
+    user.memberships.delete_all
+    user.project_users.delete_all
+
+    get root_url
+
+    assert_redirected_to user_company_home_path(user_id: "me")
+  end
 end

@@ -29,6 +29,16 @@ class AttentionItem < ApplicationRecord
     "knowledge_proposals" => "knowledge_proposal_resolved"
   }.freeze
 
+  DISMISSED_EVENT_TYPES = {
+    "decisions_waiting" => "decision_waiting_dismissed",
+    "blockers" => "blocker_dismissed",
+    "outcomes_review" => "outcome_review_dismissed",
+    "mentions" => "mention_dismissed",
+    "material_changes" => "material_change_dismissed",
+    "ai_confirm" => "ai_confirm_dismissed",
+    "knowledge_proposals" => "knowledge_proposal_dismissed"
+  }.freeze
+
   belongs_to :user, optional: true
   belongs_to :project, optional: true
   belongs_to :room, optional: true
@@ -65,12 +75,58 @@ class AttentionItem < ApplicationRecord
     RESOLVED_EVENT_TYPES[category.to_s] || "attention_item_resolved"
   end
 
+  def dismissed_event_type
+    DISMISSED_EVENT_TYPES[category.to_s] || "attention_item_dismissed"
+  end
+
+  def record_action_event!(actor:, action:, status:)
+    event_type = case status.to_s
+    when "resolved" then resolved_event_type
+    when "dismissed" then dismissed_event_type
+    else
+      "attention_item_#{status}"
+    end
+
+    OutputEvents::Recorder.record(
+      event_type: event_type,
+      event_id: id,
+      actor: actor,
+      target_type: "AttentionItem",
+      data: {
+        "category" => category,
+        "status" => status.to_s,
+        "title" => title,
+        "content" => title,
+        "action_label" => effective_action_label,
+        "target_type" => "AttentionItem",
+        "room_id" => room_id,
+        "project_id" => project_id,
+        "source_type" => source_type,
+        "source_id" => source_id,
+        "action" => action.to_s,
+        "content_payload" => {
+          "type" => "attention_item_resolution",
+          "attention_item_id" => id,
+          "category" => category,
+          "status" => status.to_s,
+          "action_label" => effective_action_label,
+          "target_type" => "AttentionItem",
+          "room_id" => room_id,
+          "project_id" => project_id,
+          "source_type" => source_type,
+          "source_id" => source_id
+        }.compact
+      }.compact
+    )
+  end
+
   def resolve!(user = Current.user)
     update!(
       status: :resolved,
       resolved_at: Time.current,
       resolved_by: user
     )
+    record_action_event!(actor: user, action: "resolve", status: :resolved)
   end
 
   def dismiss!(user = Current.user)
@@ -79,5 +135,6 @@ class AttentionItem < ApplicationRecord
       resolved_at: Time.current,
       resolved_by: user
     )
+    record_action_event!(actor: user, action: "dismiss", status: :dismissed)
   end
 end

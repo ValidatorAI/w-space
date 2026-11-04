@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ai_config generated_at="2026-09-23T16:06:07Z" source="W-ai profile exports merged for Bonfire reset">
+<ai_config generated_at="2026-09-23T16:06:07Z" source="W-ai profile exports merged for Space reset">
   <tools>
     <tool name="browser">
       <active>true</active>
@@ -1687,13 +1687,13 @@ Unread articles (2):
       </skill_text>
       <add_by_default>true</add_by_default>
     </skill>
-    <skill name="bonfire-mcp">
+    <skill name="space-mcp">
       <category />
       <description />
       <skill_text />
       <add_by_default>false</add_by_default>
     </skill>
-    <skill name="bonfire-mcp-chat">
+    <skill name="space-mcp-chat">
       <category />
       <description />
       <skill_text />

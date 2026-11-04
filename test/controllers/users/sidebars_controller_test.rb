@@ -91,6 +91,14 @@ class Users::SidebarsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/#{Regexp.escape(orphan_room.name)}/, @response.body)
   end
 
+  test "projects section stays visible when the user has no projects" do
+    get user_sidebar_url
+
+    assert_response :success
+    assert_select ".sidebar-projects__title", text: "Projects", count: 1
+    assert_select ".sidebar-projects__empty", text: /No projects yet/i, count: 1
+  end
+
   test "project knowledge section uses the same indented sidebar pattern as other project nav links" do
     project = Project.create!(
       name: "Knowledge Pad",

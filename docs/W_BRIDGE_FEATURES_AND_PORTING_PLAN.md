@@ -1,21 +1,21 @@
-# W-bridge Features Catalog and Bonfire Native Porting Plan
+# W-bridge Features Catalog and Space Native Porting Plan
 
 ## Executive Summary
 
-The purpose of this document is to provide a complete, exhaustive catalog of all features, behaviors, schemas, and endpoints currently implemented in the Python/FastAPI service **W-bridge**, followed by a phased, actionable engineering plan to port and support these features natively within the **Bonfire** Ruby on Rails repository.
+The purpose of this document is to provide a complete, exhaustive catalog of all features, behaviors, schemas, and endpoints currently implemented in the Python/FastAPI service **W-bridge**, followed by a phased, actionable engineering plan to port and support these features natively within the **Space** Ruby on Rails repository.
 
-Currently, Bonfire and W-bridge operate in a circular HTTP loopback:
-1. Bonfire records domain mutations and posts webhooks to W-bridge (`OUTPUT_EVENTS_URL` -> `/space_events`).
+Currently, Space and W-bridge operate in a circular HTTP loopback:
+1. Space records domain mutations and posts webhooks to W-bridge (`OUTPUT_EVENTS_URL` -> `/space_events`).
 2. W-bridge stores, deduplicates, and merges these events, then calls Hermes (`/chat/completions`).
 3. During execution, Hermes calls MCP tools hosted on W-bridge (`/action-mcp`, `/read-mcp`, `/knowledge-mcp`, `/task-mcp`).
-4. W-bridge converts these tool calls into HTTP requests back against Bonfire's REST API (`/api/...`).
+4. W-bridge converts these tool calls into HTTP requests back against Space's REST API (`/api/...`).
 
 ### Architectural Shift: Loopback to Native Platform
 
 ```
 CURRENT ARCHITECTURE (Loopback via External Service):
 ┌──────────────┐     HTTP Webhook     ┌──────────────┐     HTTP API     ┌──────────────┐
-│   Bonfire    │ ───────────────────> │   W-bridge   │ ───────────────> │    Hermes    │
+│   Space      │ ───────────────────> │   W-bridge   │ ───────────────> │    Hermes    │
 │ (Rails + DB) │                      │   (Python)   │ <─────────────── │  (AI Agent)  │
 └──────────────┘                      └──────────────┘                  └──────────────┘
        ▲                                     │
@@ -24,9 +24,9 @@ CURRENT ARCHITECTURE (Loopback via External Service):
                  (From W-bridge MCP Tools)
 
 
-TARGET ARCHITECTURE (Unified Native Bonfire):
+TARGET ARCHITECTURE (Unified Native Space):
 ┌──────────────────────────────────────────────────────────────────┐
-│                             Bonfire                              │
+│                              Space                               │
 │                                                                  │
 │  ┌───────────────────────┐             ┌──────────────────────┐  │     HTTP API     ┌──────────────┐
 │  │ OutputEvents::Recorder│ ──(Job)───> │ OutputEvents::       │──┼────────────────> │    Hermes    │
@@ -46,11 +46,11 @@ TARGET ARCHITECTURE (Unified Native Bonfire):
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-By bringing all features of W-bridge directly into Bonfire:
+By bringing all features of W-bridge directly into Space:
 - **Zero loopback latency**: MCP tools interact directly with ActiveRecord models and database transactions, eliminating HTTP serialization, network overhead, and duplicate auth handshakes.
 - **Transactional integrity**: Tool actions run in standard database transactions with ActiveRecord validations and callbacks.
 - **ActiveJob deduplication**: Event deduplication, sibling settling windows, and dispatching leverage Rails-native ActiveJob queues (SolidQueue / Resque).
-- **Single persistence & observability**: All MCP call telemetry, exception logs, and dispatch states live in Bonfire's primary database.
+- **Single persistence & observability**: All MCP call telemetry, exception logs, and dispatch states live in Space's primary database.
 - **Full retirement of Python W-bridge**: The standalone FastAPI application and its SQLite database are completely decommissioned.
 
 ---

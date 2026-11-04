@@ -6,13 +6,17 @@ class Project < ApplicationRecord
   has_many :attention_items, dependent: :nullify
   has_many :topics, dependent: :destroy
   has_many :bottlenecks, class_name: "ProjectBottleneck", dependent: :destroy
-  has_many :tasks, dependent: :destroy
+  has_many :ai_tasks, class_name: "AiTask", dependent: :destroy
   has_many :todos, class_name: "ProjectTodo", dependent: :destroy
+
+  def tasks
+    ai_tasks
+  end
   has_many :knowledge_items, class_name: "ProjectKnowledgeItem", dependent: :destroy
   has_many :project_all_hands_takeaways, class_name: "ProjectAllHandsTakeaway", dependent: :destroy
   has_many :project_all_hands_action_items, class_name: "ProjectAllHandsActionItem", dependent: :destroy
   has_many :project_all_hands_decisions, class_name: "ProjectAllHandsDecision", dependent: :destroy
-  has_many :obsidian_notes, class_name: "ProjectObsidianNote", dependent: :destroy
+  has_many :notes, class_name: "ProjectNote", dependent: :destroy
   has_many :external_assets, class_name: "ProjectExternalAsset", dependent: :destroy
   has_many :adrs, class_name: "ProjectAdr", dependent: :destroy
   has_many :decision_rooms, through: :rooms

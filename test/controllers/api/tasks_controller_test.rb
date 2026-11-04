@@ -25,8 +25,8 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
       description: "Write API",
       importance: 3,
       level: 2,
-      added_to_kanban: true,
-      runned: false
+      dispatched: true,
+      finished: false
     )
 
     @other_task = Task.create!(
@@ -34,8 +34,8 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
       description: "Another task",
       importance: 1,
       level: 1,
-      added_to_kanban: false,
-      runned: true
+      dispatched: false,
+      finished: true
     )
   end
 
@@ -50,12 +50,12 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2, body["count"]
     assert_equal [@task.id, @other_task.id].sort, body["tasks"].map { |t| t["id"] }.sort
 
-    get api_tasks_url, params: { room_id: @room.id, added_to_kanban: true }, headers: { "Authorization" => "Bearer test-token" }
+    get api_tasks_url, params: { room_id: @room.id, dispatched: true }, headers: { "Authorization" => "Bearer test-token" }
     assert_response :success
     body = JSON.parse(response.body)
     assert_equal [@task.id], body["tasks"].map { |t| t["id"] }
 
-    get api_tasks_url, params: { runned: false }, headers: { "Authorization" => "Bearer test-token" }
+    get api_tasks_url, params: { finished: false }, headers: { "Authorization" => "Bearer test-token" }
     assert_response :success
     body = JSON.parse(response.body)
     assert_equal [@task.id], body["tasks"].map { |t| t["id"] }
@@ -69,8 +69,8 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
         description: "New task",
         importance: 5,
         level: 3,
-        added_to_kanban: false,
-        runned: false
+        dispatched: false,
+        finished: false
       },
       headers: { "Authorization" => "Bearer test-token" }
 
@@ -84,13 +84,13 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     patch api_task_url(task_id),
-      params: { description: "Updated task", runned: true },
+      params: { description: "Updated task", finished: true },
       headers: { "Authorization" => "Bearer test-token" }
 
     assert_response :success
     updated = JSON.parse(response.body)
     assert_equal "Updated task", updated["description"]
-    assert_equal true, updated["runned"]
+    assert_equal true, updated["finished"]
 
     delete api_task_url(task_id), headers: { "Authorization" => "Bearer test-token" }
     assert_response :no_content

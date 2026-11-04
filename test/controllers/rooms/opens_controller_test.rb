@@ -38,11 +38,18 @@ class Rooms::OpensControllerTest < ActionDispatch::IntegrationTest
 
   test "create" do
     assert_turbo_stream_broadcasts :rooms, count: 1 do
-      post rooms_opens_url, params: { room: { name: "My New Room" } }
+      post rooms_opens_url, params: {
+        room: {
+          name: "My New Room",
+          description: "Room for the launch team"
+        }
+      }
     end
 
-    assert_equal Room.last.memberships.count, User.count
-    assert_redirected_to room_url(Room.last)
+    room = Room.order(:created_at).last
+    assert_equal "Room for the launch team", room.description
+    assert_equal room.memberships.count, User.count
+    assert_redirected_to room_url(room)
   end
 
   test "create from project settings redirects back to project settings" do

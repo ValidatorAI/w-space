@@ -1,60 +1,502 @@
 <% @page_title = "Set up W space" %>
 <% @body_class = "signup" %>
 
-<%= form_with model: @user, url: first_run_path, class: "center max-width" do |form| %>
-  <section class="nametag u-relative">
-    <div class="flex justify-center align-center pad-block">
-      <%= image_tag "lanyard.svg", class: "nametag__lanyard", aria: { hidden: "true" } %>
-    </div>
+<style>
+  .w-login-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(110, 168, 255, 0.17), transparent 22%),
+      linear-gradient(135deg, #091827 0%, #0d1d2f 38%, #091827 100%);
+    color: #edf5ff;
+    font-family: Inter, "Segoe UI", sans-serif;
+  }
 
-    <div class="nametag__inner flex flex-column gap">
-      <fieldset class="flex flex-column center-block">
-        <legend class="txt-large txt-align-center"><strong><%= @page_title %></strong></legend>
+  .w-login {
+    width: min(1120px, 100%);
+    min-height: 720px;
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    background: rgba(11, 20, 31, 0.68);
+    border: 1px solid rgba(159, 180, 203, 0.22);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 28px 60px rgba(1, 8, 18, 0.55);
+    backdrop-filter: blur(10px);
+  }
 
-        <label class="align-center center avatar__form gap" data-controller="upload-preview">
-          <div class="btn input--file">
-            <%= image_tag "camera.svg", aria: { hidden: "true" } %>
-            <%= form.file_field :avatar, class: "input", accept: "image/*",
-                  data: { upload_preview_target: "input", action: "upload-preview#previewImage" } %>
-            <span class="for-screen-reader">Add your avatar</span>
+  .w-login-intro {
+    position: relative;
+    padding: 22px 28px 20px;
+    background: linear-gradient(160deg, rgba(16, 29, 45, 0.96), rgba(8, 18, 30, 0.96));
+    border-right: 1px solid rgba(159, 180, 203, 0.22);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .w-login-intro::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 14%, rgba(233, 201, 138, 0.16), transparent 14%),
+      radial-gradient(circle at 80% 28%, rgba(110, 168, 255, 0.12), transparent 17%),
+      linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    pointer-events: none;
+  }
+
+  .w-login-intro > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .w-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .w-brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(246, 229, 187, 0.75);
+    background: linear-gradient(135deg, #f4dda6, #bb7f2f);
+    color: #0c1a28;
+    border-radius: 12px;
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 1000;
+    transform: skew(-8deg);
+  }
+
+  .w-brand-name {
+    font-size: 1rem;
+    color: #edf5ff;
+  }
+
+  .w-brand-name strong {
+    font-size: 1.04rem;
+  }
+
+  .w-hero {
+    max-width: 480px;
+    margin-top: 6px;
+  }
+
+  .w-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid rgba(110, 168, 255, 0.28);
+    background: rgba(110, 168, 255, 0.08);
+    border-radius: 999px;
+    color: #6ea8ff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .w-eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #78d9b1;
+    box-shadow: 0 0 0 4px rgba(120, 217, 177, 0.18);
+  }
+
+  .w-hero h1 {
+    margin: 10px 0 12px;
+    font-size: clamp(2.6rem, 4vw, 4rem);
+    letter-spacing: -0.06em;
+    line-height: 1.04;
+    color: #edf5ff;
+  }
+
+  .w-lead {
+    margin: 0;
+    max-width: 38ch;
+    font-size: 1.06rem;
+    line-height: 1.7;
+    color: #a8bfd8;
+  }
+
+  .w-login-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 28px;
+    background: linear-gradient(180deg, rgba(15, 27, 39, 0.92), rgba(10, 20, 31, 0.92));
+  }
+
+  .w-card {
+    width: min(100%, 420px);
+    padding: 28px 26px 24px;
+    background: rgba(18, 31, 46, 0.96);
+    border: 1px solid rgba(162, 186, 212, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 18px 34px rgba(1, 8, 18, 0.25);
+  }
+
+  .w-header {
+    margin-bottom: 22px;
+  }
+
+  .w-header h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 2vw, 2.25rem);
+    letter-spacing: -0.05em;
+    color: #edf5ff;
+  }
+
+  .w-header p {
+    margin: 10px 0 0;
+    color: #a8bfd8;
+    font-size: 0.95rem;
+  }
+
+  .w-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .w-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .w-field label {
+    color: #7d93ad;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .avatar__form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 8px;
+  }
+
+  .avatar__form .btn {
+    border-radius: 50%;
+    overflow: hidden;
+    width: 72px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    background: rgba(15, 27, 39, 0.9);
+    border: 1px solid rgba(162, 186, 212, 0.3);
+  }
+
+  .avatar__form .btn img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .avatar__form .avatar {
+    width: 88px;
+    height: 88px;
+    background: rgba(7, 17, 28, 0.86);
+  }
+
+  .avatar__form .avatar img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .w-input-wrap {
+    position: relative;
+  }
+
+  .w-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    opacity: 0.72;
+    pointer-events: none;
+    color: #f2f7ff;
+    filter: brightness(1.5) saturate(0.9);
+  }
+
+  .w-input-wrap input {
+    width: 100%;
+    border: 1px solid rgba(150, 169, 188, 0.28);
+    background: rgba(7, 17, 28, 0.86);
+    border-radius: 12px;
+    color: #edf5ff;
+    padding: 14px 16px 14px 46px;
+    font-size: 0.98rem;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  }
+
+  .w-input-wrap input::placeholder {
+    color: #7d93ad;
+  }
+
+  .w-input-wrap input:focus {
+    outline: none;
+    border-color: rgba(110, 168, 255, 0.9);
+    box-shadow: 0 0 0 4px rgba(110, 168, 255, 0.14);
+    background: rgba(10, 20, 31, 0.96);
+  }
+
+  .w-step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .w-step[hidden] {
+    display: none;
+  }
+
+  .w-ai-checklist {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .w-ai-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(150, 169, 188, 0.22);
+    background: rgba(7, 17, 28, 0.7);
+    border-radius: 12px;
+    color: #edf5ff;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .w-ai-option input {
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    background: rgba(7, 17, 28, 0.9);
+    border: 1px solid rgba(150, 169, 188, 0.45);
+    border-radius: 4px;
+    accent-color: #6ea8ff;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .w-ai-option input:checked {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: rgba(110, 168, 255, 0.9);
+    box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.12);
+  }
+
+  .w-step-actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .w-button {
+    width: 100%;
+    border: 1px solid rgba(91, 128, 196, 0.7);
+    background: linear-gradient(135deg, #407ce5, #3a7ce4 52%, #2c5bb2);
+    color: white;
+    border-radius: 12px;
+    padding: 15px 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(45, 101, 214, 0.28);
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+
+  .w-button-secondary {
+    border-color: rgba(150, 169, 188, 0.28);
+    background: rgba(15, 27, 39, 0.9);
+    box-shadow: none;
+  }
+
+  .w-button:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+  }
+
+  .w-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(110, 168, 255, 0.18);
+  }
+
+  @media (max-width: 900px) {
+    .w-login {
+      grid-template-columns: 1fr;
+      min-height: unset;
+    }
+
+    .w-login-intro {
+      border-right: none;
+      border-bottom: 1px solid rgba(159, 180, 203, 0.22);
+      padding-bottom: 30px;
+    }
+
+    .w-login-panel {
+      padding-top: 18px;
+    }
+  }
+</style>
+
+<section class="w-login-shell">
+  <main class="w-login" aria-label="PWR Work sign in">
+    <section class="w-login-intro" aria-label="Workspace overview">
+      <div class="w-brand-row">
+        <div class="w-brand-mark">W</div>
+        <div class="w-brand-name"><strong>W</strong> space</div>
+      </div>
+
+      <div class="w-hero">
+        <span class="w-eyebrow">Setup</span>
+        <h1>Build your workspace.</h1>
+        <p class="w-lead">
+          Create your admin profile and set up the first workspace for your team.
+        </p>
+      </div>
+    </section>
+
+    <section class="w-login-panel" aria-label="Create your account">
+      <div class="w-card">
+        <header class="w-header">
+          <h2>Create your account</h2>
+          <p>Set up your admin profile to start using W.</p>
+        </header>
+
+        <%= form_with model: @user, url: first_run_path, class: "w-form" do |form| %>
+          <div class="w-step" data-step="1">
+            <fieldset class="w-field">
+              <label class="avatar__form" data-controller="upload-preview">
+                <div class="btn input--file">
+                  <%= image_tag "camera.svg", aria: { hidden: "true" } %>
+                  <%= form.file_field :avatar, class: "input", accept: "image/*",
+                        data: { upload_preview_target: "input", action: "upload-preview#previewImage" } %>
+                  <span class="for-screen-reader">Add your avatar</span>
+                </div>
+
+                <div class="btn avatar input--file">
+                  <%= image_tag "default-avatar.svg", aria: { hidden: "true" }, data: { upload_preview_target: "image" }, alt: "Add your avatar" %>
+                  <span class="for-screen-reader">Avatar</span>
+                </div>
+              </label>
+            </fieldset>
+
+            <div class="w-field">
+              <label for="user_name">Name</label>
+              <div class="w-input-wrap">
+                <%= image_tag "person.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.text_field :name, id: "user_name", class: "input", autocomplete: "name",
+                      placeholder: "Name", autofocus: true, required: true, data: { "1p-ignore": true } %>
+              </div>
+            </div>
+
+            <div class="w-field">
+              <label for="user_email_address">Email address</label>
+              <div class="w-input-wrap">
+                <%= image_tag "email.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.email_field :email_address, id: "user_email_address", class: "input",
+                      autocomplete: "username", placeholder: "Email address", required: true %>
+              </div>
+            </div>
+
+            <div class="w-field">
+              <label for="user_password">Password</label>
+              <div class="w-input-wrap">
+                <%= image_tag "password.svg", aria: { hidden: "true" }, class: "w-icon" %>
+                <%= form.password_field :password, id: "user_password", class: "input",
+                      autocomplete: "new-password", placeholder: "Password", required: true, maxlength: 72 %>
+              </div>
+            </div>
+
+            <div class="w-step-actions">
+              <button type="button" class="w-button" data-next-step>Next</button>
+            </div>
           </div>
 
-          <div class="btn avatar input--file txt-xx-large">
-            <%= image_tag "default-avatar.svg", aria: { hidden: "true" }, data: { upload_preview_target: "image" }, alt: "Add your avatar" %>
-            <span class="for-screen-reader">Avatar</span>
+          <div class="w-step" data-step="2" hidden>
+            <div class="w-field">
+              <label>AI coworkers</label>
+              <div class="w-ai-checklist">
+                <% FirstRun.default_ai_profile_names.each do |profile_name| %>
+                  <label class="w-ai-option">
+                    <%= check_box_tag "ai_profile_names[]", profile_name, @selected_ai_profile_names.include?(profile_name), class: "w-ai-checkbox" %>
+                    <span><%= FirstRun.ai_profile_label(profile_name) %></span>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="w-step-actions">
+              <button type="button" class="w-button w-button-secondary" data-prev-step>Back</button>
+              <%= form.button class: "w-button", type: "submit" do %>
+                Create workspace
+              <% end %>
+            </div>
           </div>
-        </label>
-      </fieldset>
+        <% end %>
 
-      <div class="flex align-center gap">
-        <%= translation_button(:user_name) %>
-        <label class="flex align-center gap flex-item-grow txt-large input input--actor">
-          <%= form.text_field :name, class: "input", autocomplete: "name", placeholder: "Name", autofocus: true, required: true,
-                data: { "1p-ignore": true } %>
-          <%= image_tag "person.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-        </label>
+        <script>
+          const initFirstRunSteps = () => {
+            const form = document.querySelector(".w-form");
+            if (!form) return;
+
+            const stepOne = form.querySelector("[data-step='1']");
+            const stepTwo = form.querySelector("[data-step='2']");
+            const nextButton = form.querySelector("[data-next-step]");
+            const backButton = form.querySelector("[data-prev-step]");
+
+            if (!stepOne || !stepTwo || !nextButton || !backButton) return;
+
+            const showStep = (step) => {
+              const isFirst = step === "1";
+              stepOne.hidden = !isFirst;
+              stepTwo.hidden = isFirst;
+            };
+
+            nextButton.addEventListener("click", function () {
+              const firstInvalid = stepOne.querySelector("input[required]:invalid");
+              if (firstInvalid) {
+                firstInvalid.reportValidity();
+                return;
+              }
+
+              showStep("2");
+            });
+
+            backButton.addEventListener("click", function () {
+              showStep("1");
+            });
+          };
+
+          document.addEventListener("DOMContentLoaded", initFirstRunSteps);
+          document.addEventListener("turbo:load", initFirstRunSteps);
+        </script>
       </div>
-
-      <div class="flex align-center gap">
-        <%= translation_button(:email_address) %>
-        <label class="flex align-center gap flex-item-grow txt-large input input--actor">
-          <%= form.email_field :email_address, class: "input", autocomplete: "username", placeholder: "Email address", required: true %>
-          <%= image_tag "email.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-        </label>
-      </div>
-
-      <div class="flex align-center gap">
-        <%= translation_button(:password) %>
-        <label class="flex align-center gap flex-item-grow txt-large input input--actor">
-          <%= form.password_field :password, class: "input", autocomplete: "new-password", placeholder: "Password", required: true, maxlength: 72 %>
-          <%= image_tag "password.svg", aria: { hidden: "true" }, size: 24, class: "colorize--black" %>
-        </label>
-      </div>
-
-      <%= form.button class: "btn btn--reversed center bg-white txt-large", type: "submit" do %>
-        <%= image_tag "arrow-right.svg", aria: { hidden: "true" } %>
-        <span class="for-screen-reader">Save</span>
-      <% end %>
-    </div>
-  </section>
-<% end %>
+    </section>
+  </main>
+</section>

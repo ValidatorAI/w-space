@@ -5,6 +5,9 @@ class Topic < ApplicationRecord
   has_many :messages, through: :message_topics
   has_many :child_topics, class_name: "Topic", foreign_key: :parent_topic_id, dependent: :nullify, inverse_of: :parent_topic
   has_many :room_history_topics, dependent: :destroy
+  has_many :ai_tasks, dependent: :nullify
+  has_many :tool_cal_logs, class_name: "ToolCalLog", dependent: :destroy
+  has_many :topic_tool_call_logs, class_name: "ToolCalLog", dependent: :destroy
 
   validates :project, presence: true
   validates :name, presence: true

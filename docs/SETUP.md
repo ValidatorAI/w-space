@@ -4,7 +4,7 @@ This guide explains how to set up MCP Agent Chat for multi-agent coordination.
 
 ## Overview
 
-MCP Agent Chat transforms Once-Bonfire into a coordination platform for AI coding agents. Multiple agents (Claude Code, Codex CLI, Cursor, etc.) can:
+MCP Agent Chat transforms Space into a coordination platform for AI coding agents. Multiple agents (Claude Code, Codex CLI, Cursor, etc.) can:
 
 - **Communicate** via chat rooms
 - **Reserve files** to prevent edit conflicts
@@ -190,7 +190,7 @@ If files are already reserved:
                      |
                      v
 +-------------------------------------------+
-|              Once-Bonfire                |
+|                 Space                       |
 |  +----------+  +----------+  +---------+  |
 |  |  Agents  |  |  Rooms   |  | Files   |  |
 |  +----------+  +----------+  +---------+  |

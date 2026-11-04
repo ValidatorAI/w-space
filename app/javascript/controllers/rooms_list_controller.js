@@ -24,7 +24,10 @@ export default class extends Controller {
   }
 
   loaded() {
-    this.read({ detail: { roomId: Current.room.id } })
+    const roomId = Current?.room?.id
+    if (!roomId) return
+
+    this.read({ detail: { roomId } })
   }
 
   read({ detail: { roomId } }) {
@@ -51,7 +54,7 @@ export default class extends Controller {
     const unreadRoom = this.#findRoomTarget(roomId)
 
     if (unreadRoom) {
-      if (Current.room.id != roomId) {
+      if (Current?.room?.id != roomId) {
         unreadRoom.classList.add(this.unreadClass)
       }
 

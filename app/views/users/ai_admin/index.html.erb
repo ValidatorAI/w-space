@@ -51,9 +51,8 @@
     <%= sidebar_turbo_frame_tag(src: user_sidebar_path) %>
   </aside>
 
-  <main class="workspace-room__main" id="conversation" style="width: 80vw;">
+  <main class="workspace-room__main" id="conversation">
     <div id="message-area" class="message-area">
-  <h1>AI Config</h1>
   <div class="feed-container company-settings-feed">
     <div class="settings-container">
       <%= render "users/ai_admin/top_links" %>
@@ -62,13 +61,13 @@
         <div class="settings-section-title settings-section-title--spread">
           <span>Profile List</span>
           <div class="settings-section-actions">
-            <%= button_to "Restart W-Bridge", user_company_ai_admin_restart_w_bridge_path(user_id: "me"),
+            <%= button_to "Restart Hermes", user_company_ai_admin_restart_w_bridge_path(user_id: "me"),
                           method: :post,
                           class: "action-btn action-btn--small",
-                          data: { turbo_confirm: "This will trigger a W-Bridge restart. Continue?" } %>
+                          data: { turbo_confirm: "This will restart the Hermes gateway. Continue?" } %>
             <%= button_to "Reset all AI Config", user_company_ai_admin_reset_ai_config_path(user_id: "me"),
                           method: :post,
-                          class: "action-btn action-btn--small",
+                          class: "action-btn action-btn--small action-btn--warning",
                           data: { turbo_confirm: "This resets all profiles, tools, skills, MCPs, and profile MCP assignments from config/ai/ai_config.xml. Continue?" } %>
             <%= link_to "Add profile", user_company_ai_admin_new_profile_path(user_id: "me", return_to: request.fullpath), class: "action-btn action-btn--small primary" %>
           </div>
