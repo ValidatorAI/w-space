@@ -105,6 +105,8 @@ bin/setup
 bin/rails server
 ```
 
+For the runtime environment variables and Docker deployment examples, see [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md).
+
 Then open:
 
 ```text
