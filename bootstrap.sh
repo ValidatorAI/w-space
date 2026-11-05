@@ -17,7 +17,10 @@ for name in $PROFILE_NAMES; do
       echo "Hermes profile install failed for $name" >&2
     fi
   else
-    echo "Hermes profile already present: $name"
+    echo "Updating Hermes profile: $name"
+    if ! hermes profile update "$name"; then
+      echo "Hermes profile update failed for $name" >&2
+    fi
   fi
 done
 
