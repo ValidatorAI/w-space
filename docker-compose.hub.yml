@@ -43,7 +43,10 @@ services:
       VAPID_PRIVATE_KEY: "${VAPID_PRIVATE_KEY:-}"
     ports:
       - "3000:3000"
+    volumes:
+      - pwr-sqlite-data:/rails/storage
     restart: unless-stopped
 
 volumes:
   hermes-data:
+  pwr-sqlite-data:
