@@ -21,4 +21,6 @@ for name in $PROFILE_NAMES; do
   fi
 done
 
+hermes config set gateway.multiplex_profiles true
+
 exec hermes gateway run
