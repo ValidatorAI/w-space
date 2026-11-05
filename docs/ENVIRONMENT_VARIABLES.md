@@ -24,6 +24,9 @@ The app uses these values at boot time and in the runtime services.
 | `ENABLE_AI_CONFIG_PAGE` | No | `FALSE` | Enables the AI settings/config page. |
 | `HERMES_BASE_URI` | Yes for real runtime | `http://127.0.0.1:8642` | Hermes API base URL. Also accepts legacy `BASE_URI`. |
 | `HERMES_STATUS_URI` | No | `http://127.0.0.1:9119` | Hermes status endpoint. Also accepts legacy `STATUS_BASE_URI`. |
+| `HERMES_DASHBOARD` | No | `true` | Enables the Hermes dashboard server. |
+| `HERMES_DASHBOARD_HOST` | No | `0.0.0.0` | Bind address for the Hermes dashboard. |
+| `HERMES_DASHBOARD_PORT` | No | `8080` | Port used by the Hermes dashboard. |
 | `HERMES_API_KEY` | Yes for real runtime | none | API key for Hermes access. Also accepts `API_SERVER_KEY` and `API_KEY`. |
 | `HERMES_MODEL` | No | `hermes` | Model name. Also accepts legacy `MODEL`. |
 | `HERMES_DEFAULT_PROFILE` | No | `delegator` | Default Hermes profile. Also accepts legacy `BASE_HERMES_PROFILE`. |
@@ -75,6 +78,9 @@ ENABLE_AI_CONFIG_PAGE=FALSE
 # Hermes Agent Server Settings
 HERMES_BASE_URI=http://127.0.0.1:8642
 HERMES_STATUS_URI=http://127.0.0.1:9119
+HERMES_DASHBOARD=true
+HERMES_DASHBOARD_HOST=0.0.0.0
+HERMES_DASHBOARD_PORT=8080
 HERMES_API_KEY=your-hermes-api-key
 HERMES_MODEL=hermes
 HERMES_DEFAULT_PROFILE=delegator
