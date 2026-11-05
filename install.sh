@@ -147,6 +147,61 @@ configure_infisical_credentials() {
   write_infisical_aliases "INFISICAL_PROJECT_ENV" "$project_env"
 }
 
+profile_repo_import() {
+  local repo_url="${1:-}"
+  local profile_name="${2:-${HERMES_DEFAULT_PROFILE:-delegator}}"
+  local helper="$SCRIPT_DIR/profile-env-collect.sh"
+
+  if [[ ! -f "$helper" ]]; then
+    echo "Profile helper not found: $helper" >&2
+    return 1
+  fi
+
+  if [[ -z "$repo_url" ]]; then
+    read -r -p "Profile repo URL or local path: " repo_url || repo_url=""
+  fi
+
+  if [[ -z "$repo_url" ]]; then
+    echo "No profile repo URL provided." >&2
+    return 1
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "Would fetch environment variables from profile repo: $repo_url"
+    return 0
+  fi
+
+  bash "$helper" "$repo_url" -n "$profile_name" --out "$ENV_FILE"
+}
+
+prompt_profile_repo_manual_entry() {
+  local label="$1"
+  local choice=""
+  local repo_url=""
+
+  if [[ ! -t 0 ]]; then
+    return 1
+  fi
+
+  read -r -p "Download environment variables from a Hermes profile repo for ${label}? [y/N]: " choice || choice="n"
+  if [[ ! "$choice" =~ ^[Yy](es)?$ ]]; then
+    return 1
+  fi
+
+  read -r -p "Profile repo URL or local path: " repo_url || repo_url=""
+  if [[ -z "$repo_url" ]]; then
+    echo "No profile repo URL provided; falling back to direct manual entry." >&2
+    return 1
+  fi
+
+  if profile_repo_import "$repo_url" "${HERMES_DEFAULT_PROFILE:-delegator}"; then
+    return 0
+  fi
+
+  echo "Profile repo import failed; falling back to direct manual entry." >&2
+  return 1
+}
+
 normalize_hermes_dotted_key() {
   local raw_key="$1"
   raw_key="${raw_key//./_}"
@@ -231,6 +286,9 @@ prompt_for_missing_hermes_key() {
         echo "Infisical export did not populate HERMES_API_KEY; try again or pick another source." >&2
         ;;
       m|manual)
+        if prompt_profile_repo_manual_entry "Hermes API key"; then
+          return 0
+        fi
         local manual_value=""
         printf 'Enter Hermes API key: '
         read -r manual_value || manual_value=""
@@ -275,6 +333,9 @@ prompt_for_missing_mcp_token() {
         echo "Infisical export did not populate MCP_AUTH_TOKEN; try again or pick another source." >&2
         ;;
       m|manual)
+        if prompt_profile_repo_manual_entry "MCP auth token"; then
+          return 0
+        fi
         local manual_value=""
         printf 'Enter MCP auth token: '
         read -r manual_value || manual_value=""
