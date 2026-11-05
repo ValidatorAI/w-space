@@ -57,6 +57,246 @@ maybe_add_default_env() {
   printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
 }
 
+generate_infisical_fallback() {
+  local label="${1:-local}"
+  if command -v openssl >/dev/null 2>&1; then
+    printf '%s-%s' "$label" "$(openssl rand -hex 8 2>/dev/null || printf 'fallback')"
+  else
+    printf '%s-fallback' "$label"
+  fi
+}
+
+prompt_infisical_value() {
+  local label="$1"
+  local fallback="$2"
+  local value
+
+  if [[ ! -t 0 ]]; then
+    printf '%s' "$fallback"
+    return
+  fi
+
+  read -r -p "${label} [${fallback}]: " value
+  if [[ -n "$value" ]]; then
+    printf '%s' "$value"
+  else
+    printf '%s' "$fallback"
+  fi
+}
+
+write_infisical_aliases() {
+  local field_name="$1"
+  local value="$2"
+
+  case "$field_name" in
+    INFISICAL_APP_ID)
+      write_or_keep_env "INFISICAL_APP_ID" "$value"
+      write_or_keep_env "INFISICAL.APP_ID" "$value"
+      write_or_keep_env "INFISICAL__APP_ID" "$value"
+      ;;
+    INFISICAL_APP_SECRET)
+      write_or_keep_env "INFISICAL_APP_SECRET" "$value"
+      write_or_keep_env "INFISICAL.APP_SECRET" "$value"
+      write_or_keep_env "INFISICAL__APP_SECRET" "$value"
+      ;;
+    INFISICAL_PROJECT_ID)
+      write_or_keep_env "INFISICAL_PROJECT_ID" "$value"
+      write_or_keep_env "INFISICAL.PROJECT_ID" "$value"
+      write_or_keep_env "INFISICAL__PROJECT_ID" "$value"
+      ;;
+    INFISICAL_PROJECT_ENVIRONMENT|INFISICAL_PROJECT_ENV)
+      write_or_keep_env "INFISICAL_PROJECT_ENVIRONMENT" "$value"
+      write_or_keep_env "INFISICAL_PROJECT_ENV" "$value"
+      write_or_keep_env "INFISICAL.PROJECT_ENVIRONMENT" "$value"
+      write_or_keep_env "INFISICAL.PROJECT_ENV" "$value"
+      write_or_keep_env "INFISICAL__PROJECT_ENVIRONMENT" "$value"
+      write_or_keep_env "INFISICAL__PROJECT_ENV" "$value"
+      ;;
+  esac
+}
+
+configure_infisical_credentials() {
+  local use_infisical
+  local app_id
+  local app_secret
+  local project_id
+  local project_env
+
+  if [[ ! -t 0 ]]; then
+    return
+  fi
+
+  echo
+  echo "Infisical (optional): provide app credentials for external secret resolution."
+  echo "Leave values blank to keep the auto-generated fallbacks."
+
+  read -r -p "Use Infisical? [y/N]: " use_infisical
+  if [[ ! "$use_infisical" =~ ^[Yy](es)?$ ]]; then
+    return
+  fi
+
+  app_id="$(prompt_infisical_value "App ID" "$(generate_infisical_fallback app)")"
+  app_secret="$(prompt_infisical_value "App Secret" "$(generate_infisical_fallback app-secret)")"
+  project_id="$(prompt_infisical_value "Project ID" "$(generate_infisical_fallback project)")"
+  project_env="$(prompt_infisical_value "Project environment" "dev")"
+
+  write_infisical_aliases "INFISICAL_APP_ID" "$app_id"
+  write_infisical_aliases "INFISICAL_APP_SECRET" "$app_secret"
+  write_infisical_aliases "INFISICAL_PROJECT_ID" "$project_id"
+  write_infisical_aliases "INFISICAL_PROJECT_ENVIRONMENT" "$project_env"
+  write_infisical_aliases "INFISICAL_PROJECT_ENV" "$project_env"
+}
+
+normalize_hermes_dotted_key() {
+  local raw_key="$1"
+  raw_key="${raw_key//./_}"
+  raw_key="${raw_key//-/_}"
+  raw_key="${raw_key// /_}"
+  raw_key="${raw_key^^}"
+  printf '%s' "$raw_key"
+}
+
+write_env_from_dotted_keys() {
+  local export_text="$1"
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    [[ -z "$line" ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$line" != *=* ]] && continue
+
+    local raw_key="${line%%=*}"
+    local raw_value="${line#*=}"
+    raw_key="$(normalize_hermes_dotted_key "$raw_key")"
+
+    case "$raw_key" in
+      SECRET_KEY_BASE|HERMES_API_KEY|API_SERVER_KEY|MCP_AUTH_TOKEN|HERMES_BASE_URI|HERMES_STATUS_URI|HERMES_DASHBOARD|HERMES_DASHBOARD_HOST|HERMES_DASHBOARD_PORT|HERMES_MODEL|HERMES_DEFAULT_PROFILE|VAPID_PUBLIC_KEY|VAPID_PRIVATE_KEY)
+        write_or_keep_env "$raw_key" "$raw_value"
+        ;;
+    esac
+  done <<< "$export_text"
+}
+
+load_infisical_secret_values() {
+  if ! command -v infisical >/dev/null 2>&1; then
+    return 1
+  fi
+
+  local token="${INFISICAL_TOKEN:-}"
+  local project_id="${INFISICAL_PROJECT_ID:-}"
+  local path="${INFISICAL_PATH:-/}"
+  local domain="${INFISICAL_URL:-${INFISICAL_DOMAIN:-}}"
+
+  if [[ -z "$token" ]] && [[ -n "${INFISICAL_TOKEN_FILE:-}" ]] && [[ -f "$INFISICAL_TOKEN_FILE" ]]; then
+    token="$(tr -d '\r\n' < "$INFISICAL_TOKEN_FILE")"
+  fi
+
+  if [[ -z "$token" ]]; then
+    return 1
+  fi
+
+  local -a cmd=(infisical export --format=dotenv --path="$path")
+  [[ -n "$project_id" ]] && cmd+=(--projectId="$project_id")
+  [[ -n "$token" ]] && cmd+=(--token="$token")
+  [[ -n "$domain" ]] && cmd+=(--domain="$domain")
+
+  local export_text
+  if export_text="$("${cmd[@]}" 2>/dev/null)"; then
+    write_env_from_dotted_keys "$export_text"
+    return 0
+  fi
+
+  return 1
+}
+
+prompt_for_missing_hermes_key() {
+  local choice=""
+  if [[ -f "$ENV_FILE" ]] && grep -Eq '^HERMES_API_KEY=' "$ENV_FILE" && [[ -n "$(grep -E '^HERMES_API_KEY=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
+    return 0
+  fi
+
+  while true; do
+    if [[ -n "${INFISICAL_TOKEN:-}" || -n "${INFISICAL_PROJECT_ID:-}" ]] || command -v infisical >/dev/null 2>&1; then
+      printf 'Missing HERMES_API_KEY. Use [I]nfisical, [M]anual value, or [G]enerate random? [I/m/g]: '
+    else
+      printf 'Missing HERMES_API_KEY. Use [M]anual value or [G]enerate random? [m/g]: '
+    fi
+    read -r choice || choice="g"
+
+    case "${choice,,}" in
+      i|infisical)
+        if load_infisical_secret_values && grep -Eq '^HERMES_API_KEY=' "$ENV_FILE" && [[ -n "$(grep -E '^HERMES_API_KEY=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
+          return 0
+        fi
+        echo "Infisical export did not populate HERMES_API_KEY; try again or pick another source." >&2
+        ;;
+      m|manual)
+        local manual_value=""
+        printf 'Enter Hermes API key: '
+        read -r manual_value || manual_value=""
+        if [[ -n "$manual_value" ]]; then
+          write_or_keep_env "HERMES_API_KEY" "$manual_value"
+          return 0
+        fi
+        echo "Manual value was empty; try again." >&2
+        ;;
+      g|"")
+        local generated_key
+        generated_key="$(openssl rand -hex 32 2>/dev/null || ruby -e 'require "securerandom"; puts SecureRandom.hex(32)')"
+        write_or_keep_env "HERMES_API_KEY" "$generated_key"
+        return 0
+        ;;
+      *)
+        echo "Invalid choice; please choose I, M, or G." >&2
+        ;;
+    esac
+  done
+}
+
+prompt_for_missing_mcp_token() {
+  local choice=""
+  if [[ -f "$ENV_FILE" ]] && grep -Eq '^MCP_AUTH_TOKEN=' "$ENV_FILE" && [[ -n "$(grep -E '^MCP_AUTH_TOKEN=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
+    return 0
+  fi
+
+  while true; do
+    if [[ -n "${INFISICAL_TOKEN:-}" || -n "${INFISICAL_PROJECT_ID:-}" ]] || command -v infisical >/dev/null 2>&1; then
+      printf 'Missing MCP_AUTH_TOKEN. Use [I]nfisical, [M]anual value, or [G]enerate random? [I/m/g]: '
+    else
+      printf 'Missing MCP_AUTH_TOKEN. Use [M]anual value or [G]enerate random? [m/g]: '
+    fi
+    read -r choice || choice="g"
+
+    case "${choice,,}" in
+      i|infisical)
+        if load_infisical_secret_values && grep -Eq '^MCP_AUTH_TOKEN=' "$ENV_FILE" && [[ -n "$(grep -E '^MCP_AUTH_TOKEN=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
+          return 0
+        fi
+        echo "Infisical export did not populate MCP_AUTH_TOKEN; try again or pick another source." >&2
+        ;;
+      m|manual)
+        local manual_value=""
+        printf 'Enter MCP auth token: '
+        read -r manual_value || manual_value=""
+        if [[ -n "$manual_value" ]]; then
+          write_or_keep_env "MCP_AUTH_TOKEN" "$manual_value"
+          return 0
+        fi
+        echo "Manual value was empty; try again." >&2
+        ;;
+      g|"")
+        local generated_key
+        generated_key="$(openssl rand -hex 32 2>/dev/null || ruby -e 'require "securerandom"; puts SecureRandom.hex(32)')"
+        write_or_keep_env "MCP_AUTH_TOKEN" "$generated_key"
+        return 0
+        ;;
+      *)
+        echo "Invalid choice; please choose I, M, or G." >&2
+        ;;
+    esac
+  done
+}
+
 print_generated_summary() {
   echo
   echo "Generated/validated env file: $ENV_FILE"
@@ -80,14 +320,15 @@ maybe_add_default_env "HERMES_DASHBOARD_PORT" "8080"
 maybe_add_default_env "HERMES_MODEL" "hermes"
 maybe_add_default_env "HERMES_DEFAULT_PROFILE" "delegator"
 
+configure_infisical_credentials
+
 if ! grep -Eq '^SECRET_KEY_BASE=' "$ENV_FILE" || [[ -z "$(grep -E '^SECRET_KEY_BASE=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
   SECRET_KEY_BASE="$(openssl rand -base64 64 2>/dev/null | tr -d '\n' || ruby -e 'require "securerandom"; puts SecureRandom.base64(64)')"
   write_or_keep_env "SECRET_KEY_BASE" "$SECRET_KEY_BASE"
 fi
 
 if ! grep -Eq '^HERMES_API_KEY=' "$ENV_FILE" || [[ -z "$(grep -E '^HERMES_API_KEY=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
-  HERMES_API_KEY="$(openssl rand -hex 32 2>/dev/null || ruby -e 'require "securerandom"; puts SecureRandom.hex(32)')"
-  write_or_keep_env "HERMES_API_KEY" "$HERMES_API_KEY"
+  prompt_for_missing_hermes_key
 fi
 
 if ! grep -Eq '^API_SERVER_KEY=' "$ENV_FILE" || [[ -z "$(grep -E '^API_SERVER_KEY=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
@@ -96,8 +337,7 @@ if ! grep -Eq '^API_SERVER_KEY=' "$ENV_FILE" || [[ -z "$(grep -E '^API_SERVER_KE
 fi
 
 if ! grep -Eq '^MCP_AUTH_TOKEN=' "$ENV_FILE" || [[ -z "$(grep -E '^MCP_AUTH_TOKEN=' "$ENV_FILE" | head -n 1 | cut -d= -f2-)" ]]; then
-  MCP_AUTH_TOKEN="$(openssl rand -hex 32 2>/dev/null || ruby -e 'require "securerandom"; puts SecureRandom.hex(32)')"
-  write_or_keep_env "MCP_AUTH_TOKEN" "$MCP_AUTH_TOKEN"
+  prompt_for_missing_mcp_token
 fi
 
 if ! command -v ruby >/dev/null 2>&1; then
