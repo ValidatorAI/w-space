@@ -250,6 +250,20 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "(AI)", @response.body
   end
 
+  test "overview shows room-aware attention tags for project items" do
+    project = create_project_for(users(:david))
+    room = project.rooms.create!(name: "Launch Room", type: "Rooms::Open", private: false, creator: users(:david))
+
+    AttentionItem.create!(title: "Project-wide blocker", category: "blockers", project: project, status: :pending)
+    AttentionItem.create!(title: "Room blocker", category: "blockers", project: project, room: room, status: :pending)
+
+    get user_company_project_overview_url(id: project.id)
+
+    assert_response :success
+    assert_match "Project-wide", @response.body
+    assert_match "Room: Launch Room", @response.body
+  end
+
   test "overview returns not found for non-member project" do
     assert_raises(ActiveRecord::RecordNotFound) do
       get user_company_project_overview_url(id: -1)

@@ -77,6 +77,14 @@ class AttentionItem < ApplicationRecord
     action_label.presence || CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
   end
 
+  def location_label
+    return "Room: #{room.name}" if room_id.present? && room.present?
+    return "Room: #{Room.find_by(id: room_id)&.name || "Unknown room"}" if room_id.present?
+    return "Project-wide" if project_id.present?
+
+    "Company-wide"
+  end
+
   def resolved_event_type
     RESOLVED_EVENT_TYPES[category.to_s] || "attention_item_resolved"
   end

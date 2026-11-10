@@ -3,7 +3,12 @@
      data-home-attention-target="item"
      data-overdue="<%= attention_item.overdue? %>"
      data-ai-confirm="<%= attention_item.ai_confirm? %>">
-  <span class="list-item-title"><%= attention_item.title %></span>
+  <div class="list-item-main-row">
+    <span class="list-item-title"><%= attention_item.title %></span>
+    <% if attention_item.room_id.present? || attention_item.project_id.present? || attention_item.user_id.present? %>
+      <span class="badge gray list-item-tag"><%= attention_item.location_label %></span>
+    <% end %>
+  </div>
   <% if attention_item.meta_text.present? %>
     <span class="list-item-meta"><%= attention_item.meta_text %></span>
   <% end %>

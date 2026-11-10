@@ -97,7 +97,30 @@ class Users::ProjectsController < ApplicationController
     @project_users = @project.users.active.without_bots.ordered
     @ai_teammates = @project.users.active_bots.ordered
     @project_rooms = @project.rooms.without_directs.order(:name)
-    @attention_items = @project.attention_items.open_items.ordered
+    @open_attention_items = @project.attention_items.open_items.company_home_ordered
+    @attention_items = @open_attention_items
+    @project_category_limit = 5
+    @project_expanded_categories = Array(params[:project_expanded_categories]).compact.map(&:to_s)
+
+    @project_items_by_category = {}
+    @project_category_totals = {}
+    @project_category_has_more = {}
+
+    AttentionItem::CATEGORIES.each do |category|
+      base_scope = @project.attention_items.where(category: category)
+      pending_items = base_scope.where(status: :pending).company_home_ordered
+      resolved_items = base_scope.where(status: [ :resolved, :dismissed ]).company_home_ordered
+      items = pending_items.exists? ? pending_items : resolved_items
+
+      total_count = items.count
+      expanded = @project_expanded_categories.include?(category)
+      visible_items = expanded ? items.to_a : items.limit(@project_category_limit).to_a
+
+      @project_items_by_category[category] = visible_items
+      @project_category_totals[category] = total_count
+      @project_category_has_more[category] = total_count > @project_category_limit
+    end
+
     @project_milestones = @project.project_milestones.active.ordered
     @total_rooms_count = @project_rooms.count
     @messages_count = Message.where(room_id: @project.rooms.select(:id)).count
