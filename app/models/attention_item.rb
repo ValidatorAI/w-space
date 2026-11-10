@@ -55,8 +55,14 @@ class AttentionItem < ApplicationRecord
   scope :overdue_items, -> { where(overdue: true) }
   scope :ai_awaiting_confirmation, -> { where(ai_confirm: true) }
   scope :for_user, ->(user) { where(user_id: [ user&.id, nil ]) }
+  scope :company_home_for, ->(user) do
+    where("(user_id IS NULL OR user_id = ?) OR (project_id IS NOT NULL AND room_id IS NULL)", user&.id)
+  end
   scope :by_category, ->(category) { where(category: category) }
   scope :ordered, -> { order(overdue: :desc, due_at: :asc, created_at: :desc) }
+  scope :company_home_ordered, -> do
+    order(Arel.sql("CASE WHEN status = 0 THEN 0 ELSE 1 END ASC"), overdue: :desc, due_at: :asc, created_at: :desc)
+  end
   scope :recent, -> { order(created_at: :desc) }
 
   def self.category_title(cat)
