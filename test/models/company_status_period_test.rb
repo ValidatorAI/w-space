@@ -18,6 +18,33 @@ class CompanyStatusPeriodTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:slug], "has already been taken"
   end
 
+  test "orders pending decisions first and labels room decisions" do
+    period = CompanyStatusPeriod.create!(slug: "room-decisions", name: "Room Decisions", current: true)
+
+    period.company_status_items.create!(
+      category: "decisions",
+      title: "Approved launch decision",
+      subtitle: "Launch approved",
+      status: "approved",
+      detail_category: "Room: Alpha",
+      position: 2,
+      description: "Already settled"
+    )
+    period.company_status_items.create!(
+      category: "decisions",
+      title: "Need room signoff",
+      subtitle: "Waiting for room decision",
+      status: "pending",
+      detail_category: "Room: Beta",
+      position: 1,
+      description: "Open decision"
+    )
+
+    payload = period.as_status_payload
+    assert_equal ["Need room signoff", "Approved launch decision"], payload[:decisions].map { |item| item[:title] }
+    assert_equal ["Room: Beta", "Room: Alpha"], payload[:decisions].map { |item| item[:details][:room_label] }
+  end
+
   test "as_status_payload returns categorized items" do
     period = CompanyStatusPeriod.create!(slug: "test-period", name: "Test Period", current: true)
     period.company_status_items.create!(

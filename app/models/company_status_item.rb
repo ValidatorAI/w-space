@@ -92,15 +92,29 @@ class CompanyStatusItem < ApplicationRecord
     )
   end
 
+  def room_label
+    return nil unless category.to_s == "decisions"
+
+    label = detail_category.presence || owner.presence || from_name.presence || to_name.presence
+    return nil if label.blank?
+
+    value = label.to_s.sub(/\A\s*(?:room|room label)\s*[:\-]?\s*/i, "").strip
+    return nil if value.blank?
+
+    "Room: #{value}"
+  end
+
   def as_status_payload
     item_title = title.presence || text.presence || subtitle.presence || ""
     item_outcome = outcome.presence || ""
+    room_tag = room_label
+    payload_label = room_tag.present? ? room_tag : item_title
 
     {
       id: id.to_s,
       title: item_title,
       outcome: item_outcome,
-      label: item_title,
+      label: payload_label,
       percent: percent&.to_s,
       color: color,
       evidence: evidence,
@@ -117,7 +131,8 @@ class CompanyStatusItem < ApplicationRecord
         targetDate: target_date,
         status: status.presence || "Open",
         impact: impact,
-        actions: actions || []
+        actions: actions || [],
+        room_label: room_tag
       }
     }
   end
