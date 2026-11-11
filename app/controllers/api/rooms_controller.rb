@@ -11,7 +11,7 @@ module Api
 
       rooms = project.present? ? project.rooms : Room.all
 
-      render json: rooms.as_json(only: ROOM_FIELDS)
+      render json: rooms.map { |room| serialize_room(room) }
     end
 
     def show
@@ -21,7 +21,65 @@ module Api
       room = project.present? ? find_room(project, params[:id]) : find_room(params[:id])
       return render json: { error: "Room not found" }, status: :not_found unless room
 
-      render json: room.as_json(only: ROOM_FIELDS)
+      render json: serialize_room(room)
+    end
+
+    def create
+      actor = resolve_api_actor
+      if account_restricts_room_creation?(actor)
+        return render json: { error: "room creation restricted to administrators" }, status: :forbidden
+      end
+
+      project_id = params[:project_id].presence || params.dig(:room, :project_id).presence
+      project = project_id.present? ? find_project(project_id) : nil
+      return render json: { error: "Project not found" }, status: :not_found if project_id.present? && project.nil?
+
+      parent_id = params[:parent_room_id].presence || params.dig(:room, :parent_room_id).presence
+      parent = nil
+      if parent_id.present?
+        parent = Room.find_by(id: parent_id)
+        return render json: { error: "Room not found" }, status: :not_found unless parent
+      end
+
+      project ||= parent&.project
+
+      if project.present? && parent.present? && parent.project_id != project.id
+        return render json: { error: "parent room does not belong to this project" }, status: :unprocessable_entity
+      end
+
+      room = RoomCreationService.create(
+        name: room_name,
+        description: room_description,
+        private: room_private,
+        project_id: project&.id,
+        parent_room_id: parent&.id,
+        user_ids: normalized_user_ids,
+        actor: actor
+      )
+
+      render json: serialize_room(room), status: :created
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
+    def update
+      room = Room.find_by(id: params[:id])
+      return render json: { error: "Room not found" }, status: :not_found unless room
+      return render json: { error: "Room is archived" }, status: :unprocessable_entity if room.archived?
+
+      room.update!(room_update_params)
+      actor = resolve_api_actor
+      OutputEvents::Recorder.record(
+        event_type: "room_updated",
+        event_id: room.id,
+        group_id: SecureRandom.uuid,
+        actor: actor,
+        target_type: "Room",
+        data: { "room_type" => room.type, "project_id" => room.project_id, "parent_id" => room.parent_id }.compact
+      )
+      render json: serialize_room(room)
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def threads
@@ -32,7 +90,7 @@ module Api
       return render json: { error: "Room not found" }, status: :not_found unless room
 
       room_scope = project.present? ? project.rooms : Room.all
-      render json: room_scope.where(parent_id: room.id).ordered.as_json(only: ROOM_FIELDS)
+      render json: room_scope.where(parent_id: room.id).ordered.map { |item| serialize_room(item) }
     end
 
     def search
@@ -49,7 +107,7 @@ module Api
                 end
       ranked = matches.sort_by { |room| relevance_rank(room.name.to_s, query) }
 
-      render json: ranked.as_json(only: ROOM_FIELDS)
+      render json: ranked.map { |room| serialize_room(room) }
     end
 
     def members
@@ -89,6 +147,50 @@ module Api
       return Mcp::FuzzyMatcher.match_user(user_name) if user_name.present?
 
       nil
+    end
+
+    def room_name
+      params[:name].presence || params.dig(:room, :name).presence
+    end
+
+    def room_description
+      params[:description].presence || params.dig(:room, :description).presence
+    end
+
+    def room_private
+      cast_boolean(params[:private].presence || params.dig(:room, :private).presence || false)
+    end
+
+    def room_update_params
+      params.permit(:name, :description, :private)
+    end
+
+    def normalized_user_ids
+      raw = Array(params[:user_ids]).flatten + Array(params.dig(:room, :user_ids)).flatten
+      raw.filter_map { |entry| Integer(entry, exception: false) if entry.present? }
+    end
+
+    def resolve_project_for_creation
+      explicit_project = params[:project_id].presence || params.dig(:room, :project_id).presence
+      return find_project(explicit_project) if explicit_project.present?
+
+      parent = Room.find_by(id: params[:parent_room_id].presence || params.dig(:room, :parent_room_id).presence)
+      parent&.project
+    end
+
+    def account_restricts_room_creation?(actor)
+      return false if actor.blank?
+      return false unless Account.first&.settings&.restrict_room_creation_to_administrators?
+
+      !actor.administrator?
+    end
+
+    def serialize_room(room)
+      payload = room.as_json(only: ROOM_FIELDS)
+      payload["members"] = room.users.order(:id).map do |user|
+        { "user_id" => user.id, "name" => user.name }
+      end
+      payload
     end
 
     def sanitize_like(term)

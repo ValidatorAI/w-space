@@ -142,4 +142,51 @@ class Api::RoomsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  test "creates a room through the api and grants the creating actor membership" do
+    post api_rooms_url,
+      params: {
+        name: "Launch room",
+        project_id: @project.id,
+        description: "Team room",
+        private: true,
+        actor_user_id: users(:david).id
+      },
+      headers: { "Authorization" => "Bearer test-token" }, as: :json
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "Launch room", body["name"]
+    assert_equal true, body["private"]
+    assert_equal users(:david).id, body["members"].first["user_id"]
+  end
+
+  test "ensures the project room is created idempotently" do
+    project = Project.create!(path: "/tmp/api-rooms-ensure-project", name: "Fresh Project")
+
+    post ensure_room_api_project_url(project.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    first = JSON.parse(response.body)
+    assert_equal true, first["created"]
+    assert_equal project.slug, first["name"]
+
+    post ensure_room_api_project_url(project.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    second = JSON.parse(response.body)
+    assert_equal false, second["created"]
+    assert_equal first["id"], second["id"]
+  end
+
+  test "updates a room name through the api" do
+    patch api_room_url(@room.id),
+      params: { name: "Updated room name", description: "Changed" },
+      headers: { "Authorization" => "Bearer test-token" }, as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "Updated room name", body["name"]
+    assert_equal "Changed", body["description"]
+  end
 end

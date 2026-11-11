@@ -59,6 +59,16 @@ module Api
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
+    def ensure_room
+      project = find_project(params[:id])
+      return render json: { error: "Project not found" }, status: :not_found unless project
+
+      room, created = RoomCreationService.ensure_project_room(project, actor: resolve_project_actor)
+      render json: serialize_room(room).merge("created" => created)
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     private
 
     def project_params
@@ -97,6 +107,14 @@ module Api
 
       number = value.to_f
       number.to_i == number ? number.to_i : number
+    end
+
+    def serialize_room(room)
+      payload = room.as_json(only: Api::RoomsController::ROOM_FIELDS)
+      payload["members"] = room.users.order(:id).map do |user|
+        { "user_id" => user.id, "name" => user.name }
+      end
+      payload
     end
 
     def resolve_project_actor

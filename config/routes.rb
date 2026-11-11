@@ -182,7 +182,7 @@ Rails.application.routes.draw do
       get "company_status_periods/by_slug/:slug", to: "company_status_periods#by_slug", as: :by_slug_api_company_status_periods
       get "company_status_periods/by_name", to: "company_status_periods#by_name", as: :name_api_company_status_periods
 
-      resources :rooms, only: %i[ index show ] do
+      resources :rooms, only: %i[ index show create update ] do
         resources :messages, only: %i[ index show create update destroy ] do
           get :attachment, on: :member
         end
@@ -194,6 +194,7 @@ Rails.application.routes.draw do
       end
 
       resources :projects, only: %i[ index show create update destroy ] do
+        post :ensure_room, on: :member
         resources :rooms, only: %i[ index show ] do
           resources :messages, only: %i[ index show create update destroy ] do
             get :attachment, on: :member
@@ -205,6 +206,8 @@ Rails.application.routes.draw do
           get :search, on: :collection
         end
       end
+
+      resources :decision_rooms, only: %i[ index create ]
 
       resources :ai_profiles, only: %i[ index show create update destroy ] do
         post :reset_ai_config, on: :member
