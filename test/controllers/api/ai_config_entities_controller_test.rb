@@ -206,6 +206,59 @@ class Api::AiConfigEntitiesControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes mcp_ids, second_profile_mcp.id
   end
 
+  test "creates, updates, and deletes ai profiles through the mutation api" do
+    post api_ai_profiles_url, params: {
+      ai_profile: {
+        profile_name: "api_mutation_profile_#{SecureRandom.hex(3)}",
+        soul: "inline profile soul",
+        bot: "1",
+        bot_name: "",
+        editable: "1",
+        tool_sets_editable: "1",
+        max_number_of_workers: 4,
+        max_spawn_depth: 2
+      }
+    }, headers: auth_headers
+
+    assert_response :created
+    payload = JSON.parse(response.body)
+    assert_equal true, payload["bot"]
+    assert_match(/\Aapi_mutation_profile_/, payload["profile_name"])
+    profile = AiProfile.order(:id).last
+    assert_not_nil profile
+
+    patch api_ai_profile_url(profile), params: {
+      ai_profile: {
+        profile_name: "updated_profile_#{SecureRandom.hex(3)}",
+        bot: "0",
+        bot_name: "",
+        editable: "1",
+        tool_sets_editable: "1",
+        max_number_of_workers: 5,
+        max_spawn_depth: 3
+      }
+    }, headers: auth_headers
+
+    assert_response :success
+    assert_match(/\Aupdated_profile_/, profile.reload.profile_name)
+
+    delete api_ai_profile_url(profile), headers: auth_headers
+    assert_response :no_content
+    assert_nil AiProfile.find_by(id: profile.id)
+  end
+
+  test "toggles ai profile tool assignment with the api" do
+    tool = Tool.create!(name: "api_toggle_tool_#{SecureRandom.hex(3)}", active: true)
+
+    patch api_toggle_ai_profile_tool_path(profile_id: @ai_profile.id, tool_id: tool.id), params: { enabled: "1" }, headers: auth_headers
+    assert_response :success
+    assert_equal true, @ai_profile.reload.ai_profile_tools.find_by(tool: tool).enabled
+
+    patch api_toggle_ai_profile_tool_path(profile_id: @ai_profile.id, tool_id: tool.id), params: { enabled: "0" }, headers: auth_headers
+    assert_response :success
+    assert_equal false, @ai_profile.reload.ai_profile_tools.find_by(tool: tool).enabled
+  end
+
   private
 
   def auth_headers(token = "test-token")

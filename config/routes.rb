@@ -206,14 +206,34 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :ai_profiles, only: %i[ index show ]
-      resources :ai_settings, only: %i[ index show ]
-      resources :mcps, only: %i[ index show ]
-      resources :tools, only: %i[ index show ]
-      resources :skills, only: %i[ index show ]
-      resources :ai_profile_tools, only: %i[ index show ]
-      resources :ai_profile_skills, only: %i[ index show ]
-      resources :ai_profile_mcps, only: %i[ index show ]
+      resources :ai_profiles, only: %i[ index show create update destroy ] do
+        post :reset_ai_config, on: :member
+      end
+      resources :ai_settings, only: %i[ index show create update destroy ]
+      resources :mcps, only: %i[ index show create update destroy ]
+      resources :tools, only: %i[ index show ] do
+        patch :toggle, on: :member
+      end
+      resources :skills, only: %i[ index show create update destroy ] do
+        patch :toggle_default, on: :member
+        post :learn, on: :collection
+      end
+      resources :ai_profile_tools, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+      resources :ai_profile_skills, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+      resources :ai_profile_mcps, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+
+      patch "/ai_profiles/:profile_id/tools/:tool_id/enabled", to: "ai_profile_tools#toggle_enabled", as: :toggle_ai_profile_tool
+      patch "/ai_profiles/:profile_id/skills/:skill_id/enabled", to: "ai_profile_skills#toggle_enabled", as: :toggle_ai_profile_skill
+      patch "/ai_profiles/:profile_id/mcps/:mcp_id/enabled", to: "ai_profile_mcps#toggle_enabled", as: :toggle_ai_profile_mcp
+
+      post "ai_admin/restart_w_bridge", to: "ai_admin#restart_w_bridge", as: :ai_admin_restart_w_bridge
+      post "ai_admin/reset_ai_config", to: "ai_admin#reset_ai_config", as: :ai_admin_reset_ai_config
 
       resources :users, only: %i[ index show create update destroy ] do
         post :activate, on: :member

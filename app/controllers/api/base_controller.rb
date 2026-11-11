@@ -1,5 +1,7 @@
 module Api
   class BaseController < ActionController::API
+    include AiAdminEvents
+
     before_action :authenticate_token!
 
     private
@@ -41,6 +43,20 @@ module Api
       return Room.find_by(id: room_id) if project.blank?
 
       project.rooms.find_by(id: room_id)
+    end
+
+    def resolve_api_actor
+      user_id = params[:actor_user_id].presence || params[:user_id].presence || params[:actor_id].presence
+      return User.find_by(id: user_id) if user_id.present?
+
+      user_name = params[:user_name].presence || params[:actor_user_name].presence
+      return Mcp::FuzzyMatcher.match_user(user_name) if user_name.present?
+
+      nil
+    end
+
+    def cast_boolean(value)
+      ActiveModel::Type::Boolean.new.cast(value)
     end
   end
 end
