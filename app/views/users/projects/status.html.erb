@@ -63,6 +63,7 @@
           </div>
 
           <div class="status-column">
+            <%= render "users/projects/status/decisions_card", decisions: @project_decisions %>
             <%= render "users/projects/status/knowledge_card", knowledge_items: @knowledge_items %>
           </div>
         </div>

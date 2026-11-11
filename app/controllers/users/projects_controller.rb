@@ -130,6 +130,7 @@ class Users::ProjectsController < ApplicationController
     @bottlenecks = @project.bottlenecks.active.ordered
     @todos = @project.todos.ordered
     @knowledge_items = @project.knowledge_items.active.ordered
+    @project_decisions = @project.adrs.active.includes(:rooms).ordered
   end
 
   def all_hands

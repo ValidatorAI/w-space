@@ -13,4 +13,15 @@ class ProjectAdr < ApplicationRecord
   def formatted_date
     decision_date&.strftime("%Y-%m-%d") || created_at.strftime("%Y-%m-%d")
   end
+
+  def room_label
+    room_names = rooms.order(:name).pluck(:name).compact_blank
+    return if room_names.empty?
+
+    if room_names.one?
+      "Room: #{room_names.first}"
+    else
+      "Rooms: #{room_names.join(", ")}"
+    end
+  end
 end

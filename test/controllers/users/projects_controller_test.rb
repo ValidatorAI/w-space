@@ -287,6 +287,28 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "status includes room-linked decision records with room labels" do
+    project = create_project_for(users(:david))
+    room = project.rooms.create!(name: "Launch Room", type: "Rooms::Open", private: false, creator: users(:david))
+    adr = project.adrs.create!(
+      identifier: "ADR-001",
+      title: "Need room signoff",
+      status: "proposed",
+      decision_date: Date.current,
+      active: true,
+      project: project,
+      position: 1
+    )
+    adr.decision_rooms.create!(room: room)
+
+    get user_company_project_status_url(id: project.id)
+
+    assert_response :success
+    assert_match "Need room signoff", @response.body
+    assert_match "Room: Launch Room", @response.body
+    assert_match "Decision Records", @response.body
+  end
+
   test "status" do
     project = create_project_for(users(:david))
     project.update!(
