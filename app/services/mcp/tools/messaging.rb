@@ -328,8 +328,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
           return failure("Sender (user or bot) not found") unless sender
@@ -393,8 +393,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
           body_text = "#{LOADING_PREFIX} #{args[:body]}".strip
@@ -473,8 +473,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
           action_type = args[:action_type].presence || "typing_start"
@@ -500,8 +500,8 @@ module Mcp
               approval_request_id: { type: %w[string integer] },
               decision: { type: "string", description: "Decision: approve, confirm, deny, cancel" },
               note: { type: "string" },
-              user_id: { type: %w[string integer] },
-              user_name: { type: "string" }
+              user_id: { type: %w[string integer], description: "Either user_id or user_name is required" },
+              user_name: { type: "string", description: "Either user_id or user_name is required" }
             },
             required: %w[approval_request_id decision]
           }
@@ -510,6 +510,7 @@ module Mcp
         def execute(args)
           req = ApprovalRequest.find(args[:approval_request_id])
           decision = args[:decision].to_s.downcase
+          return failure("user_id or user_name required") if args[:user_id].blank? && args[:user_name].blank?
 
           user = resolve_user(args)
           result = if user.nil?

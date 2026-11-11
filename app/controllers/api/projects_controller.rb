@@ -71,6 +71,11 @@ module Api
       project = find_project(params[:id])
       return render json: { error: "Project not found" }, status: :not_found unless project
 
+      pending_count = ApprovalRequest.joins(:room).where(rooms: { project_id: project.id }, status: :pending).count
+      if pending_count.positive?
+        return render json: { error: "open approvals exist", pending_count: pending_count }, status: :conflict
+      end
+
       project.destroy!
       head :no_content
     end

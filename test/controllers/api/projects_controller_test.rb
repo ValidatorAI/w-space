@@ -122,6 +122,30 @@ class Api::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, Project.where(path: path).count
   end
 
+  test "blocks project deletion while pending approvals remain" do
+    room = @project.rooms.create!(type: "Rooms::Open", name: "Approval Room", creator: users(:david))
+    room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+
+    delete api_project_url(@project.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :conflict
+    body = JSON.parse(response.body)
+    assert_equal "open approvals exist", body["error"]
+    assert_equal 1, body["pending_count"]
+    assert @project.reload.persisted?
+  end
+
+  test "allows project deletion after pending approvals are resolved" do
+    room = @project.rooms.create!(type: "Rooms::Open", name: "Approval Room", creator: users(:david))
+    approval = room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+    approval.update!(status: :approved)
+
+    delete api_project_url(@project.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :no_content
+    assert_nil Project.find_by(id: @project.id)
+  end
+
   test "rejects index requests without a token" do
     get api_projects_url
 

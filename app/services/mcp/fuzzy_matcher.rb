@@ -33,6 +33,10 @@ module Mcp
       return nil if query.blank?
       return Project.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
+      exact = Project.where(name: query).order(created_at: :desc, id: :desc).first
+      exact ||= Project.where(slug: query).order(created_at: :desc, id: :desc).first
+      return exact if exact.present?
+
       best_record = nil
       best_score = 0.0
 
@@ -58,6 +62,10 @@ module Mcp
       scope = Room.all
       scope = scope.where(project_id: project_id) if project_id.present?
 
+      exact = scope.where(name: query).order(created_at: :desc, id: :desc).first
+      return exact if exact.present?
+      scope = scope.where(project_id: project_id) if project_id.present?
+
       best_record = nil
       best_score = 0.0
 
@@ -81,6 +89,20 @@ module Mcp
       return User.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
       scope = User.all
+
+      if project_id.present?
+        project_scope = User.joins(:project_users).where(project_users: { project_id: project_id })
+        exact = project_scope.where(name: query).order(created_at: :desc, id: :desc).first
+        exact ||= project_scope.where(email_address: query).order(created_at: :desc, id: :desc).first
+        exact ||= project_scope.where(display_name: query).order(created_at: :desc, id: :desc).first
+        return exact if exact.present?
+      end
+
+      exact = User.where(name: query).order(created_at: :desc, id: :desc).first
+      exact ||= User.where(email_address: query).order(created_at: :desc, id: :desc).first
+      exact ||= User.where(display_name: query).order(created_at: :desc, id: :desc).first
+      return exact if exact.present?
+
       best_record = nil
       best_score = 0.0
 

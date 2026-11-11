@@ -97,6 +97,12 @@ class Rooms::ProjectsController < RoomsController
     end
 
     def delete_project
+      pending_count = ApprovalRequest.joins(:room).where(rooms: { project_id: @project.id }, status: :pending).count
+      if pending_count.positive?
+        redirect_to edit_rooms_project_url(@project.id, by: "project"), alert: "Open approvals exist; resolve them before deleting the project."
+        return
+      end
+
       rooms = @project.rooms.to_a
       project_id = @project.id
       @project.destroy!

@@ -61,6 +61,8 @@ class ReservationsToolsTest < ActiveSupport::TestCase
 
     release_payload = release_tool.call(reservation_id: reservation.id, user_name: @holder.name)
     assert_equal false, release_payload[:isError]
-    assert_equal "Success", JSON.parse(release_payload[:content].first[:text]) if release_payload[:content].first[:text].start_with?("{")
+    payload = JSON.parse(release_payload[:content].first[:text])
+    assert_equal "released", payload["status"]
+    assert_equal reservation.id, payload["reservation_id"]
   end
 end

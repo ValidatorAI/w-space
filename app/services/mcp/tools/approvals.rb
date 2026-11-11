@@ -82,8 +82,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           req = room.approval_requests.create!(
             request_type: args[:request_type].presence || "action",
@@ -121,8 +121,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
 

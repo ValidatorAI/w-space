@@ -54,6 +54,16 @@ module Mcp
       Registry.register(tool, scopes: scopes)
     end
 
+    # Project CRUD
+    project_tools = [
+      Tools::Projects::AddProjectTool.new,
+      Tools::Projects::EditProjectTool.new,
+      Tools::Projects::DeleteProjectTool.new
+    ]
+    project_tools.each do |tool|
+      Registry.register(tool, scopes: %i[all action])
+    end
+
     # Project Items
     project_item_tools = [
       Tools::ProjectItems::ProjectMilestonesTool.new,

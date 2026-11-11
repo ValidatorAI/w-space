@@ -118,7 +118,7 @@ The app is designed so the human overseer can access the web UI directly, while 
 ### Health check
 
 ```bash
-curl http://localhost:3000/mcp/health
+curl http://localhost:3000/up
 ```
 
 ## Project structure

@@ -138,4 +138,48 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert appr.reload.approved?
   end
 
+  test "project wrappers and room/actor guardrails behave correctly" do
+    project = Project.create!(name: "MCP Project Wrapper", path: "/tmp/mcp-project-wrapper", slug: "mcp-project-wrapper")
+    room = project.rooms.create!(type: "Rooms::Open", name: "Wrapper Room", creator: @user)
+
+    add_project = Mcp::Registry.find_tool("add_project", scope: :action)
+    create_res = add_project.call(path: "/tmp/mcp-project-wrapper-create", name: "MCP CRUD Project")
+    assert_equal false, create_res[:isError]
+    assert_equal true, JSON.parse(create_res[:content].first[:text])["created"]
+
+    duplicate_res = add_project.call(path: "/tmp/mcp-project-wrapper-create", name: "MCP CRUD Project")
+    assert_equal false, duplicate_res[:isError]
+    payload = JSON.parse(duplicate_res[:content].first[:text])
+    assert_equal false, payload["created"]
+
+    edit_project = Mcp::Registry.find_tool("edit_project", scope: :action)
+    edit_res = edit_project.call(project_id: project.id, name: "Renamed Wrapper Project")
+    assert_equal false, edit_res[:isError]
+    assert_equal "Renamed Wrapper Project", project.reload.name
+
+    approval = room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+    delete_project = Mcp::Registry.find_tool("delete_project", scope: :action)
+    blocked_res = delete_project.call(project_id: project.id)
+    assert_equal true, blocked_res[:isError]
+    assert_includes blocked_res[:content].first[:text], "open approvals exist"
+
+    approval.update!(status: :approved)
+    deleted_res = delete_project.call(project_id: project.id)
+    assert_equal false, deleted_res[:isError]
+    assert_nil Project.find_by(id: project.id)
+
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+    assert_no_difference("Message.count") do
+      missing_room_res = add_msg.call(body: "No room here", user_id: @user.id)
+      assert_equal true, missing_room_res[:isError]
+    end
+
+    decide_tool = Mcp::Registry.find_tool("add_decision_message", scope: :action)
+    approver = @room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+    missing_actor_res = decide_tool.call(approval_request_id: approver.id, decision: "approve")
+    assert_equal true, missing_actor_res[:isError]
+    assert_includes missing_actor_res[:content].first[:text], "user_id or user_name required"
+    assert_equal "pending", approver.reload.status
+  end
+
 end

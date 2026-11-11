@@ -37,6 +37,7 @@ module Api
 
       user = resolve_user_from_params
       return render json: { error: "User not found" }, status: :not_found unless user
+      return render json: { error: "bots cannot be project members" }, status: :unprocessable_entity if user.bot?
       return render json: { already_member: true }, status: :ok if project.users.exists?(id: user.id)
 
       ProjectMembershipService.add(project, user, actor: actor_from_params)
