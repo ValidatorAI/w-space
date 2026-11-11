@@ -52,7 +52,44 @@ module Api
       render json: ranked.as_json(only: ROOM_FIELDS)
     end
 
+    def members
+      room = find_room(params[:id])
+      return render json: { error: "Room not found" }, status: :not_found unless room
+
+      if request.post?
+        user = resolve_member_user
+        return render json: { error: "User not found" }, status: :not_found unless user
+        return render json: { already_member: true }, status: :ok if room.users.exists?(id: user.id)
+
+        room.memberships.grant_to(user)
+        OutputEvents::Recorder.record(
+          event_type: "room_member_added",
+          event_id: room.id,
+          actor: User.find_by(id: params[:actor_user_id].presence || params[:actor_id].presence),
+          target_type: "Room",
+          data: { "member" => { "type" => "User", "id" => user.id } }
+        )
+        render json: { already_member: false, user_id: user.id }, status: :created
+      else
+        memberships = params[:all].present? ? room.memberships.includes(:participant) : room.memberships.visible.includes(:participant)
+        render json: memberships.map do |membership|
+          participant = membership.participant
+          { user_id: participant&.id, name: participant&.name, role: participant&.role, involvement: membership.involvement }
+        end
+      end
+    end
+
     private
+
+    def resolve_member_user
+      user_id = params[:user_id].presence || params[:user]&.[](:user_id).presence
+      return User.find_by(id: user_id) if user_id.present?
+
+      user_name = params[:user_name].presence || params[:user]&.[](:user_name).presence
+      return Mcp::FuzzyMatcher.match_user(user_name) if user_name.present?
+
+      nil
+    end
 
     def sanitize_like(term)
       term.gsub(/[\\%_]/) { |char| "\\#{char}" }

@@ -215,6 +215,15 @@ Rails.application.routes.draw do
       resources :ai_profile_skills, only: %i[ index show ]
       resources :ai_profile_mcps, only: %i[ index show ]
 
+      resources :users, only: %i[ index show create update destroy ] do
+        post :activate, on: :member
+        patch :activate, on: :member
+      end
+      resources :directs, only: %i[ index create ]
+      get "rooms/:id/members", to: "rooms#members", as: :room_members
+      post "rooms/:id/members", to: "rooms#members"
+      delete "rooms/:room_id/members/:user_id", to: "room_members#destroy", as: :room_member
+
       resources :topics, only: %i[ index show create update destroy ]
       resources :message_analysis, only: %i[ index show create update destroy ], controller: "message_analysis"
       resources :room_history_topics, only: %i[ index show create update destroy ]
@@ -245,7 +254,10 @@ Rails.application.routes.draw do
       end
 
       resources :projects, only: [] do
-        resources :project_users, only: %i[ index show ], path: "users"
+        resources :project_users, only: %i[ index show create destroy ], path: "users"
+        get "members", to: "project_users#index", as: :project_members
+        post "members", to: "project_users#create"
+        delete "members/:id", to: "project_users#destroy", as: :project_member
         resources :project_all_hands_takeaways, only: %i[ index show create update destroy ]
         resources :project_all_hands_decisions, only: %i[ index show create update destroy ]
         resources :project_all_hands_action_items, only: %i[ index show create update destroy ]

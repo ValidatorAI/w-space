@@ -56,19 +56,9 @@ module Rooms
           user = User.active.without_bots.find_by(id: params[:participant_id])
           return false if user.blank?
           return false if @project.users.exists?(id: user.id)
-          first_project_join = !user.project_users.exists?
-          group_id = first_project_join ? SecureRandom.uuid : nil
 
-          ActiveRecord::Base.transaction do
-            @project.project_users.create!(user: user)
-            @project.rooms.active.find_each do |room|
-              room.memberships.grant_to(user)
-            end
-          end
-
+          ProjectMembershipService.add(@project, user, actor: Current.user)
           broadcast_project_room_added_for(user)
-          record_project_membership_event("project_member_added", user, group_id: group_id)
-          record_project_membership_event("project_first_joined", user, group_id: group_id) if first_project_join
           true
         end
 
@@ -77,15 +67,8 @@ module Rooms
           return false if user.blank?
           return false if user == Current.user
 
-          ActiveRecord::Base.transaction do
-            @project.project_users.where(user_id: user.id).delete_all
-            @project.rooms.find_each do |room|
-              room.memberships.revoke_from(user)
-            end
-          end
-
+          ProjectMembershipService.remove(@project, user, actor: Current.user)
           broadcast_project_room_removed_for(user)
-          record_project_membership_event("project_member_removed", user)
           true
         end
 

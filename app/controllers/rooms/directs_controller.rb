@@ -5,16 +5,9 @@ class Rooms::DirectsController < RoomsController
   end
 
   def create
-    room = Rooms::Direct.find_or_create_for(selected_users)
-    message = create_initial_message(room) if initial_message?
+    room, created, message = DirectRoomService.open_for(selected_users, initial_message: params[:message], actor: Current.user)
 
     broadcast_create_room(room)
-    if room.previously_new_record?
-      group_id = SecureRandom.uuid
-      record_room_event("room_created", room, group_id: group_id)
-      record_room_event("direct_conversation_created", room, group_id: group_id)
-      room.users.find_each { |user| record_room_member_added(room, user, group_id: group_id) }
-    end
     dispatch_created_message(message) if message
     redirect_to room_url(room)
   rescue ActiveRecord::RecordInvalid
