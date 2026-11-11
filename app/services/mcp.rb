@@ -231,5 +231,21 @@ module Mcp
       scopes = tool.name.start_with?("create_", "update_", "delete_", "task_cost") ? %i[all action task] : %i[all read action task]
       Registry.register(tool, scopes: scopes)
     end
+
+    reservation_tools = [
+      Tools::Reservations::CheckFileConflictsTool.new,
+      Tools::Reservations::ReserveFileTool.new,
+      Tools::Reservations::RenewFileReservationTool.new,
+      Tools::Reservations::ReleaseFileReservationTool.new
+    ]
+    reservation_tools.each do |tool|
+      scopes = case tool.name
+               when "check_file_conflicts"
+                 %i[all read action]
+               else
+                 %i[all action]
+               end
+      Registry.register(tool, scopes: scopes)
+    end
   end
 end

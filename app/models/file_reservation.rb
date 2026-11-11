@@ -1,5 +1,6 @@
 class FileReservation < ApplicationRecord
   belongs_to :project
+  belongs_to :holder, class_name: "User", foreign_key: :holder_user_id, optional: true
 
   validates :patterns, presence: true
   validates :expires_at, presence: true
@@ -15,7 +16,9 @@ class FileReservation < ApplicationRecord
   after_destroy_commit :broadcast_released
 
   def self.cleanup_expired!
-    expired.destroy_all
+    expired.find_each do |reservation|
+      reservation.destroy
+    end
   end
 
   def expired?

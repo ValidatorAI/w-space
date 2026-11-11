@@ -1,0 +1,17 @@
+production:
+  file_reservation_cleanup:
+    class: FileReservationCleanupJob
+    queue: default
+    schedule: every minute
+
+development:
+  file_reservation_cleanup:
+    class: FileReservationCleanupJob
+    queue: default
+    schedule: every minute
+
+test:
+  file_reservation_cleanup:
+    class: FileReservationCleanupJob
+    queue: default
+    schedule: every minute

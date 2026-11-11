@@ -228,6 +228,7 @@ Rails.application.routes.draw do
       end
 
       resources :attention_items, only: %i[ index show create update destroy ]
+      resources :file_reservations, path: "reservations", only: %i[ index show create update destroy ]
 
       # Flat routes since message ids are globally unique; no project/room scoping required.
       resources :messages, only: %i[ show update destroy ] do

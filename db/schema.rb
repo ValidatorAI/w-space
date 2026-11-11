@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_11_02_000002) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_11_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -293,11 +293,13 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_02_000002) do
     t.datetime "created_at", null: false
     t.boolean "exclusive", default: true, null: false
     t.datetime "expires_at", null: false
+    t.integer "holder_user_id"
     t.json "patterns", default: [], null: false
     t.integer "project_id", null: false
     t.text "reason"
     t.datetime "updated_at", null: false
     t.index ["expires_at"], name: "index_file_reservations_on_expires_at"
+    t.index ["holder_user_id"], name: "index_file_reservations_on_holder_user_id"
     t.index ["project_id", "expires_at"], name: "index_file_reservations_on_project_id_and_expires_at"
     t.index ["project_id"], name: "index_file_reservations_on_project_id"
   end
