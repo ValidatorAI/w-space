@@ -52,11 +52,38 @@ class SystemMessage
       })
     end
 
+    def approval_decided(approval_request:, actor:, decision:, note: nil)
+      return unless approval_request&.room
+
+      actor_name = actor.respond_to?(:effective_display_name) ? actor.effective_display_name.presence || actor.name : actor&.name || "Unknown actor"
+      decision_label = decision.to_s.downcase
+      message_ref = if approval_request.message_id.present?
+        " for message ##{approval_request.message_id}"
+      else
+        ""
+      end
+      note_text = note.present? ? " Note: #{note}" : ""
+
+      post(
+        room: approval_request.room,
+        type: :approval_decided,
+        data: {
+          approval_request_id: approval_request.id,
+          decision: decision_label,
+          actor_name: actor_name,
+          message_ref: message_ref,
+          note_text: note_text
+        },
+        mirror_to_meta: true
+      )
+    end
+
     private
 
     def system_user
       @system_user ||= User.find_or_create_by!(email_address: SYSTEM_USER_EMAIL) do |u|
         u.name = "W space System"
+        u.display_name = "W space System"
         u.role = :bot
         u.password = SecureRandom.hex(32)
       end

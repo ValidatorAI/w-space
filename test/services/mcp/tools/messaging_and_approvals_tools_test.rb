@@ -133,8 +133,9 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
 
     # Decide
     decide_tool = Mcp::Registry.find_tool("add_decision_message", scope: :action)
-    res_decide = decide_tool.call(approval_request_id: appr.id, decision: "approve", note: "Approved by lead")
+    res_decide = decide_tool.call(approval_request_id: appr.id, decision: "approve", note: "Approved by lead", user_name: @user.name)
     assert_equal false, res_decide[:isError]
     assert appr.reload.approved?
   end
+
 end

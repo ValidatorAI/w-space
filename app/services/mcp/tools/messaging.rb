@@ -499,7 +499,9 @@ module Mcp
             properties: {
               approval_request_id: { type: %w[string integer] },
               decision: { type: "string", description: "Decision: approve, confirm, deny, cancel" },
-              note: { type: "string" }
+              note: { type: "string" },
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" }
             },
             required: %w[approval_request_id decision]
           }
@@ -509,17 +511,22 @@ module Mcp
           req = ApprovalRequest.find(args[:approval_request_id])
           decision = args[:decision].to_s.downcase
 
-          case decision
-          when "approve" then req.approve!(User.first, note: args[:note])
-          when "confirm" then req.confirm!(User.first, note: args[:note])
-          when "deny"    then req.deny!(User.first, note: args[:note])
-          when "cancel"  then req.cancel!(User.first, note: args[:note])
+          user = resolve_user(args)
+          result = if user.nil?
+            failure("User not found for decision actor")
+          elsif user.bot?
+            failure("Only human users can decide approval requests")
           else
-            return failure("Unknown decision: #{decision}. Expected: approve, confirm, deny, cancel")
+            begin
+              approval = ApprovalFlow.decide!(req, user, decision: decision, note: args[:note])
+              approval.broadcast_replacement if approval.respond_to?(:broadcast_replacement)
+              success(approval.as_json.merge(echo_message_id: approval.echo_message_id))
+            rescue ArgumentError => e
+              failure(e.message)
+            end
           end
 
-          req.broadcast_replacement if req.respond_to?(:broadcast_replacement)
-          success(req.as_json)
+          result || failure("Decision could not be processed")
         end
       end
     end

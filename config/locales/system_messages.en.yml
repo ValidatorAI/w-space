@@ -19,3 +19,4 @@ en:
     # Room/Project events (meta room only)
     room_created: "Room <strong>%{room_name}</strong> (%{room_type}) created by %{creator_name}."
     project_created: "Project <strong>%{project_name}</strong> created for path: <code>%{project_path}</code>"
+    approval_decided: "Approval request <strong>#%{approval_request_id}</strong> was %{decision} by %{actor_name}%{message_ref}.%{note_text}"

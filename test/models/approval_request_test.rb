@@ -96,6 +96,24 @@ class ApprovalRequestTest < ActiveSupport::TestCase
     assert_equal @user, attention_item.resolved_by
   end
 
+  test "approve! is a no-op after the request is already resolved" do
+    request = ApprovalRequest.create!(
+      room: @room,
+      message: @message,
+      request_type: "decision",
+      payload: { "decision" => "Use ERC-4337 router pattern" },
+      status: :pending
+    )
+
+    request.approve!(@user, note: "Looks good")
+    original_resolved_at = request.resolved_at
+    original_action_count = request.approval_request_actions.count
+
+    assert_equal request, request.approve!(@user, note: "Second decision")
+    assert_equal original_action_count, request.reload.approval_request_actions.count
+    assert_equal original_resolved_at, request.reload.resolved_at
+  end
+
   test "approve! creates a project adr and links it to the originating room" do
     project = Project.create!(path: "/tmp/approval-request-room-decision-#{SecureRandom.uuid}", name: "Room Decision Project")
     room = project.rooms.create!(type: "Rooms::Project", name: "General", creator: @user)
