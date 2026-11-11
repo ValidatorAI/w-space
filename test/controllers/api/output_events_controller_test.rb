@@ -29,16 +29,16 @@ class Api::OutputEventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Alpha message", body["output_events"].first["event_data"]["message_text"]
   end
 
-  test "redelivers an output event using the delivery client and marks it synced" do
-    ENV["OUTPUT_EVENTS_URL"] = "https://events.example.test/output-events"
-    stub_request(:post, ENV.fetch("OUTPUT_EVENTS_URL")).to_return(status: 200, body: "", headers: {})
-
-    post redeliver_api_output_event_url(@event.id), headers: { "Authorization" => "Bearer test-token" }
+  test "requeues an output event through the Hermes dispatch pipeline" do
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [@event.id]) do
+      post redeliver_api_output_event_url(@event.id), headers: { "Authorization" => "Bearer test-token" }
+    end
 
     assert_response :success
     body = JSON.parse(response.body)
     assert_equal @event.id, body["id"]
-    assert_equal true, body["synced"]
-    assert @event.reload.synced
+    assert_equal "message_created", body["event_type"]
+    assert_equal true, body["requeued"]
+    assert_equal false, body["synced"]
   end
 end

@@ -511,13 +511,13 @@ class Users::AiAdminController < ApplicationController
   end
 
   def w_bridge_restart_url
-    raw_url = ENV["OUTPUT_EVENTS_URL"].to_s.strip
+    raw_url = ENV["W_BRIDGE_URL"].to_s.strip
     return if raw_url.blank?
 
     uri = URI.parse(raw_url)
     return if uri.host.blank?
 
-    base_path = uri.path.to_s.sub(%r{/space_events/?\z}, "").to_s
+    base_path = uri.path.to_s.sub(%r{/restart/?\z}, "").to_s
     base_path = base_path.sub(%r{/*\z}, "")
     port_fragment = uri.port && uri.port != uri.default_port ? ":#{uri.port}" : ""
     base_url = "#{uri.scheme}://#{uri.host}#{port_fragment}#{base_path}"

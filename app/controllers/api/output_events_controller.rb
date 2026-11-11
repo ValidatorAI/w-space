@@ -32,17 +32,18 @@ module Api
     def redeliver
       event = OutputEvent.find_by(id: params[:id])
       return render json: { error: "Output event not found" }, status: :not_found unless event
-      return render json: { error: "delivery not configured" }, status: :conflict if ENV["OUTPUT_EVENTS_URL"].blank?
 
-      begin
-        OutputEvents::DeliveryClient.new.deliver(event)
-        event.update!(synced: true)
-        render json: serialize_event(event)
-      rescue OutputEvents::DeliveryClient::TransientDeliveryError => e
-        render json: { error: e.message }, status: :bad_gateway
-      rescue OutputEvents::DeliveryClient::PermanentDeliveryError => e
-        render json: { error: e.message }, status: :unprocessable_entity
-      end
+      OutputEvents::ProcessAndDispatchJob.perform_later(event.id)
+      group = event.group_id.present? ? OutputEventDispatchGroup.find_by(id: event.group_id) : nil
+
+      render json: {
+        id: event.id,
+        event_type: event.event_type,
+        group_id: event.group_id,
+        synced: event.synced?,
+        requeued: true,
+        dispatch_group: group&.attributes&.slice("id", "status", "dedupe_key", "lead_output_event_id", "result", "created_at", "updated_at")
+      }
     end
 
     private

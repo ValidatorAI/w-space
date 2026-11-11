@@ -43,8 +43,8 @@ The app uses these values at boot time and in the runtime services.
 | `OUTPUT_MESSAGE_PROFILE` | No | `HERMES_DEFAULT_PROFILE` | Event output profile for messages. |
 | `OUTPUT_AI_SETTING_PROFILE` | No | `HERMES_DEFAULT_PROFILE` | Event output profile for AI settings. |
 | `OUTPUT_WORKSPACE_PROFILE` | No | `HERMES_DEFAULT_PROFILE` | Event output profile for workspace events. |
-| `OUTPUT_EVENTS_URL` | Legacy only | none | Deprecated output event webhook URL. |
-| `OUTPUT_EVENTS_TOKEN` | Legacy only | none | Deprecated shared secret for output events. |
+| `W_BRIDGE_URL` | No | none | Base URL for the Hermes bridge restart endpoint. |
+| `OUTPUT_EVENTS_TOKEN` | Yes for API auth | none | Shared bearer token used for protected API and output-event requests. |
 | `VAPID_PUBLIC_KEY` | Yes for push notifications | none | Public Web Push key sent to browsers. |
 | `VAPID_PRIVATE_KEY` | Yes for push notifications | none | Private Web Push key kept on the server. |
 | `APP_VERSION` | No | `0` | Application version label. |
