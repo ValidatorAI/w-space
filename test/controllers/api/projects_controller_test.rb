@@ -53,6 +53,75 @@ class Api::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_includes body.map { |project| project["id"] }, @project.id
   end
 
+  test "creates a project and emits the project_created event" do
+    post api_projects_url,
+         params: {
+           name: "New API Project",
+           path: "/tmp/api-project-create-test",
+           description: "Created through the API",
+           private: true,
+           short_code: "NAPI"
+         },
+         headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "New API Project", body["name"]
+    assert_equal "api-project-create-test", body["slug"]
+    assert_equal "NAPI", body["short_code"]
+    assert_equal true, body["created"]
+
+    event = OutputEvent.order(:id).last
+    assert_equal "project_created", event.event_type
+  end
+
+  test "updates an existing project and emits the project_updated event" do
+    patch api_project_url(@project.id),
+          params: {
+            name: "Updated Project Name",
+            description: "Refreshed via API",
+            private: true,
+            short_code: "UPD",
+            budget_total: 9000,
+            budget_spent: 2500,
+            current_phase: "Phase 2"
+          },
+          headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "Updated Project Name", body["name"]
+    assert_equal "Refreshed via API", body["description"]
+    assert_equal "UPD", body["short_code"]
+    assert_equal 9000, body["budget_total"]
+    assert_equal 2500, body["budget_spent"]
+    assert_equal "Phase 2", body["current_phase"]
+
+    event = OutputEvent.order(:id).last
+    assert_equal "project_updated", event.event_type
+    assert_includes event.event_data["changed_fields"], "name"
+  end
+
+  test "returns the existing project for duplicate create requests" do
+    path = "/tmp/api-project-duplicate-test"
+    Project.create!(path: path, name: "Original duplicate test project")
+
+    assert_no_difference("Project.count") do
+      post api_projects_url,
+           params: {
+             path: path,
+             name: "Duplicate project request"
+           },
+           headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal false, body["created"]
+    assert_equal path, body["path"]
+    assert_equal 1, Project.where(path: path).count
+  end
+
   test "rejects index requests without a token" do
     get api_projects_url
 
