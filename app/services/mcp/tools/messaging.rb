@@ -352,6 +352,42 @@ module Mcp
         end
       end
 
+      class EditMessageTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "edit_message"
+        def description = "Edit an existing message"
+        def aliases = ["EditMessage"]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              message_id: { type: %w[string integer] },
+              body: { type: "string" },
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" }
+            },
+            required: %w[message_id body]
+          }
+        end
+
+        def execute(args)
+          message = Message.find_by(id: args[:message_id])
+          return failure("Message not found") unless message
+
+          actor = resolve_user(args)
+          return failure("user_id or user_name required") if actor.nil?
+
+          begin
+            MessageUpdateService.call(message, body: args[:body], actor: actor)
+            success(id: message.id, body: message.plain_text_body, updated_at: message.updated_at)
+          rescue ArgumentError => e
+            failure(e.message)
+          end
+        end
+      end
+
       class DeleteMessageTool < Mcp::BaseTool
         def name = "delete_message"
         def description = "Delete a message from a room"

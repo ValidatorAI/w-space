@@ -318,4 +318,17 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
   end
+
+  test "flat index accepts ids and include=body" do
+    second_message = @room.messages.create!(body: "Second message", client_message_id: "api-msg-flat-batch", creator: users(:david))
+
+    get "/api/messages?ids=#{@message.id},999,#{second_message.id}&include=body",
+        headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal 2, body["count"]
+    assert_equal [@message.id, second_message.id], body["messages"].map { |message| message["id"] }
+    assert_equal "Hello world", body["messages"].find { |message| message["id"] == @message.id }["body"]
+  end
 end

@@ -2,6 +2,8 @@ module Mcp
   module Tools
     module Projects
       class AddProjectTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
         def name = "add_project"
         def description = "Create a project"
         def aliases = ["AddProject"]
@@ -39,21 +41,11 @@ module Mcp
             short_code: args[:short_code].presence
           }.compact
 
-          project = Project.new(attrs)
-          unless project.save
-            return failure(project.errors.full_messages.to_sentence)
-          end
+          actor = resolve_user(args)
+          result = ProjectAdminService.create(attributes: attrs, actor: actor)
+          project = result[:project]
 
-          OutputEvents::Recorder.record(
-            event_type: "project_created",
-            event_id: project.id,
-            group_id: SecureRandom.uuid,
-            actor: nil,
-            target_type: "Project",
-            data: { "slug" => project.slug, "path" => project.path, "member_user_ids" => [] }
-          )
-
-          success(project.public_mcp_attributes.merge("created" => true))
+          success(project.public_mcp_attributes.merge("created" => result[:created]))
         end
       end
 
@@ -102,21 +94,8 @@ module Mcp
 
           return success(project.public_mcp_attributes.merge("changed_fields" => [])) if attrs.empty?
 
-          project.assign_attributes(attrs)
-          unless project.save
-            return failure(project.errors.full_messages.to_sentence)
-          end
-
-          if project.previous_changes.except("updated_at").any?
-            OutputEvents::Recorder.record(
-              event_type: "project_updated",
-              event_id: project.id,
-              group_id: SecureRandom.uuid,
-              actor: nil,
-              target_type: "Project",
-              data: { "changed_fields" => project.previous_changes.except("updated_at").keys.map(&:to_s) }
-            )
-          end
+          actor = resolve_user(args)
+          project = ProjectAdminService.update(project: project, attributes: attrs, actor: actor)
 
           changed_fields = project.previous_changes.except("updated_at").keys.map(&:to_s)
           success(project.public_mcp_attributes.merge("changed_fields" => changed_fields))
@@ -144,18 +123,10 @@ module Mcp
           project = resolve_project(args)
           return failure("Project not found") unless project
 
-          pending_count = ApprovalRequest.joins(:room).where(rooms: { project_id: project.id }, status: :pending).count
+          pending_count = ProjectAdminService.pending_approvals_count(project)
           return failure("open approvals exist: #{pending_count}") if pending_count.positive?
 
-          project.destroy!
-          OutputEvents::Recorder.record(
-            event_type: "project_deleted",
-            event_id: project.id,
-            actor: nil,
-            target_type: "Project",
-            data: {}
-          )
-
+          ProjectAdminService.destroy(project, actor: resolve_user(args))
           success(status: "deleted", id: project.id)
         end
       end

@@ -22,62 +22,41 @@ module Api
       path = payload[:path].presence
       return render json: { error: "Path is required" }, status: :unprocessable_entity if path.blank?
 
-      existing = Project.find_by(path: path)
-      if existing
-        return render json: serialize_project(existing).merge("created" => false), status: :ok
+      actor = resolve_project_actor
+      result = ProjectAdminService.create(attributes: payload, actor: actor)
+      project = result[:project]
+      if result[:created] == false
+        return render json: serialize_project(project).merge("created" => false), status: :ok
       end
-
-      project = Project.new(payload)
-      unless project.save
-        return render json: { error: project.errors.full_messages.to_sentence }, status: :unprocessable_entity
-      end
-
-      OutputEvents::Recorder.record(
-        event_type: "project_created",
-        event_id: project.id,
-        group_id: SecureRandom.uuid,
-        actor: nil,
-        target_type: "Project",
-        data: { "slug" => project.slug, "path" => project.path, "member_user_ids" => [] }
-      )
 
       render json: serialize_project(project).merge("created" => true), status: :created
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def update
       project = find_project(params[:id])
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      project.assign_attributes(project_params)
-      unless project.save
-        return render json: { error: project.errors.full_messages.to_sentence }, status: :unprocessable_entity
-      end
-
-      if project.previous_changes.except("updated_at").any?
-        OutputEvents::Recorder.record(
-          event_type: "project_updated",
-          event_id: project.id,
-          group_id: SecureRandom.uuid,
-          actor: nil,
-          target_type: "Project",
-          data: { "changed_fields" => project.previous_changes.except("updated_at").keys.map(&:to_s) }
-        )
-      end
-
+      project = ProjectAdminService.update(project: project, attributes: project_params, actor: resolve_project_actor)
       render json: serialize_project(project)
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def destroy
       project = find_project(params[:id])
       return render json: { error: "Project not found" }, status: :not_found unless project
 
-      pending_count = ApprovalRequest.joins(:room).where(rooms: { project_id: project.id }, status: :pending).count
+      pending_count = ProjectAdminService.pending_approvals_count(project)
       if pending_count.positive?
         return render json: { error: "open approvals exist", pending_count: pending_count }, status: :conflict
       end
 
-      project.destroy!
+      ProjectAdminService.destroy(project, actor: resolve_project_actor)
       head :no_content
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     private
@@ -118,6 +97,14 @@ module Api
 
       number = value.to_f
       number.to_i == number ? number.to_i : number
+    end
+
+    def resolve_project_actor
+      return User.find_by(id: params[:actor_user_id].presence) if params[:actor_user_id].present?
+      return Mcp::FuzzyMatcher.match_user(params[:user_name]) if params[:user_name].present?
+      return Mcp::FuzzyMatcher.match_user(params[:actor_user_name]) if params[:actor_user_name].present?
+
+      nil
     end
   end
 end

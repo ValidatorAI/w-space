@@ -60,7 +60,8 @@ class Api::ProjectsControllerTest < ActionDispatch::IntegrationTest
            path: "/tmp/api-project-create-test",
            description: "Created through the API",
            private: true,
-           short_code: "NAPI"
+           short_code: "NAPI",
+           actor_user_id: users(:david).id
          },
          headers: { "Authorization" => "Bearer test-token" }
 
@@ -73,6 +74,7 @@ class Api::ProjectsControllerTest < ActionDispatch::IntegrationTest
 
     event = OutputEvent.order(:id).last
     assert_equal "project_created", event.event_type
+    assert_equal users(:david).id, event.event_data["actor"]["id"]
   end
 
   test "updates an existing project and emits the project_updated event" do

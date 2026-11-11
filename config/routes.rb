@@ -238,9 +238,14 @@ Rails.application.routes.draw do
 
       resources :attention_items, only: %i[ index show create update destroy ]
       resources :file_reservations, path: "reservations", only: %i[ index show create update destroy ]
+      resources :output_events, only: %i[ index show ] do
+        post :redeliver, on: :member
+      end
+      resources :tool_cal_logs, only: %i[ index show ]
+      get "health", to: "health#show", as: :api_health
 
       # Flat routes since message ids are globally unique; no project/room scoping required.
-      resources :messages, only: %i[ show update destroy ] do
+      resources :messages, only: %i[ index show update destroy ] do
         get :attachment, on: :member
       end
 
