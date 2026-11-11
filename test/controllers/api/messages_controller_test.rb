@@ -77,6 +77,34 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal users(:jason).id, body["creator_id"]
   end
 
+  test "records the REST message event trio for message creation with attachment and ask mode" do
+    room = rooms(:bender_and_kevin)
+
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "message_attachment_uploaded").count }, +1 do
+        assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+          post api_room_messages_url(room.id),
+            params: {
+              user_id: users(:kevin).id,
+              body: "Status check",
+              mode: "ask",
+              attachment: fixture_file_upload("moon.jpg", "image/jpeg")
+            },
+            headers: { "Authorization" => "Bearer test-token" }
+        end
+      end
+    end
+
+    assert_response :created
+    message = Message.order(:id).last
+    assert_equal %w[ai_question_asked message_attachment_uploaded message_created].sort,
+      OutputEvent.where(event_id: message.id).pluck(:event_type).uniq.sort
+
+    ai_event = OutputEvent.find_by!(event_type: "ai_question_asked", event_id: message.id)
+    assert_equal [users(:bender).id], ai_event.event_data["bot_user_ids"]
+    assert_equal "ask", ai_event.event_data["mode"]
+  end
+
   test "paginates messages when a page param is given" do
     second_message = @room.messages.create!(body: "Second message", client_message_id: "api-msg-2", creator: users(:david))
 

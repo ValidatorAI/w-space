@@ -80,12 +80,14 @@ module Api
 
       body = params[:body].presence
       attachment = params[:attachment].presence
+      message_mode = params[:mode].presence
       return render json: { error: "Provide at least one of: body, attachment" }, status: :bad_request unless body || attachment
 
       message = room.messages.create_with_attachment!(
         body: body, attachment: attachment, creator: user, client_message_id: SecureRandom.uuid
       )
       message.broadcast_create
+      MessageCreationEvents.record(message: message, room: room, mode: message_mode)
 
       render json: serialize(message), status: :created
     rescue ActiveRecord::RecordInvalid => e
@@ -149,7 +151,13 @@ module Api
       payload["has_attachment"] = message.attachment?
       payload["attachment_filename"] = message.attachment? ? message.attachment.filename.to_s : nil
       payload["attachment_content_type"] = message.attachment? ? message.attachment.content_type : nil
-      payload["attachment_url"] = message.attachment? ? attachment_api_project_room_message_path(message.room.project_id, message.room_id, message.id) : nil
+      payload["attachment_url"] = if message.attachment?
+        if message.room.project_id.present?
+          attachment_api_project_room_message_path(message.room.project_id, message.room_id, message.id)
+        else
+          attachment_api_room_message_path(message.room_id, message.id)
+        end
+      end
       payload
     end
 

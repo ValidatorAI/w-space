@@ -7,7 +7,14 @@ class DirectRoomService
       created = room.previously_new_record?
 
       message = if initial_message.present?
-                  payload = initial_message.to_h.with_indifferent_access
+                  payload = if initial_message.respond_to?(:to_unsafe_h)
+                              initial_message.to_unsafe_h.with_indifferent_access
+                            else
+                              initial_message.to_h.with_indifferent_access
+                            end
+                  payload.delete(:mode)
+                  payload.delete("mode")
+
                   room.messages.create_with_attachment!(payload) if payload[:body].to_s.strip.present? || payload["body"].to_s.strip.present? || payload[:attachment].present? || payload["attachment"].present?
                 end
 
@@ -18,11 +25,6 @@ class DirectRoomService
         room.users.find_each do |member|
           record_room_member_added(room, member, actor: actor, group_id: group_id)
         end
-      end
-
-      if message.present?
-        message.broadcast_create
-        record_message_events(message)
       end
 
       [room, created, message]
@@ -51,41 +53,5 @@ class DirectRoomService
         )
       end
 
-      def record_message_events(message)
-        return unless OutputEvents::MessageEmissionPolicy.allowed?(message: message)
-
-        group_id = SecureRandom.uuid
-        OutputEvents::Recorder.record(
-          event_type: "message_created",
-          event_id: message.id,
-          group_id: group_id,
-          actor: message.creator,
-          target_type: "Message",
-          data: { "room_id" => message.room_id, "content_type" => message.content_type }
-        )
-
-        if message.attachment?
-          OutputEvents::Recorder.record(
-            event_type: "message_attachment_uploaded",
-            event_id: message.id,
-            group_id: group_id,
-            actor: message.creator,
-            target_type: "Message",
-            data: { "room_id" => message.room_id, "filename" => message.attachment.filename.to_s }
-          )
-        end
-
-        bot_ids = message.room.users.active_bots.excluding(message.creator).pluck(:id)
-        return if !message.from_user? || bot_ids.empty?
-
-        OutputEvents::Recorder.record(
-          event_type: "ai_question_asked",
-          event_id: message.id,
-          group_id: group_id,
-          actor: message.creator,
-          target_type: "Message",
-          data: { "room_id" => message.room_id, "bot_user_ids" => bot_ids }
-        )
-      end
   end
 end
