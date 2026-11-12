@@ -182,6 +182,16 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert_equal "pending", approver.reload.status
   end
 
+  test "message creation resolves a profile-backed bot sender by profile name" do
+    profile = AiProfile.create!(profile_name: "w_ai", bot: true, bot_name: "W Ai")
+    AiProfiles::BotSync.call(profile: profile, previous_bot: false, previous_bot_name: nil)
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    res = add_msg.call(room_id: @room.id, user_name: "w_ai", body: "Ping from the bot profile")
+    assert_equal false, res[:isError]
+    assert_equal "W Ai", @room.messages.last.creator.name
+  end
+
   test "message creation fails instead of silently defaulting to the first user" do
     add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
 

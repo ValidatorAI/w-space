@@ -146,6 +146,20 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_match(/Room not found|room_id/i, invalid_room[:content].first[:text])
   end
 
+  test "create_ai_task resolves string room names to the correct room" do
+    room = Room.create!(name: "Ops room", project: @project, type: "Rooms::Open", private: false, creator: @user)
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    accepted = create_task.call(
+      description: "Task with room-by-name",
+      project_id: @project.id,
+      room_id: "Ops room"
+    )
+
+    assert_equal false, accepted[:isError]
+    assert_equal room.id, AiTask.last.room_id
+  end
+
   test "create_ai_task keeps task rows for blank assignee and creates warning attention item" do
     create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
 
