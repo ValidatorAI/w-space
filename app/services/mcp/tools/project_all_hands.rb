@@ -33,7 +33,7 @@ module Mcp
             return success(t.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.all_hands_takeaways.order(created_at: :desc), args)
@@ -62,7 +62,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           t = project.all_hands_takeaways.create!(
@@ -143,7 +143,7 @@ module Mcp
             return success(d.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.all_hands_decisions.order(created_at: :desc), args)
@@ -174,7 +174,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           d = project.all_hands_decisions.create!(
@@ -264,7 +264,7 @@ module Mcp
             return success(a.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.all_hands_action_items.order(created_at: :desc), args)
@@ -295,7 +295,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           a = project.all_hands_action_items.create!(

@@ -182,4 +182,22 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert_equal "pending", approver.reload.status
   end
 
+  test "message creation fails instead of silently defaulting to the first user" do
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    assert_no_difference("Message.count") do
+      res = add_msg.call(room_id: @room.id, user_name: "missing-bot-user", body: "This should be rejected")
+      assert_equal true, res[:isError]
+      assert_includes res[:content].first[:text], "Sender (user or bot) not found"
+    end
+  end
+
+  test "project tool calls fail instead of silently using the first project" do
+    tool = Mcp::Registry.find_tool("project_milestones", scope: :read)
+
+    res = tool.call
+    assert_equal true, res[:isError]
+    assert_includes res[:content].first[:text], "Project not found"
+  end
+
 end

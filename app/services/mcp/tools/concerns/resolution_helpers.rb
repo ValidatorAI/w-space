@@ -47,7 +47,7 @@ module Mcp
         end
 
         def resolve_sender(args, project: nil)
-          resolve_bot(args) || resolve_user(args, project: project) || User.first
+          resolve_bot(args) || resolve_user(args, project: project)
         end
 
         def paginate(scope, args)

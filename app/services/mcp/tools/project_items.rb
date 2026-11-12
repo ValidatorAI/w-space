@@ -33,7 +33,7 @@ module Mcp
             return success(m.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           scope = project.milestones.order(position: :asc, created_at: :asc)
@@ -65,7 +65,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           milestone = project.milestones.create!(
@@ -155,7 +155,7 @@ module Mcp
             return success(b.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.bottlenecks.order(created_at: :desc), args)
@@ -186,7 +186,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           b = project.bottlenecks.create!(
@@ -277,7 +277,7 @@ module Mcp
             return success(t.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.todos.order(position: :asc, created_at: :asc), args)
@@ -307,7 +307,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           todo = project.todos.create!(
