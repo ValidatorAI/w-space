@@ -76,6 +76,80 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_equal "Advice recorded", Hermes::PromptBuilder.extract_reply_text(result["response"])
   end
 
+  test "resets synced flags when Hermes rejects with 401" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 410,
+      group_id: "grp-410",
+      event_data: { "room_id" => 1, "message_id" => 410, "content" => "Need advice" },
+      synced: true
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "ai_question_asked",
+      event_id: 410,
+      group_id: "grp-410",
+      event_data: { "room_id" => 1, "message_id" => 410, "bot_user_ids" => [9] },
+      synced: true
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-410:1:410",
+      lead_output_event_id: ev1.id,
+      status: "pending"
+    )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
+      .to_return(status: 401, body: { error: "unauthorized" }.to_json, headers: { "Content-Type" => "application/json" })
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      ev1.id,
+      stage: :dispatch,
+      dispatch_group_id: group.id
+    )
+
+    assert_equal "failed", group.reload.status
+    assert_not ev1.reload.synced?
+    assert_not ev2.reload.synced?
+    assert_equal 401, JSON.parse(group.result)["status_code"]
+  end
+
+  test "resets synced flags when Hermes times out" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 420,
+      group_id: "grp-420",
+      event_data: { "room_id" => 1, "message_id" => 420, "content" => "Need advice" },
+      synced: true
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "ai_question_asked",
+      event_id: 420,
+      group_id: "grp-420",
+      event_data: { "room_id" => 1, "message_id" => 420, "bot_user_ids" => [9] },
+      synced: true
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-420:1:420",
+      lead_output_event_id: ev1.id,
+      status: "pending"
+    )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
+      .to_raise(Net::ReadTimeout.new("timeout"))
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      ev1.id,
+      stage: :dispatch,
+      dispatch_group_id: group.id
+    )
+
+    assert_equal "pending", group.reload.status
+    assert_not ev1.reload.synced?
+    assert_not ev2.reload.synced?
+    assert_match(/timeout|transient/i, group.result.to_s)
+  end
+
   test "routes AI setting events to the AI settings profile and message events to the message profile" do
     ai_event = OutputEvent.create!(
       event_type: "ai_setting_created",

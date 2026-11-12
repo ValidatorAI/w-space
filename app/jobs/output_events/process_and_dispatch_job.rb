@@ -21,7 +21,7 @@ module OutputEvents
 
       if claim_result.duplicate?
         Rails.logger.info("[OutputEvents::Deduplicator] Event #{event.id} is duplicate member of group #{claim_result.group&.id} (key: #{claim_result.dedupe_key})")
-        event.update(synced: true) rescue nil
+        event.update_columns(synced: false) if event.synced?
         return
       end
 
@@ -46,24 +46,21 @@ module OutputEvents
       group = OutputEventDispatchGroup.find_by(id: dispatch_group_id)
       return if group.blank? || group.status == "dispatched"
 
-      # Resolve all sibling events belonging to this dedupe unit
       sibling_events = resolve_group_events(group, lead_event)
-      merged_type, merged_data = PayloadMerger.merge(sibling_events)
+      sibling_events.each { |ev| ev.update_columns(synced: false) }
 
-      # Resolve attachments directly from ActiveStorage / event payload
+      group.update!(status: "dispatching")
+
+      merged_type, merged_data = PayloadMerger.merge(sibling_events)
       files, unresolved = Hermes::AttachmentResolver.resolve(merged_data)
 
-      # Build Hermes chat completions payload
       chat_payload = Hermes::PromptBuilder.build_chat_payload(
         merged_type,
         merged_data,
         unresolved_attachments: unresolved
       )
 
-      # Determine target profile based on event type and configured env overrides
       target_profile = resolve_profile(merged_type, merged_data)
-
-      # Check Hermes gateway concurrency throttle before dispatching
       hermes_client = Hermes::Client.new
       max_active_agents = Hermes.configuration.max_active_agents
       if max_active_agents.positive?
@@ -98,7 +95,6 @@ module OutputEvents
         end
       end
 
-      # Dispatch to Hermes
       hermes_response = nil
       begin
         hermes_response = hermes_client.chat_completions(
@@ -106,16 +102,61 @@ module OutputEvents
           profile: target_profile,
           files: files.presence
         )
+      rescue Hermes::Client::HttpError => e
+        Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch failed: #{e.class.name}: #{e.message}")
+
+        sibling_events.each { |ev| ev.update_columns(synced: false) }
+
+        if e.status_code.to_i == 401
+          group.update!(
+            status: "failed",
+            result: { error: e.message, status_code: e.status_code, backtrace: e.backtrace&.first(10) }.to_json
+          )
+          return
+        end
+
+        group.update!(
+          status: "pending",
+          result: { error: e.message, status_code: e.status_code, retry_reason: "transient", backtrace: e.backtrace&.first(10), scheduled_at: Time.current.iso8601 }.to_json
+        )
+        ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+          lead_event.id,
+          stage: :dispatch,
+          dispatch_group_id: group.id
+        )
+        return
+      rescue Net::ReadTimeout, Net::OpenTimeout, Faraday::TimeoutError, Timeout::Error => e
+        Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch timed out: #{e.class.name}: #{e.message}")
+
+        sibling_events.each { |ev| ev.update_columns(synced: false) }
+
+        group.update!(
+          status: "pending",
+          result: { error: e.message, retry_reason: "transient_timeout", backtrace: e.backtrace&.first(10), scheduled_at: Time.current.iso8601 }.to_json
+        )
+        ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+          lead_event.id,
+          stage: :dispatch,
+          dispatch_group_id: group.id
+        )
+        return
       rescue StandardError => e
         Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch failed: #{e.class.name}: #{e.message}")
+
+        sibling_events.each { |ev| ev.update_columns(synced: false) }
+
         group.update!(
-          status: "failed",
-          result: { error: e.message, backtrace: e.backtrace&.first(10) }.to_json
+          status: "pending",
+          result: { error: e.message, retry_reason: "transient", backtrace: e.backtrace&.first(10), scheduled_at: Time.current.iso8601 }.to_json
+        )
+        ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+          lead_event.id,
+          stage: :dispatch,
+          dispatch_group_id: group.id
         )
         return
       end
 
-      # Record success and update dispatch group
       group.update!(
         status: "dispatched",
         dispatched_at: Time.current,
@@ -128,9 +169,8 @@ module OutputEvents
         }.to_json
       )
 
-      # Mark all member events as synced
       sibling_events.each do |ev|
-        ev.update(synced: true) unless ev.synced?
+        ev.update_columns(synced: true)
       end
 
       Rails.logger.info("[OutputEvents::ProcessAndDispatchJob] Successfully dispatched group #{group.id} (key: #{group.dedupe_key}) to Hermes profile #{target_profile}")

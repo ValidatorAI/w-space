@@ -1,5 +1,5 @@
 class OutputEventDispatchGroup < ApplicationRecord
-  STATUSES = %w[pending dispatched duplicate_merged failed deferred_merge_window].freeze
+  STATUSES = %w[pending dispatching dispatched duplicate_merged failed deferred_merge_window].freeze
 
   belongs_to :lead_output_event, class_name: "OutputEvent", optional: true
 
