@@ -115,6 +115,37 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_equal "agent-42", AiTask.last.assigneee_profile
   end
 
+  test "create_ai_task resolves project slug and rejects invalid project or room refs" do
+    room = Room.create!(name: "Ops room", project: @project, type: "Rooms::Open", private: false, creator: @user)
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    accepted = create_task.call(
+      description: "Task with project slug",
+      project_id: @project.slug,
+      room_id: room.id.to_s
+    )
+    assert_equal false, accepted[:isError]
+    task = AiTask.last
+    assert_equal @project.id, task.project_id
+    assert_equal room.id, task.room_id
+
+    invalid_project = create_task.call(
+      description: "Task with missing project",
+      project_id: "not-a-project",
+      room_id: room.id
+    )
+    assert_equal true, invalid_project[:isError]
+    assert_match(/Project not found|project_id/i, invalid_project[:content].first[:text])
+
+    invalid_room = create_task.call(
+      description: "Task with missing room",
+      project_id: @project.id,
+      room_id: 9_999_999
+    )
+    assert_equal true, invalid_room[:isError]
+    assert_match(/Room not found|room_id/i, invalid_room[:content].first[:text])
+  end
+
   test "create_ai_task keeps task rows for blank assignee and creates warning attention item" do
     create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
 

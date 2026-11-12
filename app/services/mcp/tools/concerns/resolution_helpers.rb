@@ -18,7 +18,11 @@ module Mcp
           room_name = args[:room_name]
 
           if room_id.present?
-            Room.find_by(id: room_id)
+            if project.present?
+              project.rooms.find_by(id: room_id)
+            else
+              Room.find_by(id: room_id)
+            end
           elsif room_name.present?
             Mcp::FuzzyMatcher.match_room(room_name, project_id: project&.id)
           end

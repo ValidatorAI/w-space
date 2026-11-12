@@ -36,9 +36,15 @@ module Mcp
             return success(AiTask.find(args[:task_id]).as_json)
           end
 
+          project = args[:project_id].present? ? resolve_project(args) : nil
+          raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}" if args[:project_id].present? && project.nil?
+
+          room = args[:room_id].present? ? resolve_room(args, project: project) : nil
+          raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}" if args[:room_id].present? && room.nil?
+
           scope = AiTask.all
-          scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
-          scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
+          scope = scope.where(project_id: project.id) if project.present?
+          scope = scope.where(room_id: room.id) if room.present?
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
           scope = scope.where(grand_parent_id: args[:grand_parent_id]) if args[:grand_parent_id].present?
           scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
@@ -71,6 +77,8 @@ module Mcp
       end
 
       class CreateTaskTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
         VALID_KEYS = %w[
           description project_id room_id parent_task_id grand_parent_id task_id
           input_event_entity_id adder_profile assigneee_profile assignee_profile
@@ -116,14 +124,17 @@ module Mcp
           validate_allowed_keys!(args, VALID_KEYS)
           assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
 
+          project = resolve_task_project(args)
+          room = resolve_task_room(args, project: project)
+
           task = AiTask.create!(
             task_id: args[:task_id].presence,
             input_event_entity_id: args[:input_event_entity_id].presence,
             description: args[:description],
-            project_id: args[:project_id],
-            room_id: args[:room_id],
-            parent_task_id: args[:parent_task_id],
-            grand_parent_id: args[:grand_parent_id],
+            project_id: project&.id,
+            room_id: room&.id,
+            parent_task_id: args[:parent_task_id].presence,
+            grand_parent_id: args[:grand_parent_id].presence,
             adder_profile: args[:adder_profile],
             assigneee_profile: assignee_profile,
             proposed_task_context: args[:proposed_task_context].presence,
@@ -146,6 +157,24 @@ module Mcp
         end
 
         private
+
+        def resolve_task_project(args)
+          return nil if args[:project_id].blank?
+
+          project = resolve_project(args)
+          raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}" if project.nil?
+
+          project
+        end
+
+        def resolve_task_room(args, project: nil)
+          return nil if args[:room_id].blank?
+
+          room = resolve_room(args, project: project)
+          raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}" if room.nil?
+
+          room
+        end
 
         def validate_allowed_keys!(args, allowed_keys)
           unexpected = args.keys.map(&:to_s) - allowed_keys.map(&:to_s)
@@ -182,8 +211,10 @@ module Mcp
       end
 
       class UpdateTaskTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
         VALID_KEYS = %w[
-          task_id description adder_profile assigneee_profile assignee_profile
+          task_id description project_id room_id adder_profile assigneee_profile assignee_profile
           input_event_entity_id actual_task_context dispatched finished added_to_kanban
           runned topic_id
         ].freeze
@@ -198,6 +229,8 @@ module Mcp
             properties: {
               task_id: { type: %w[string integer] },
               description: { type: "string" },
+              project_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
               assignee_profile: { type: "string" },
@@ -218,6 +251,16 @@ module Mcp
           task = AiTask.find(args[:task_id])
           attrs = {}
 
+          project = args[:project_id].present? ? resolve_project(args) : nil
+          if args[:project_id].present? && project.nil?
+            raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}"
+          end
+
+          room = args[:room_id].present? ? resolve_room(args, project: project || task.project) : nil
+          if args[:room_id].present? && room.nil?
+            raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}"
+          end
+
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
           assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
@@ -226,6 +269,8 @@ module Mcp
           attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)
           attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
           attrs[:proposed_task_context] = nil
+          attrs[:project_id] = project.id if project.present?
+          attrs[:room_id] = room.id if room.present?
 
           if args.key?(:dispatched) || args.key?(:added_to_kanban)
             attrs[:dispatched] = args.key?(:dispatched) ? boolean_param(args[:dispatched]) : boolean_param(args[:added_to_kanban])
