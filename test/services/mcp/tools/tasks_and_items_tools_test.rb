@@ -94,4 +94,42 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     task.reload
     assert_equal 777, task.input_event_entity_id
   end
+
+  test "create_ai_task rejects unknown arguments and accepts assignee alias" do
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    rejected = create_task.call(
+      description: "Reject bad payload",
+      project_id: @project.id,
+      profile_name: "ghost-agent"
+    )
+    assert_equal true, rejected[:isError]
+    assert_match(/profile_name|Unknown argument|unexpected/i, rejected[:content].first[:text])
+
+    accepted = create_task.call(
+      description: "Alias assignee",
+      project_id: @project.id,
+      assignee_profile: "agent-42"
+    )
+    assert_equal false, accepted[:isError]
+    assert_equal "agent-42", AiTask.last.assigneee_profile
+  end
+
+  test "create_ai_task keeps task rows for blank assignee and creates warning attention item" do
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    result = create_task.call(
+      description: "Task without assignee",
+      project_id: @project.id,
+      assignee_profile: "   "
+    )
+
+    assert_equal false, result[:isError]
+    payload = JSON.parse(result[:content].first[:text])
+    assert_equal "Task without assignee", payload["description"]
+    assert_equal "missing_assignee_profile", payload["warning"]["code"]
+    assert_equal "blockers", payload["warning"]["attention_item"]["category"]
+    assert_equal @project.id, payload["warning"]["attention_item"]["project_id"]
+    assert_equal 1, AttentionItem.where(project_id: @project.id, category: "blockers", status: "pending").count
+  end
 end

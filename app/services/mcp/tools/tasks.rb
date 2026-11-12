@@ -71,6 +71,13 @@ module Mcp
       end
 
       class CreateTaskTool < Mcp::BaseTool
+        VALID_KEYS = %w[
+          description project_id room_id parent_task_id grand_parent_id task_id
+          input_event_entity_id adder_profile assigneee_profile assignee_profile
+          proposed_task_context dispatched finished added_to_kanban runned
+          topic_id token_used usd_used usd_budget importance level
+        ].freeze
+
         def name = "create_ai_task"
         def description = "Create a project AI task"
         def aliases = %w[create_task CreateTask CreateAITask]
@@ -88,6 +95,7 @@ module Mcp
               input_event_entity_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              assignee_profile: { type: "string" },
               proposed_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
@@ -105,6 +113,9 @@ module Mcp
         end
 
         def execute(args)
+          validate_allowed_keys!(args, VALID_KEYS)
+          assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
+
           task = AiTask.create!(
             task_id: args[:task_id].presence,
             input_event_entity_id: args[:input_event_entity_id].presence,
@@ -114,7 +125,7 @@ module Mcp
             parent_task_id: args[:parent_task_id],
             grand_parent_id: args[:grand_parent_id],
             adder_profile: args[:adder_profile],
-            assigneee_profile: args[:assigneee_profile],
+            assigneee_profile: assignee_profile,
             proposed_task_context: args[:proposed_task_context].presence,
             actual_task_context: nil,
             dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : false),
@@ -126,11 +137,57 @@ module Mcp
             importance: args[:importance] || 0,
             level: args[:level] || 0
           )
-          success(task.as_json)
+
+          result = task.as_json
+          if assignee_profile.blank?
+            result["warning"] = missing_assignee_warning(task)
+          end
+          success(result)
+        end
+
+        private
+
+        def validate_allowed_keys!(args, allowed_keys)
+          unexpected = args.keys.map(&:to_s) - allowed_keys.map(&:to_s)
+          return if unexpected.empty?
+
+          raise ArgumentError, "Unknown argument(s): #{unexpected.sort.join(', ')}. Allowed keys: #{allowed_keys.sort.join(', ')}"
+        end
+
+        def missing_assignee_warning(task)
+          project = task.project
+          attention_item = nil
+
+          if project.present?
+            attention_item = project.attention_items.create!(
+              category: "blockers",
+              title: "AI task missing assignee profile: #{task.description.to_s.truncate(80)}",
+              meta_text: "Task #{task.id} was created without an assignee profile and will not dispatch until a profile is assigned.",
+              status: "pending"
+            )
+          end
+
+          {
+            code: "missing_assignee_profile",
+            message: "Task was created without an assignee profile and will not dispatch until a profile is assigned.",
+            attention_item: {
+              id: attention_item&.id,
+              category: "blockers",
+              project_id: project&.id,
+              title: attention_item&.title || "AI task missing assignee profile",
+              status: attention_item&.status || "pending"
+            }.compact
+          }
         end
       end
 
       class UpdateTaskTool < Mcp::BaseTool
+        VALID_KEYS = %w[
+          task_id description adder_profile assigneee_profile assignee_profile
+          input_event_entity_id actual_task_context dispatched finished added_to_kanban
+          runned topic_id
+        ].freeze
+
         def name = "update_ai_task"
         def description = "Update a project AI task"
         def aliases = %w[update_task UpdateTask UpdateAITask]
@@ -143,6 +200,7 @@ module Mcp
               description: { type: "string" },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              assignee_profile: { type: "string" },
               input_event_entity_id: { type: %w[string integer] },
               actual_task_context: { type: "string" },
               dispatched: { type: "boolean" },
@@ -156,12 +214,14 @@ module Mcp
         end
 
         def execute(args)
+          validate_allowed_keys!(args, VALID_KEYS)
           task = AiTask.find(args[:task_id])
           attrs = {}
 
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
-          attrs[:assigneee_profile] = args[:assigneee_profile] if args.key?(:assigneee_profile)
+          assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
+          attrs[:assigneee_profile] = assignee_profile if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
           attrs[:task_id] = args[:task_id].presence if args.key?(:task_id) && args[:task_id].to_i != task.id.to_i
           attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)
           attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
@@ -179,6 +239,15 @@ module Mcp
 
           task.update!(attrs)
           success(task.as_json)
+        end
+
+        private
+
+        def validate_allowed_keys!(args, allowed_keys)
+          unexpected = args.keys.map(&:to_s) - allowed_keys.map(&:to_s)
+          return if unexpected.empty?
+
+          raise ArgumentError, "Unknown argument(s): #{unexpected.sort.join(', ')}. Allowed keys: #{allowed_keys.sort.join(', ')}"
         end
       end
 
