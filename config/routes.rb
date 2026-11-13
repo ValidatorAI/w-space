@@ -207,6 +207,8 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :approval_requests, only: %i[ show ]
+
       resources :decision_rooms, only: %i[ index create ]
 
       resources :ai_profiles, only: %i[ index show create update destroy ] do

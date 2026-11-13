@@ -81,11 +81,16 @@ module Api
     private
 
     def locate_approval_request
-      project = find_project(params[:project_id])
-      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
-      return render(json: { error: "Room not found" }, status: :not_found) && nil unless room
+      if params[:room_id].present? || params[:project_id].present?
+        project = find_project(params[:project_id])
+        room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
+        return render(json: { error: "Room not found" }, status: :not_found) && nil unless room
 
-      approval_request = room.approval_requests.find_by(id: params[:id])
+        approval_request = room.approval_requests.find_by(id: params[:id])
+      else
+        approval_request = ApprovalRequest.find_by(id: params[:id])
+      end
+
       return render(json: { error: "Approval request not found" }, status: :not_found) && nil unless approval_request
 
       approval_request

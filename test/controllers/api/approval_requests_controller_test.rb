@@ -43,6 +43,15 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Ship it", body["decision_text"]
   end
 
+  test "returns a single approval request via the flat api route" do
+    get api_approval_request_url(@approval_request.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal @approval_request.id, body["id"]
+    assert_equal "Ship it", body["decision_text"]
+  end
+
   test "allows project-scoped listing with a valid token" do
     get api_project_room_approval_requests_url(@project.id, @room.id), headers: { "Authorization" => "Bearer test-token" }
 
@@ -162,6 +171,13 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     get api_room_approval_request_url(other_room.id, @approval_request.id), headers: { "Authorization" => "Bearer test-token" }
 
     assert_response :not_found
+  end
+
+  test "returns not found for an unknown approval request on the flat api route" do
+    get api_approval_request_url(-1), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :not_found
+    assert_equal "Approval request not found", JSON.parse(response.body)["error"]
   end
 
   test "returns not found for an unknown room" do
