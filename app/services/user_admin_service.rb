@@ -32,9 +32,37 @@ class UserAdminService
     end
 
     def update(user, user_attrs)
-      role_name = user_attrs.to_h.with_indifferent_access[:role].presence_in(%w[ member administrator ]) || "member"
-      user.update!(role: role_name)
+      attrs = user_attrs.to_h.with_indifferent_access
+      permitted = attrs.slice("name", "display_name", "email_address", "password", "role").compact_blank
+      return user if permitted.empty?
+
+      if permitted.key?("role")
+        role_name = permitted["role"].to_s.strip
+        if role_name.blank?
+          permitted.delete("role")
+        elsif User.roles.key?(role_name)
+          permitted["role"] = role_name
+        else
+          user.errors.add(:role, "is not a valid role")
+          raise ValidationError.new(user)
+        end
+      end
+
+      permitted = permitted.compact_blank
+      return user if permitted.empty?
+
+      if permitted.key?("password")
+        user.password = permitted["password"]
+        permitted.delete("password")
+      end
+
+      user.assign_attributes(permitted)
+      user.save!
       user
+    rescue ActiveRecord::RecordInvalid => e
+      raise ValidationError.new(e.record)
+    rescue ActiveRecord::RecordNotUnique
+      raise DuplicateEmailError, "Email address is already in use"
     end
 
     def activate(user, actor: nil)

@@ -80,13 +80,28 @@ module OutputEvents
           end
 
           if retry_meta.is_a?(Hash) && retry_meta["retry_reason"] == "hermes_busy"
-            Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable and retry already queued for group #{group.id}; skipping duplicate reschedule.")
-            return
+            scheduled_at = retry_meta["scheduled_at"]
+            scheduled_time = nil
+            if scheduled_at.present?
+              begin
+                scheduled_time = Time.iso8601(scheduled_at)
+              rescue ArgumentError
+                scheduled_time = nil
+              end
+            end
+
+            if scheduled_time && scheduled_time > 30.seconds.ago
+              Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable and retry already queued for group #{group.id}; skipping duplicate reschedule.")
+              return
+            end
           end
 
+          retry_wait = ENV.fetch("OUTPUT_EVENTS_RETRY_DELAY_SECONDS", "60").to_i
+          retry_wait = 60 if retry_wait <= 0
+
           Rails.logger.warn("[OutputEvents::ProcessAndDispatchJob] Hermes busy or unavailable (active_agents=#{active_agents.inspect} >= threshold=#{max_active_agents}). Rescheduling group #{group.id}.")
-          group.update!(status: "pending", result: { retry_reason: "hermes_busy", scheduled_at: Time.current.iso8601 }.to_json)
-          ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+          group.update!(status: "pending", result: { retry_reason: "hermes_busy", scheduled_at: Time.current.iso8601, retry_token: SecureRandom.uuid }.to_json)
+          OutputEvents::ProcessAndDispatchJob.set(wait: retry_wait.seconds).perform_later(
             lead_event.id,
             stage: :dispatch,
             dispatch_group_id: group.id

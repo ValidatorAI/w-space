@@ -28,14 +28,31 @@ module OutputEvents
         return { reconciled_count: 0, throttled: true, hermes_status: hermes_status }
       end
 
-      # 2. Find pending or deferred groups that are stale
+      # 2. Find stale pending, deferred, or dispatching groups to re-drive
       stale_groups = OutputEventDispatchGroup
-        .where(status: %w[pending deferred_merge_window])
+        .where(status: %w[pending deferred_merge_window dispatching])
         .where("created_at >= ? AND created_at <= ?", cutoff, stale_threshold)
         .order(:created_at)
 
       reconciled = []
       stale_groups.each do |group|
+        if group.status == "dispatching"
+          result = begin
+            JSON.parse(group.result || "{}")
+          rescue JSON::ParserError
+            {}
+          end
+
+          scheduled_at = result["scheduled_at"].presence
+          next if scheduled_at.blank?
+
+          begin
+            next if Time.iso8601(scheduled_at) > Time.current - 10.minutes
+          rescue ArgumentError
+            next
+          end
+        end
+
         lead_id = group.lead_output_event_id
         if lead_id.present?
           ProcessAndDispatchJob.perform_later(lead_id, stage: :dispatch, dispatch_group_id: group.id)
@@ -46,7 +63,7 @@ module OutputEvents
       # 3. Mark groups older than lookback cutoff as failed/expired
       expired_count = 0
       OutputEventDispatchGroup
-        .where(status: %w[pending deferred_merge_window])
+        .where(status: %w[pending deferred_merge_window dispatching])
         .where("created_at < ?", cutoff)
         .find_each do |group|
           group.update!(

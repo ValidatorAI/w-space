@@ -32,6 +32,8 @@ module Api
 
       UserAdminService.update(user, user_params)
       render json: serialize_user(user.reload)
+    rescue UserAdminService::ValidationError => e
+      render json: { error: e.record.errors.full_messages.to_sentence.presence || "Invalid user" }, status: :unprocessable_entity
     end
 
     def destroy

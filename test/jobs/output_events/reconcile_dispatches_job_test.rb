@@ -58,6 +58,29 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
     assert_includes group.result, "Reconciliation expired"
   end
 
+  test "re-enqueues stale dispatching groups that are still pending retry" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 503,
+      group_id: "grp-stale-dispatching-1",
+      event_data: { "room_id" => 1, "message_id" => 503 }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-stale-dispatching-1:1:503",
+      lead_output_event_id: event.id,
+      status: "dispatching",
+      created_at: 8.minutes.ago,
+      result: { retry_reason: "hermes_busy", scheduled_at: 8.minutes.ago.iso8601 }.to_json
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 1, result[:reconciled_count]
+      assert_includes result[:reconciled_group_ids], group.id
+    end
+  end
+
   test "throttles when active_agents exceeds threshold" do
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(
@@ -68,13 +91,13 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
 
     event = OutputEvent.create!(
       event_type: "message_created",
-      event_id: 503,
+      event_id: 504,
       group_id: "grp-throttle-1",
-      event_data: { "room_id" => 1, "message_id" => 503 }
+      event_data: { "room_id" => 1, "message_id" => 504 }
     )
 
     OutputEventDispatchGroup.create!(
-      dedupe_key: "message:grp-throttle-1:1:503",
+      dedupe_key: "message:grp-throttle-1:1:504",
       lead_output_event_id: event.id,
       status: "pending",
       created_at: 2.minutes.ago

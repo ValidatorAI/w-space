@@ -6,6 +6,8 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
   setup do
     ENV["OUTPUT_MESSAGE_PROFILE"] = "message_analyzer"
     ENV["OUTPUT_AI_SETTING_PROFILE"] = "ai_settings"
+    ENV["HERMES_MAX_ACTIVE_AGENTS"] = "2"
+    Hermes.configuration.max_active_agents = 2
 
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(

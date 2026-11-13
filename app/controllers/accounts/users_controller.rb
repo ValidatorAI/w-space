@@ -34,6 +34,8 @@ class Accounts::UsersController < ApplicationController
   def update
     UserAdminService.update(@user, role_params)
     redirect_after_member_change
+  rescue UserAdminService::ValidationError => e
+    redirect_after_member_change(alert: e.record.errors.full_messages.to_sentence.presence || "Invalid user")
   end
 
   def destroy
@@ -64,7 +66,9 @@ class Accounts::UsersController < ApplicationController
     end
 
     def role_params
-      { role: params.require(:user)[:role].presence_in(%w[ member administrator ]) || "member" }
+      raw = params.require(:user).permit(:role)
+      role = raw[:role].to_s.strip
+      role.present? ? { role: role } : {}
     end
 
     def create_user_params
