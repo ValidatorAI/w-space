@@ -36,6 +36,7 @@ module Api
       return render json: { error: "Project not found" }, status: :not_found unless project
 
       todo = project.todos.new(todo_params)
+      todo.event_actor = resolve_api_actor
       if todo.completed && todo.completed_at.blank?
         todo.completed_at = Time.current
       end
@@ -66,6 +67,7 @@ module Api
         end
       end
 
+      todo.event_actor = resolve_api_actor
       if todo.update(attrs)
         render json: serialize(todo)
       else

@@ -64,4 +64,14 @@ class CompanyStatusItemTest < ActiveSupport::TestCase
     assert_equal "approved", event.event_data["status"]
     assert_equal "Data migration risk", event.event_data["content"]
   end
+
+  test "emits a category-created event on create" do
+    item = @period.company_status_items.create!(category: "risks", title: "Data migration risk", status: "Open")
+
+    event = OutputEvent.order(:id).last
+    assert_equal "risk_created", event.event_type
+    assert_equal item.id, event.event_id
+    assert_equal "CompanyStatusItem", event.event_data["target_type"]
+    assert_equal "risks", event.event_data["category"]
+  end
 end

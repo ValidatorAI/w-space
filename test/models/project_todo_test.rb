@@ -31,4 +31,24 @@ class ProjectTodoTest < ActiveSupport::TestCase
     assert_not pending_todo.completed?
     assert_nil pending_todo.completed_at
   end
+
+  test "emits completion and reopen events when toggling state" do
+    todo = @project.todos.create!(title: "Ship dashboard", completed: false)
+    todo.event_actor = users(:david)
+
+    assert_difference -> { OutputEvent.where(event_type: "project_todo_completed").count }, +1 do
+      todo.toggle_completed!
+    end
+
+    event = OutputEvent.order(:id).last
+    assert_equal "project_todo_completed", event.event_type
+    assert_equal todo.id, event.event_id
+    assert_equal "ProjectTodo", event.event_data["target_type"]
+    assert_equal @project.id, event.event_data["project_id"]
+
+    todo.event_actor = users(:david)
+    assert_difference -> { OutputEvent.where(event_type: "project_todo_reopened").count }, +1 do
+      todo.toggle_completed!
+    end
+  end
 end

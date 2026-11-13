@@ -108,7 +108,19 @@ module Api
       end
 
       if params[:status].present?
-        attention_item.status = params[:status]
+        normalized_status = params[:status].to_s
+        if %w[resolved dismissed].include?(normalized_status)
+          if normalized_status == "resolved" && !attention_item.resolved?
+            attention_item.resolve!(resolve_api_actor)
+            return render json: serialize(attention_item)
+          elsif normalized_status == "dismissed" && !attention_item.dismissed?
+            attention_item.dismiss!(resolve_api_actor)
+            return render json: serialize(attention_item)
+          end
+          return render json: serialize(attention_item)
+        end
+
+        attention_item.status = normalized_status
       end
 
       if params[:overdue].present? || params.key?(:overdue)

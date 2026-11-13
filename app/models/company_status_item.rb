@@ -36,6 +36,8 @@ class CompanyStatusItem < ApplicationRecord
     self[:status] = val
   end
 
+  after_create_commit :record_created_event!
+
   def action_event_type(action:)
     base = case category.to_s
     when "priorities" then "priority"
@@ -58,6 +60,46 @@ class CompanyStatusItem < ApplicationRecord
     end
 
     "#{base}_#{suffix}"
+  end
+
+  def created_event_type
+    base = case category.to_s
+    when "priorities" then "priority"
+    when "progress" then "progress"
+    when "risks" then "risk"
+    when "dependencies" then "dependency"
+    when "changes" then "change"
+    when "decisions" then "decision"
+    when "learnings" then "learning"
+    else "company_status_item"
+    end
+
+    "#{base}_created"
+  end
+
+  def record_created_event!(actor: nil)
+    OutputEvents::Recorder.record(
+      event_type: created_event_type,
+      event_id: id,
+      actor: actor || (defined?(Current) && Current.respond_to?(:user) ? Current.user : nil),
+      target_type: "CompanyStatusItem",
+      data: {
+        "category" => category,
+        "status" => status.presence || "Open",
+        "title" => title,
+        "text" => text,
+        "company_status_period_id" => company_status_period_id,
+        "target_type" => "CompanyStatusItem",
+        "content" => title.presence || text.presence || "#{category} item",
+        "content_payload" => {
+          "type" => "company_status_item_created",
+          "company_status_item_id" => id,
+          "category" => category,
+          "status" => status.presence || "Open",
+          "company_status_period_id" => company_status_period_id
+        }.compact
+      }.compact
+    )
   end
 
   def record_action_event!(actor:, action:, status:)

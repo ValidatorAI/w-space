@@ -93,6 +93,19 @@ class AttentionItem < ApplicationRecord
     DISMISSED_EVENT_TYPES[category.to_s] || "attention_item_dismissed"
   end
 
+  def created_event_type
+    case category.to_s
+    when "decisions_waiting" then "decision_waiting_created"
+    when "blockers" then "blocker_created"
+    when "outcomes_review" then "outcome_review_created"
+    when "mentions" then "mention_created"
+    when "material_changes" then "material_change_created"
+    when "ai_confirm" then "ai_confirm_created"
+    when "knowledge_proposals" then "knowledge_proposal_created"
+    else "attention_item_created"
+    end
+  end
+
   def record_action_event!(actor:, action:, status:)
     event_type = case status.to_s
     when "resolved" then resolved_event_type
@@ -134,21 +147,47 @@ class AttentionItem < ApplicationRecord
     )
   end
 
+  def record_created_event!(actor: nil)
+    OutputEvents::Recorder.record(
+      event_type: created_event_type,
+      event_id: id,
+      actor: actor || (defined?(Current) && Current.respond_to?(:user) ? Current.user : nil),
+      target_type: "AttentionItem",
+      data: {
+        "category" => category,
+        "status" => status.to_s,
+        "title" => title,
+        "content" => title,
+        "project_id" => project_id,
+        "room_id" => room_id,
+        "target_type" => "AttentionItem"
+      }.compact
+    )
+  end
+
   def resolve!(user = Current.user)
+    return self if resolved?
+
     update!(
       status: :resolved,
       resolved_at: Time.current,
       resolved_by: user
     )
     record_action_event!(actor: user, action: "resolve", status: :resolved)
+    self
   end
 
   def dismiss!(user = Current.user)
+    return self if dismissed?
+
     update!(
       status: :dismissed,
       resolved_at: Time.current,
       resolved_by: user
     )
     record_action_event!(actor: user, action: "dismiss", status: :dismissed)
+    self
   end
+
+  after_create_commit :record_created_event!
 end
