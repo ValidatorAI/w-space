@@ -74,4 +74,16 @@ class CompanyStatusItemTest < ActiveSupport::TestCase
     assert_equal "CompanyStatusItem", event.event_data["target_type"]
     assert_equal "risks", event.event_data["category"]
   end
+
+  test "uses the existing company-status dependency family for dependency events" do
+    item = @period.company_status_items.create!(category: "dependencies", title: "Auth provider migration", status: "Open")
+
+    assert_equal "dependency_created", item.created_event_type
+    assert_equal "dependency_approved", item.action_event_type(action: "approve")
+
+    event = OutputEvent.order(:id).last
+    assert_equal "dependency_created", event.event_type
+    assert_equal item.id, event.event_id
+    assert_equal "dependencies", event.event_data["category"]
+  end
 end
