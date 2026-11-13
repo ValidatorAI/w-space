@@ -20,8 +20,13 @@ module OutputEvents
       claim_result = Deduplicator.claim(event)
 
       if claim_result.duplicate?
-        Rails.logger.info("[OutputEvents::Deduplicator] Event #{event.id} is duplicate member of group #{claim_result.group&.id} (key: #{claim_result.dedupe_key})")
+        group = claim_result.group
+        Rails.logger.info("[OutputEvents::Deduplicator] Event #{event.id} is duplicate member of group #{group&.id} (key: #{claim_result.dedupe_key})")
         event.update_columns(synced: false) if event.synced?
+
+        if recoverable_duplicate_group?(group)
+          enqueue_duplicate_recovery(event, group)
+        end
         return
       end
 
@@ -46,7 +51,18 @@ module OutputEvents
       group = OutputEventDispatchGroup.find_by(id: dispatch_group_id)
       return if group.blank? || group.status == "dispatched"
 
-      sibling_events = resolve_group_events(group, lead_event)
+      if group.status == "dispatching" && !dispatch_token_stale?(group)
+        return
+      end
+
+      dispatch_lead_event = lead_event.presence || recover_lead_event_for_group(group)
+      return if dispatch_lead_event.blank?
+
+      if group.lead_output_event_id.blank?
+        group.update!(lead_output_event_id: dispatch_lead_event.id)
+      end
+
+      sibling_events = resolve_group_events(group, dispatch_lead_event)
       sibling_events.each { |ev| ev.update_columns(synced: false) }
 
       group.update!(status: "dispatching")
@@ -189,6 +205,89 @@ module OutputEvents
       end
 
       Rails.logger.info("[OutputEvents::ProcessAndDispatchJob] Successfully dispatched group #{group.id} (key: #{group.dedupe_key}) to Hermes profile #{target_profile}")
+    end
+
+    def recoverable_duplicate_group?(group)
+      return false if group.blank?
+      return true if group.status == "failed"
+      return false if group.status == "dispatched"
+      return false unless %w[pending dispatching].include?(group.status.to_s)
+
+      result = parse_group_result(group)
+      queued_at = result["dispatch_queued_at"].presence || result["scheduled_at"].presence
+      return true if queued_at.blank?
+
+      begin
+        queued_time = Time.iso8601(queued_at)
+      rescue ArgumentError
+        return true
+      end
+
+      queued_time <= Time.current - retry_delay_seconds.seconds
+    end
+
+    def enqueue_duplicate_recovery(event, group)
+      return if group.blank?
+
+      result = parse_group_result(group)
+      queued_at = result["dispatch_queued_at"].presence
+      if queued_at.present?
+        begin
+          return if Time.iso8601(queued_at) > 5.seconds.ago
+        rescue ArgumentError
+          # malformed timestamp should still allow a fresh retry once
+        end
+      end
+
+      result["dispatch_queued_at"] = Time.current.iso8601
+      group.update!(status: "pending", result: result.to_json)
+      OutputEvents::ProcessAndDispatchJob.set(wait: 5.seconds).perform_later(
+        event.id,
+        stage: :dispatch,
+        dispatch_group_id: group.id
+      )
+    end
+
+    def parse_group_result(group)
+      return {} if group.blank? || group.result.blank?
+
+      JSON.parse(group.result)
+    rescue JSON::ParserError
+      {}
+    end
+
+    def retry_delay_seconds
+      delay = ENV.fetch("OUTPUT_EVENTS_RETRY_DELAY_SECONDS", "60").to_i
+      delay.positive? ? delay : 60
+    end
+
+    def dispatch_token_stale?(group)
+      result = parse_group_result(group)
+      scheduled_at = result["dispatch_queued_at"].presence || result["scheduled_at"].presence
+      return true if scheduled_at.blank?
+
+      begin
+        Time.iso8601(scheduled_at) <= Time.current - 5.seconds
+      rescue ArgumentError
+        true
+      end
+    end
+
+    def recover_lead_event_for_group(group)
+      return if group.blank?
+
+      lead_event = OutputEvent.find_by(id: group.lead_output_event_id) if group.lead_output_event_id.present?
+      return lead_event if lead_event.present?
+
+      group_id = if group.dedupe_key.to_s.start_with?("message:")
+        group.dedupe_key.split(":", 3)[1]
+      else
+        group.dedupe_key.to_s
+      end
+      return if group_id.blank?
+
+      OutputEvent.where(group_id: group_id).where(synced: false).order(:id).first ||
+        OutputEvent.where(group_id: group_id).order(:id).first
     end
 
     def resolve_profile(event_type, event_data)

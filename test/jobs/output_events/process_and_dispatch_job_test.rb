@@ -249,6 +249,61 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     ENV["OUTPUT_WORKSPACE_PROFILE"] = previous_workspace_profile
   end
 
+  test "re-enqueues duplicate claim recovery for failed groups" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 460,
+      group_id: "grp-460",
+      event_data: { "room_id" => 1, "message_id" => 460, "content" => "hello" }
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 461,
+      group_id: "grp-460",
+      event_data: { "room_id" => 1, "message_id" => 461, "content" => "again" }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-460:1:460",
+      lead_output_event_id: ev1.id,
+      status: "failed",
+      result: { scheduled_at: 10.minutes.ago.iso8601 }.to_json
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [ev2.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      OutputEvents::ProcessAndDispatchJob.perform_now(ev2.id, stage: :claim)
+    end
+
+    assert_equal "pending", group.reload.status
+    assert_match(/dispatch_queued_at/, group.result)
+  end
+
+  test "does not stack duplicate dispatch recovery while queue token is fresh" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 470,
+      group_id: "grp-470",
+      event_data: { "room_id" => 1, "message_id" => 470, "content" => "hello" }
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 471,
+      group_id: "grp-470",
+      event_data: { "room_id" => 1, "message_id" => 471, "content" => "again" }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-470:1:470",
+      lead_output_event_id: ev1.id,
+      status: "pending",
+      result: { dispatch_queued_at: 2.seconds.ago.iso8601, scheduled_at: 2.seconds.ago.iso8601 }.to_json
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ProcessAndDispatchJob.perform_now(ev2.id, stage: :claim)
+    end
+  end
+
   test "throttles dispatch when Hermes active agents exceed threshold" do
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(
