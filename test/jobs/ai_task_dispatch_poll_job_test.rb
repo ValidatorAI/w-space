@@ -40,8 +40,9 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
   end
 
   test "a failed head task stops poisoning the queue after three consecutive dispatch failures" do
-    bad_task = AiTask.create!(description: "Bad task", assigneee_profile: "planner", dispatched: false)
-    good_task = AiTask.create!(description: "Good task", assigneee_profile: "coder", dispatched: false)
+    project = Project.create!(name: "Dispatch project", path: "/tmp/dispatch-project-#{SecureRandom.hex(4)}", slug: "dispatch-project-#{SecureRandom.hex(4)}")
+    bad_task = AiTask.create!(project: project, description: "Bad task", assigneee_profile: "planner", dispatched: false)
+    good_task = AiTask.create!(project: project, description: "Good task", assigneee_profile: "coder", dispatched: false)
 
     hermes_client = mock
     hermes_client.expects(:chat_completions).with(
@@ -70,7 +71,9 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
 
     assert_equal 3, bad_task.dispatch_attempts
     assert_match(/profile not found|profile.*not.*exist/i, bad_task.dispatch_error.to_s)
+    assert_equal false, bad_task.finished
     assert_equal true, bad_task.dispatched
+    assert_equal 1, AttentionItem.where(project_id: project.id, category: "blockers", status: "pending").count
     assert_equal true, good_task.dispatched
     assert_equal "coder", good_task.assigneee_profile
   end

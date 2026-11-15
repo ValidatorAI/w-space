@@ -89,12 +89,13 @@ module Hermes
     end
 
     def available_profile_names
-      url = URI(build_url("/api/profiles"))
+      url = URI(build_url("/v1/models"))
       req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
       response = execute_http(url, req, timeout: @timeout)
       data = parse_json(response)
       parse_profile_names(data)
-    rescue HttpError, URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT, Exception
+    rescue HttpError, URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT => e
+      Rails.logger.warn("[Hermes::Client] Gateway unreachable while fetching profile names: #{e.class}: #{e.message}")
       nil
     rescue StandardError => e
       Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
@@ -177,8 +178,9 @@ module Hermes
                 data.map { |entry| extract_profile_name(entry) }
               when Hash
                 values = []
-                values.concat(data["profiles"]).compact if data["profiles"].is_a?(Array)
-                values.concat(data["agents"]).compact if data["agents"].is_a?(Array)
+                ["data", "models", "profiles", "agents"].each do |key|
+                  values.concat(data[key]).compact if data[key].is_a?(Array)
+                end
                 values.map { |entry| extract_profile_name(entry) }
               else
                 []
@@ -191,6 +193,7 @@ module Hermes
       return entry if entry.is_a?(String) && entry.present?
       return entry["profile_name"] if entry.is_a?(Hash) && entry["profile_name"].present?
       return entry["name"] if entry.is_a?(Hash) && entry["name"].present?
+      return entry["id"] if entry.is_a?(Hash) && entry["id"].present?
 
       nil
     end

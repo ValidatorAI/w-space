@@ -73,13 +73,33 @@ class AiTask < ApplicationRecord
 
     return unless attempts >= MAX_DISPATCH_ATTEMPTS
 
-    update!(dispatched: true, finished: true, dispatch_error: error_message.to_s)
+    update!(dispatched: true, finished: false, dispatch_error: error_message.to_s)
+    create_dispatch_failure_blocker!(error_message.to_s)
   end
 
   private
 
   def normalize_assignee_profile
     self.assigneee_profile = assigneee_profile.to_s.strip
+  end
+
+  def create_dispatch_failure_blocker!(error_message)
+    title = "Dispatch failed after #{MAX_DISPATCH_ATTEMPTS} attempts: task #{id} (#{assigneee_profile})"
+    attrs = {
+      category: "blockers",
+      title: title,
+      meta_text: "Dispatch error: #{error_message}",
+      status: :pending,
+      source: self
+    }
+
+    if project.present?
+      project.attention_items.create!(attrs)
+    elsif room.present?
+      room.attention_items.create!(attrs)
+    else
+      AttentionItem.create!(attrs)
+    end
   end
 end
 
