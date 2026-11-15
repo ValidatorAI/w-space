@@ -88,6 +88,19 @@ module Hermes
       }
     end
 
+    def available_profile_names
+      url = URI(build_url("/api/profiles"))
+      req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
+      response = execute_http(url, req, timeout: @timeout)
+      data = parse_json(response)
+      parse_profile_names(data)
+    rescue HttpError, URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT, Exception
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
+      nil
+    end
+
     def build_url(path, profile: nil)
       normalized_path = path.start_with?("/") ? path : "/#{path}"
 
@@ -156,6 +169,30 @@ module Hermes
       headers["X-Hermes-Session-Id"] = session_id if session_id.present?
       headers["X-Hermes-Session-Key"] = session_key if session_key.present?
       headers
+    end
+
+    def parse_profile_names(data)
+      names = case data
+              when Array
+                data.map { |entry| extract_profile_name(entry) }
+              when Hash
+                values = []
+                values.concat(data["profiles"]).compact if data["profiles"].is_a?(Array)
+                values.concat(data["agents"]).compact if data["agents"].is_a?(Array)
+                values.map { |entry| extract_profile_name(entry) }
+              else
+                []
+              end
+
+      names.compact.map(&:to_s).map(&:strip).reject(&:blank?).uniq
+    end
+
+    def extract_profile_name(entry)
+      return entry if entry.is_a?(String) && entry.present?
+      return entry["profile_name"] if entry.is_a?(Hash) && entry["profile_name"].present?
+      return entry["name"] if entry.is_a?(Hash) && entry["name"].present?
+
+      nil
     end
 
     def execute_http(url, req, timeout:)

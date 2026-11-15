@@ -177,4 +177,18 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_equal @project.id, payload["warning"]["attention_item"]["project_id"]
     assert_equal 1, AttentionItem.where(project_id: @project.id, category: "blockers", status: "pending").count
   end
+
+  test "create_ai_task rejects unknown assignee profiles when the gateway profile list is reachable" do
+    Hermes::Client.any_instance.expects(:available_profile_names).returns(%w[coder delegator])
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    result = create_task.call(
+      description: "Task with unknown assignee",
+      project_id: @project.id,
+      assignee_profile: "planner"
+    )
+
+    assert_equal true, result[:isError]
+    assert_match(/unknown assignee|planner/i, result[:content].first[:text])
+  end
 end

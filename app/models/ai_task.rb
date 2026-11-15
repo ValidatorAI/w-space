@@ -2,6 +2,7 @@ class AiTask < ApplicationRecord
   self.table_name = "ai_tasks"
 
   PROFILE_NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9_-]*\z/.freeze
+  MAX_DISPATCH_ATTEMPTS = 3
 
   alias_attribute :added_to_kanban, :dispatched
   alias_attribute :runned, :finished
@@ -61,8 +62,18 @@ class AiTask < ApplicationRecord
   def dispatchable_profile
     profile = assigneee_profile.to_s.strip
     return nil if profile.blank?
+    return nil if dispatch_attempts.to_i >= MAX_DISPATCH_ATTEMPTS
 
     profile if profile.match?(PROFILE_NAME_PATTERN)
+  end
+
+  def mark_dispatch_failed!(error_message)
+    attempts = dispatch_attempts.to_i + 1
+    update!(dispatch_attempts: attempts, dispatch_error: error_message.to_s)
+
+    return unless attempts >= MAX_DISPATCH_ATTEMPTS
+
+    update!(dispatched: true, finished: true, dispatch_error: error_message.to_s)
   end
 
   private

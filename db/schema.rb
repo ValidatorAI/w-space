@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_11_11_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -122,6 +122,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_11_000000) do
     t.text "assigneee_profile"
     t.datetime "created_at", null: false
     t.text "description", null: false
+    t.integer "dispatch_attempts", default: 0, null: false
+    t.text "dispatch_error"
     t.boolean "dispatched", default: false, null: false
     t.boolean "finished", default: false, null: false
     t.integer "grand_parent_id"

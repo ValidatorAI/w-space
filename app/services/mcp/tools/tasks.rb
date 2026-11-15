@@ -127,6 +127,8 @@ module Mcp
           project = resolve_task_project(args)
           room = resolve_task_room(args, project: project)
 
+          validate_assignee_profile!(assignee_profile)
+
           task = AiTask.create!(
             task_id: args[:task_id].presence,
             input_event_entity_id: args[:input_event_entity_id].presence,
@@ -207,6 +209,16 @@ module Mcp
               status: attention_item&.status || "pending"
             }.compact
           }
+        end
+
+        def validate_assignee_profile!(assignee_profile)
+          return if assignee_profile.blank?
+
+          known_profiles = Hermes::Client.new.available_profile_names
+          return if known_profiles.nil?
+          return if known_profiles.empty? || known_profiles.include?(assignee_profile)
+
+          raise ArgumentError, "Unknown assignee profile '#{assignee_profile}' for the active Hermes gateway."
         end
       end
 

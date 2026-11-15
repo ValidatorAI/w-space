@@ -38,4 +38,40 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     assert_equal true, valid_task.reload.dispatched
     assert_equal "coder", valid_task.assigneee_profile
   end
+
+  test "a failed head task stops poisoning the queue after three consecutive dispatch failures" do
+    bad_task = AiTask.create!(description: "Bad task", assigneee_profile: "planner", dispatched: false)
+    good_task = AiTask.create!(description: "Good task", assigneee_profile: "coder", dispatched: false)
+
+    hermes_client = mock
+    hermes_client.expects(:chat_completions).with(
+      { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
+      profile: "planner"
+    ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
+    hermes_client.expects(:chat_completions).with(
+      { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
+      profile: "planner"
+    ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
+    hermes_client.expects(:chat_completions).with(
+      { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
+      profile: "planner"
+    ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
+    hermes_client.expects(:chat_completions).with(
+      { messages: [{ role: "user", content: "you have new task with id #{good_task.id}" }] },
+      profile: "coder"
+    ).returns({ "choices" => [{ "message" => { "content" => "received" } }] })
+
+    Hermes::Client.expects(:new).returns(hermes_client).at_least_once
+
+    4.times { AiTaskDispatchPollJob.perform_now }
+
+    bad_task.reload
+    good_task.reload
+
+    assert_equal 3, bad_task.dispatch_attempts
+    assert_match(/profile not found|profile.*not.*exist/i, bad_task.dispatch_error.to_s)
+    assert_equal true, bad_task.dispatched
+    assert_equal true, good_task.dispatched
+    assert_equal "coder", good_task.assigneee_profile
+  end
 end
