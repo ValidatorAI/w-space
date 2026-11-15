@@ -117,6 +117,42 @@ class Api::ProjectExternalAssetsControllerTest < ActionDispatch::IntegrationTest
     assert_equal false, body["active"]
   end
 
+  test "rejects placeholder URLs and overlong titles with a valid token" do
+    post api_project_external_assets_url(@project.id),
+      params: {
+        title: "Dead Link Sample",
+        url: "http://example.invalid/deck.pdf",
+        doc_type: "Documentation",
+        icon: "link",
+        source_type: "external_url",
+        meta_text: "Placeholder",
+        active: true,
+        position: 3
+      },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_match(/placeholder|dead|invalid|url/i, body["error"])
+
+    post api_project_external_assets_url(@project.id),
+      params: {
+        title: "A" * 256,
+        url: "https://example.com/docs",
+        doc_type: "Documentation",
+        icon: "link",
+        source_type: "external_url",
+        meta_text: "Long title",
+        active: true,
+        position: 4
+      },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_match(/title.*(255|too long)|too long|length/i, body["error"])
+  end
+
   test "deletes an external asset with a valid token" do
     assert_difference -> { @project.external_assets.count }, -1 do
       delete api_project_external_asset_url(@project.id, @asset.id), headers: { "Authorization" => "Bearer test-token" }

@@ -42,6 +42,31 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_equal "PDF • Validated", asset.display_meta
   end
 
+  test "rejects placeholder external URLs and overlong titles" do
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.external_assets.create!(
+        title: "Audit PDF",
+        doc_type: "pdf",
+        icon: "📄",
+        source_type: "external_url",
+        url: "https://example.invalid/audit.pdf",
+        meta_text: "PDF • Validated"
+      )
+    end
+
+    long_title = "A" * 256
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.external_assets.create!(
+        title: long_title,
+        doc_type: "pdf",
+        icon: "📄",
+        source_type: "external_url",
+        url: "https://example.com/audit.pdf",
+        meta_text: "PDF • Validated"
+      )
+    end
+  end
+
   test "creates and associates ADRs" do
     adr = @project.adrs.create!(
       identifier: "ADR-001",
