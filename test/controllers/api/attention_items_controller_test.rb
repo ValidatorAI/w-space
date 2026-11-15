@@ -129,6 +129,7 @@ class Api::AttentionItemsControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal "New decision item", body["title"]
     assert_equal "decisions_waiting", body["category"]
+    assert_equal "Approve", body["action_label"]
     assert_equal users(:jason).id, body["user_id"]
     assert_equal @project.id, body["project_id"]
     assert_equal @room.id, body["room_id"]
@@ -137,6 +138,41 @@ class Api::AttentionItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "decision_waiting_created", created_event.event_type
     assert_equal "AttentionItem", created_event.event_data["target_type"]
     assert_equal "decisions_waiting", created_event.event_data["category"]
+  end
+
+  test "applies canonical default labels for API-created categories and preserves explicit labels" do
+    expected_defaults = {
+      "blockers" => "Assign & Unblock",
+      "mentions" => "Mark Reviewed",
+      "outcomes_review" => "Record Result"
+    }
+
+    expected_defaults.each do |category, label|
+      post api_attention_items_url,
+        params: {
+          title: "#{category} item",
+          category: category,
+          project_id: @project.id,
+          room_id: @room.id
+        },
+        headers: { "Authorization" => "Bearer test-token" }
+
+      assert_response :created
+      assert_equal label, JSON.parse(response.body)["action_label"]
+    end
+
+    post api_attention_items_url,
+      params: {
+        title: "Custom action label item",
+        category: "blockers",
+        action_label: "Custom Action",
+        project_id: @project.id,
+        room_id: @room.id
+      },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :created
+    assert_equal "Custom Action", JSON.parse(response.body)["action_label"]
   end
 
   test "emits terminal status events when the API resolves a pending item" do

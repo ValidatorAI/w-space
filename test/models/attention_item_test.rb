@@ -126,4 +126,16 @@ class AttentionItemTest < ActiveSupport::TestCase
     item_custom = AttentionItem.new(title: "Test", category: "decisions_waiting", action_label: "Custom Action")
     assert_equal "Custom Action", item_custom.effective_action_label
   end
+
+  test "persists canonical action labels and preserves explicit overrides" do
+    default_item = AttentionItem.new(title: "Test", category: "blockers")
+    assert_equal "Assign & Unblock", default_item.action_label
+
+    custom_item = AttentionItem.new(title: "Test", category: "blockers", action_label: "Custom Action")
+    assert_equal "Custom Action", custom_item.action_label
+
+    unknown_item = AttentionItem.new(title: "Test", category: "unknown_category")
+    assert_equal "Resolve", unknown_item.action_label
+    assert_not unknown_item.valid?
+  end
 end

@@ -50,6 +50,13 @@ class AttentionItem < ApplicationRecord
   validates :category, inclusion: { in: CATEGORIES }, allow_blank: true
   validates :title, presence: true, length: { maximum: 255 }
 
+  after_initialize :apply_default_action_label, if: -> { action_label.blank? }
+  before_validation :apply_default_action_label, if: -> { action_label.blank? }
+
+  def self.default_action_for(category)
+    CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
+  end
+
   scope :open_items, -> { where(status: :pending) }
   scope :resolved_items, -> { where(status: :resolved) }
   scope :overdue_items, -> { where(overdue: true) }
@@ -74,7 +81,7 @@ class AttentionItem < ApplicationRecord
   end
 
   def effective_action_label
-    action_label.presence || CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
+    action_label.presence || self.class.default_action_for(category)
   end
 
   def location_label
@@ -190,4 +197,10 @@ class AttentionItem < ApplicationRecord
   end
 
   after_create_commit :record_created_event!
+
+  private
+
+  def apply_default_action_label
+    self.action_label = self.class.default_action_for(category)
+  end
 end
