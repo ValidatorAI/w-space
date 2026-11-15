@@ -290,6 +290,44 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_not Message.exists?(@message.id)
   end
 
+  test "deletes a message and its dependent child rows" do
+    topic = @project.topics.create!(name: "Delete regression topic", active: true, need_an_action: false)
+    boost = @message.boosts.create!(booster: users(:david), content: "boost")
+    message_topic = MessageTopic.create!(message: @message, topic: topic, created_date: Date.current)
+    message_analysis = MessageAnalysis.create!(
+      message: @message,
+      importance_level: 3,
+      message_content_summary: "Delete regression summary",
+      message_type: "text",
+      is_a_response: false
+    )
+    approval_request = ApprovalRequest.create!(
+      room: @room,
+      message: @message,
+      request_type: "decision",
+      payload: { "title" => "Decision to delete" }
+    )
+
+    assert_difference -> { Message.count }, -1 do
+      assert_difference -> { Boost.count }, -1 do
+        assert_difference -> { MessageTopic.count }, -1 do
+          assert_difference -> { MessageAnalysis.count }, -1 do
+            assert_difference -> { ApprovalRequest.count }, -1 do
+              delete api_project_room_message_url(@project.id, @room.id, @message.id), headers: { "Authorization" => "Bearer test-token" }
+            end
+          end
+        end
+      end
+    end
+
+    assert_response :no_content
+    assert_not Message.exists?(@message.id)
+    assert_not Boost.exists?(boost.id)
+    assert_not MessageTopic.exists?(message_topic.id)
+    assert_not MessageAnalysis.exists?(message_analysis.id)
+    assert_not ApprovalRequest.exists?(approval_request.id)
+  end
+
   test "rejects delete requests without a token" do
     delete api_project_room_message_url(@project.id, @room.id, @message.id)
 
