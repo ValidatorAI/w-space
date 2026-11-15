@@ -1,9 +1,11 @@
 class AiTaskDispatcher
   def dispatch_next_pending_task!
-    task = AiTask.where(dispatched: false).order(:created_at, :id).first
+    task = AiTask.where(dispatched: false).order(:created_at, :id).find do |candidate|
+      candidate.dispatchable_profile.present?
+    end
     return nil if task.blank?
 
-    profile = task.assigneee_profile.presence || ENV["HERMES_DEFAULT_PROFILE"].presence || Hermes.configuration.default_profile
+    profile = task.dispatchable_profile
     message = "you have new task with id #{task.id}"
     payload = { messages: [{ role: "user", content: message }] }
 

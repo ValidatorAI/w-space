@@ -122,7 +122,7 @@ module Mcp
 
         def execute(args)
           validate_allowed_keys!(args, VALID_KEYS)
-          assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
+          assignee_profile = [args[:assigneee_profile], args[:assignee_profile]].filter_map { |value| value.to_s.strip.presence }.first
 
           project = resolve_task_project(args)
           room = resolve_task_room(args, project: project)
@@ -263,7 +263,7 @@ module Mcp
 
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
-          assignee_profile = args[:assigneee_profile].presence || args[:assignee_profile].presence
+          assignee_profile = [args[:assigneee_profile], args[:assignee_profile]].filter_map { |value| value.to_s.strip.presence }.first
           attrs[:assigneee_profile] = assignee_profile if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
           attrs[:task_id] = args[:task_id].presence if args.key?(:task_id) && args[:task_id].to_i != task.id.to_i
           attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)

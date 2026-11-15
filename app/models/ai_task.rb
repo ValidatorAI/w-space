@@ -1,6 +1,8 @@
 class AiTask < ApplicationRecord
   self.table_name = "ai_tasks"
 
+  PROFILE_NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9_-]*\z/.freeze
+
   alias_attribute :added_to_kanban, :dispatched
   alias_attribute :runned, :finished
 
@@ -12,7 +14,10 @@ class AiTask < ApplicationRecord
   belongs_to :grand_parent_task, class_name: "AiTask", optional: true, foreign_key: :grand_parent_id, inverse_of: :grand_child_tasks
   has_many :grand_child_tasks, class_name: "AiTask", foreign_key: :grand_parent_id, dependent: :nullify, inverse_of: :grand_parent_task
 
+  before_validation :normalize_assignee_profile
+
   validates :description, presence: true
+  validates :assigneee_profile, format: { with: PROFILE_NAME_PATTERN, message: "must be a valid Hermes profile name" }, if: -> { assigneee_profile.present? }
   validates :importance, :level, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :token_used, numericality: { only_integer: true, allow_nil: true }
   validates :usd_used, numericality: true, allow_nil: true
@@ -51,6 +56,19 @@ class AiTask < ApplicationRecord
       )
       parent = parent.parent_task
     end
+  end
+
+  def dispatchable_profile
+    profile = assigneee_profile.to_s.strip
+    return nil if profile.blank?
+
+    profile if profile.match?(PROFILE_NAME_PATTERN)
+  end
+
+  private
+
+  def normalize_assignee_profile
+    self.assigneee_profile = assigneee_profile.to_s.strip
   end
 end
 
