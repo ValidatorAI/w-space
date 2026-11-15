@@ -20,6 +20,13 @@ class AiTask < ApplicationRecord
   validates :description, presence: true
   validates :assigneee_profile, format: { with: PROFILE_NAME_PATTERN, message: "must be a valid Hermes profile name" }, if: -> { assigneee_profile.present? }
   validates :importance, :level, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :dispatch_attempts,
+            numericality: {
+              only_integer: true,
+              greater_than_or_equal_to: 0,
+              less_than_or_equal_to: MAX_DISPATCH_ATTEMPTS,
+              allow_nil: true
+            }
   validates :token_used, numericality: { only_integer: true, allow_nil: true }
   validates :usd_used, numericality: true, allow_nil: true
   validates :usd_budget, numericality: true, allow_nil: true

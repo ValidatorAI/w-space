@@ -5,6 +5,7 @@ module Hermes
     DEFAULT_MODEL = "hermes".freeze
     DEFAULT_PROFILE = "delegator".freeze
     DEFAULT_TIMEOUT = 60.0
+    DEFAULT_DISPATCH_TIMEOUT = 120.0
     DEFAULT_MAX_ACTIVE_AGENTS = 2
     DEFAULT_SETTLE_SECONDS = 1.5
     DEFAULT_RECOVERY_MAX_AGE = 900
@@ -17,6 +18,7 @@ module Hermes
                   :model,
                   :default_profile,
                   :timeout,
+                  :dispatch_timeout,
                   :max_active_agents,
                   :event_merge_settle_seconds,
                   :event_recovery_max_age_seconds,
@@ -35,6 +37,7 @@ module Hermes
       @model = ENV["HERMES_MODEL"] || ENV["MODEL"] || DEFAULT_MODEL
       @default_profile = ENV["HERMES_DEFAULT_PROFILE"] || ENV["BASE_HERMES_PROFILE"] || DEFAULT_PROFILE
       @timeout = (ENV["HERMES_HTTP_TIMEOUT"] || DEFAULT_TIMEOUT).to_f
+      @dispatch_timeout = (ENV["HERMES_DISPATCH_TIMEOUT"].presence || ENV["HERMES_HTTP_TIMEOUT"].presence || DEFAULT_DISPATCH_TIMEOUT).to_f
       @max_active_agents = (ENV["HERMES_MAX_ACTIVE_AGENTS"] || DEFAULT_MAX_ACTIVE_AGENTS).to_i
       @event_merge_settle_seconds = (ENV["EVENT_MERGE_SETTLE_SECONDS"] || ENV["SPACE_EVENT_MERGE_SETTLE_SECONDS"] || DEFAULT_SETTLE_SECONDS).to_f
       @event_recovery_max_age_seconds = (ENV["EVENT_RECOVERY_MAX_AGE_SECONDS"] || ENV["SPACE_EVENT_RECOVERY_MAX_AGE_SECONDS"] || DEFAULT_RECOVERY_MAX_AGE).to_i

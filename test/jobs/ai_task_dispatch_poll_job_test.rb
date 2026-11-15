@@ -8,7 +8,8 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     hermes_client = mock
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{first_task.id}" }] },
-      profile: "coder"
+      profile: "coder",
+      timeout: Hermes.configuration.dispatch_timeout
     ).returns({ "choices" => [{ "message" => { "content" => "received" } }] })
 
     Hermes::Client.expects(:new).returns(hermes_client)
@@ -27,7 +28,8 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     hermes_client = mock
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{valid_task.id}" }] },
-      profile: "coder"
+      profile: "coder",
+      timeout: Hermes.configuration.dispatch_timeout
     ).returns({ "choices" => [{ "message" => { "content" => "received" } }] })
 
     Hermes::Client.expects(:new).returns(hermes_client)
@@ -39,6 +41,26 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     assert_equal "coder", valid_task.assigneee_profile
   end
 
+  test "dispatches with the configured Hermes dispatch timeout" do
+    task = AiTask.create!(description: "Timeout task", assigneee_profile: "coder", dispatched: false)
+    Hermes.configure do |config|
+      config.dispatch_timeout = 42.0
+    end
+
+    hermes_client = mock
+    hermes_client.expects(:chat_completions).with(
+      { messages: [{ role: "user", content: "you have new task with id #{task.id}" }] },
+      profile: "coder",
+      timeout: 42.0
+    ).returns({ "choices" => [{ "message" => { "content" => "received" } }] })
+
+    Hermes::Client.expects(:new).returns(hermes_client)
+
+    AiTaskDispatchPollJob.perform_now
+
+    assert_equal true, task.reload.dispatched
+  end
+
   test "a failed head task stops poisoning the queue after three consecutive dispatch failures" do
     project = Project.create!(name: "Dispatch project", path: "/tmp/dispatch-project-#{SecureRandom.hex(4)}", slug: "dispatch-project-#{SecureRandom.hex(4)}")
     bad_task = AiTask.create!(project: project, description: "Bad task", assigneee_profile: "planner", dispatched: false)
@@ -47,19 +69,23 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     hermes_client = mock
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
-      profile: "planner"
+      profile: "planner",
+      timeout: Hermes.configuration.dispatch_timeout
     ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
-      profile: "planner"
+      profile: "planner",
+      timeout: Hermes.configuration.dispatch_timeout
     ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{bad_task.id}" }] },
-      profile: "planner"
+      profile: "planner",
+      timeout: Hermes.configuration.dispatch_timeout
     ).raises(Hermes::Client::HttpError.new("profile not found", status_code: 404, response_body: "{}"))
     hermes_client.expects(:chat_completions).with(
       { messages: [{ role: "user", content: "you have new task with id #{good_task.id}" }] },
-      profile: "coder"
+      profile: "coder",
+      timeout: Hermes.configuration.dispatch_timeout
     ).returns({ "choices" => [{ "message" => { "content" => "received" } }] })
 
     Hermes::Client.expects(:new).returns(hermes_client).at_least_once

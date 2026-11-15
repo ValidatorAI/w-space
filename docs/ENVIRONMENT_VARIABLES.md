@@ -30,7 +30,8 @@ The app uses these values at boot time and in the runtime services.
 | `HERMES_API_KEY` | Yes for real runtime | none | API key for Hermes access. Also accepts `API_SERVER_KEY` and `API_KEY`. |
 | `HERMES_MODEL` | No | `hermes` | Model name. Also accepts legacy `MODEL`. |
 | `HERMES_DEFAULT_PROFILE` | No | `delegator` | Default Hermes profile. Also accepts legacy `BASE_HERMES_PROFILE`. |
-| `HERMES_HTTP_TIMEOUT` | No | `60` | Request timeout in seconds. |
+| `HERMES_HTTP_TIMEOUT` | No | `60` | Default request timeout in seconds. |
+| `HERMES_DISPATCH_TIMEOUT` | No | `120` | Per-dispatch Hermes ping timeout in seconds for AI task dispatches. Falls back to `HERMES_HTTP_TIMEOUT` when unset. |
 | `HERMES_MAX_ACTIVE_AGENTS` | No | `2` | Max concurrent agent actions. |
 | `AI_TASK_DISPATCH_INTERVAL_SECONDS` | No | `1` | Polling interval for the task dispatch loop. |
 | `EVENT_MERGE_SETTLE_SECONDS` | No | `1.5` | Delay before event dedupe/merge settles. |
@@ -85,6 +86,7 @@ HERMES_API_KEY=your-hermes-api-key
 HERMES_MODEL=hermes
 HERMES_DEFAULT_PROFILE=delegator
 HERMES_HTTP_TIMEOUT=60
+HERMES_DISPATCH_TIMEOUT=120
 HERMES_MAX_ACTIVE_AGENTS=2
 AI_TASK_DISPATCH_INTERVAL_SECONDS=1
 

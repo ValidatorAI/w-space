@@ -252,7 +252,8 @@ module Mcp
               finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" },
-              topic_id: { type: %w[string integer] }
+              topic_id: { type: %w[string integer] },
+              dispatch_attempts: { type: "integer" }
             },
             required: ["task_id"]
           }
@@ -296,7 +297,10 @@ module Mcp
           end
 
           if args.key?(:dispatch_attempts)
-            attrs[:dispatch_attempts] = args[:dispatch_attempts].to_i
+            dispatch_attempts = parse_dispatch_attempts!(args[:dispatch_attempts])
+            raise ArgumentError, "dispatch_attempts must be an integer between 0 and #{AiTask::MAX_DISPATCH_ATTEMPTS}" unless dispatch_attempts
+
+            attrs[:dispatch_attempts] = dispatch_attempts
             if attrs[:dispatch_attempts].zero?
               attrs[:dispatched] = false
               attrs[:finished] = false
@@ -317,6 +321,19 @@ module Mcp
           return if unexpected.empty?
 
           raise ArgumentError, "Unknown argument(s): #{unexpected.sort.join(', ')}. Allowed keys: #{allowed_keys.sort.join(', ')}"
+        end
+
+        def parse_dispatch_attempts!(raw_value)
+          return nil if raw_value.nil?
+
+          value = raw_value.to_s.strip
+          return nil if value.empty?
+          return nil unless value.match?(/\A-?\d+\z/)
+
+          integer_value = value.to_i
+          return nil if integer_value.negative? || integer_value > AiTask::MAX_DISPATCH_ATTEMPTS
+
+          integer_value
         end
       end
 

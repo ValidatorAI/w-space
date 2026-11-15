@@ -13,7 +13,7 @@ class AiTaskDispatcher
     payload = { messages: [{ role: "user", content: message }] }
 
     hermes_client = Hermes::Client.new
-    hermes_client.chat_completions(payload, profile: profile)
+    hermes_client.chat_completions(payload, profile: profile, timeout: Hermes.configuration.dispatch_timeout)
     task.update!(dispatched: true, finished: false, dispatch_attempts: 0, dispatch_error: nil)
     task
   rescue StandardError => e

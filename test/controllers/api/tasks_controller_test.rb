@@ -120,6 +120,28 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_nil task.dispatch_error
   end
 
+  test "PATCH dispatch_attempts rejects invalid values and leaves the task untouched" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Invalid attempts",
+      assigneee_profile: "planner",
+      dispatched: false,
+      finished: false,
+      dispatch_attempts: 1
+    )
+
+    [9, -1, "abc", ""].each do |invalid_value|
+      patch api_task_url(task.id),
+        params: { dispatch_attempts: invalid_value },
+        headers: { "Authorization" => "Bearer test-token" }
+
+      assert_response :unprocessable_entity
+      task.reload
+      assert_equal 1, task.dispatch_attempts
+    end
+  end
+
   test "rolls task cost up through parent and grandparent tasks" do
     root = Task.create!(
       project: @project,
