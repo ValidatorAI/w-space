@@ -101,6 +101,23 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_equal :file, tree.first[:children].first[:type]
   end
 
+  test "accepts short directory-item names and rejects prose-like names" do
+    valid = @project.directory_items.create!(
+      name: "Architecture",
+      item_type: "directory",
+      position: 1
+    )
+    assert valid.valid?
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.directory_items.create!(
+        name: "This is a full prose paragraph about launch metrics and should not be a directory entry.",
+        item_type: "file",
+        position: 2
+      )
+    end
+  end
+
   test "safe resolve path prevents path traversal" do
     storage_dir = ProjectKnowledge.ensure_storage_dir(@project)
     test_file = storage_dir.join("test.md")

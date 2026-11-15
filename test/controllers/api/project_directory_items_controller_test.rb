@@ -125,6 +125,23 @@ class Api::ProjectDirectoryItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "export const API_KEY = 'secret';", File.read(target_file)
   end
 
+  test "rejects prose-like names via API" do
+    prose_name = "This is a full prose paragraph about launch metrics and should not be a directory entry."
+
+    post api_project_directory_items_url(@project.id),
+      params: {
+        name: prose_name,
+        item_type: "file",
+        active: true,
+        position: 2
+      },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_match(/short title|prose/i, body["error"])
+  end
+
   test "updates a directory item with a new file" do
     uploaded_file = Rack::Test::UploadedFile.new(
       StringIO.new("Updated content v2"),

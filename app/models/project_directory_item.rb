@@ -5,6 +5,7 @@ class ProjectDirectoryItem < ApplicationRecord
 
   validates :name, presence: true
   validates :item_type, inclusion: { in: %w[directory file] }
+  validate :name_must_be_short_title_not_prose
   validate :parent_cannot_be_self
 
   scope :active, -> { where(active: true) }
@@ -42,6 +43,20 @@ class ProjectDirectoryItem < ApplicationRecord
   end
 
   private
+
+  def name_must_be_short_title_not_prose
+    return if name.blank?
+
+    normalized = name.to_s.strip
+    return if normalized.empty?
+
+    words = normalized.split(/\s+/).reject(&:empty?)
+    has_sentence_ending = normalized.match?(/[.!?](?:\s|\z)/)
+
+    return unless words.length > 5 || has_sentence_ending
+
+    errors.add(:name, "must be a short title, not prose")
+  end
 
   def parent_cannot_be_self
     return if parent_id.blank?
