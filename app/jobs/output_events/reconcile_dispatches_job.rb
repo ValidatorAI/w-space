@@ -37,25 +37,34 @@ module OutputEvents
       reconciled = []
       stale_groups.each do |group|
         if group.status == "dispatching"
-          result = begin
-            JSON.parse(group.result || "{}")
-          rescue JSON::ParserError
-            {}
-          end
-
+          result = parse_group_result(group)
           scheduled_at = result["scheduled_at"].presence
           next if scheduled_at.blank?
 
           begin
-            next if Time.iso8601(scheduled_at) > Time.current - 10.minutes
+            next if Time.iso8601(scheduled_at) > Time.current - 5.seconds
           rescue ArgumentError
             next
           end
         end
 
-        lead_id = group.lead_output_event_id
-        if lead_id.present?
-          ProcessAndDispatchJob.perform_later(lead_id, stage: :dispatch, dispatch_group_id: group.id)
+        result = parse_group_result(group)
+        queued_at = result["dispatch_queued_at"].presence
+        if queued_at.present?
+          begin
+            next if Time.iso8601(queued_at) > 5.seconds.ago
+          rescue ArgumentError
+            # malformed timestamp should still allow a fresh retry once
+          end
+        end
+
+        result["dispatch_queued_at"] = Time.current.iso8601
+        group.update!(status: "pending", result: result.to_json)
+
+        lead_event = OutputEvent.find_by(id: group.lead_output_event_id) if group.lead_output_event_id.present?
+        lead_event ||= recover_lead_event_for_group(group)
+        if lead_event.present?
+          ProcessAndDispatchJob.perform_later(lead_event.id, stage: :dispatch, dispatch_group_id: group.id)
           reconciled << group.id
         end
       end
@@ -80,6 +89,31 @@ module OutputEvents
         expired_count: expired_count,
         hermes_status: hermes_status
       }
+    end
+
+    private
+
+    def parse_group_result(group)
+      return {} if group.blank? || group.result.blank?
+
+      JSON.parse(group.result)
+    rescue JSON::ParserError
+      {}
+    end
+
+    def recover_lead_event_for_group(group)
+      return if group.blank?
+
+      dedupe_key = group.dedupe_key.to_s
+      group_id = if dedupe_key.start_with?("message:")
+        dedupe_key.split(":", 3)[1]
+      else
+        dedupe_key
+      end
+      return if group_id.blank?
+
+      OutputEvent.where(group_id: group_id).where(synced: false).order(:id).first ||
+        OutputEvent.where(group_id: group_id).order(:id).first
     end
   end
 end

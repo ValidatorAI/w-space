@@ -4,6 +4,9 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
   self.fixture_table_names = []
 
   setup do
+    ENV["HERMES_MAX_ACTIVE_AGENTS"] = "2"
+    Hermes.configuration.reset!
+
     @hermes_status = {
       "gateway_busy" => false,
       "active_agents" => 1,
@@ -78,6 +81,34 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
       result = OutputEvents::ReconcileDispatchesJob.perform_now
       assert_equal 1, result[:reconciled_count]
       assert_includes result[:reconciled_group_ids], group.id
+    end
+  end
+
+  test "repeated sweeps do not re-enqueue the same stale pending group while the token is fresh" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 505,
+      group_id: "grp-stale-repeat-1",
+      event_data: { "room_id" => 1, "message_id" => 505 }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-stale-repeat-1:1:505",
+      lead_output_event_id: event.id,
+      status: "pending",
+      created_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 1, result[:reconciled_count]
+    end
+
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 0, result[:reconciled_count]
     end
   end
 
