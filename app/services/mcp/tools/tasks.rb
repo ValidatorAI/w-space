@@ -214,9 +214,9 @@ module Mcp
         def validate_assignee_profile!(assignee_profile)
           return if assignee_profile.blank?
 
-          known_profiles = Hermes::Client.new.available_profile_names
-          return if known_profiles.nil?
-          return if known_profiles.empty? || known_profiles.include?(assignee_profile)
+          profile_exists = Hermes::Client.new.profile_exists?(assignee_profile)
+          return if profile_exists.nil?
+          return if profile_exists
 
           raise ArgumentError, "Unknown assignee profile '#{assignee_profile}' for the active Hermes gateway."
         end
@@ -228,7 +228,7 @@ module Mcp
         VALID_KEYS = %w[
           task_id description project_id room_id adder_profile assigneee_profile assignee_profile
           input_event_entity_id actual_task_context dispatched finished added_to_kanban
-          runned topic_id
+          runned topic_id dispatch_attempts
         ].freeze
 
         def name = "update_ai_task"
@@ -276,7 +276,10 @@ module Mcp
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
           assignee_profile = [args[:assigneee_profile], args[:assignee_profile]].filter_map { |value| value.to_s.strip.presence }.first
-          attrs[:assigneee_profile] = assignee_profile if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
+          if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
+            validate_assignee_profile!(assignee_profile) if assignee_profile.present?
+            attrs[:assigneee_profile] = assignee_profile if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
+          end
           attrs[:task_id] = args[:task_id].presence if args.key?(:task_id) && args[:task_id].to_i != task.id.to_i
           attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)
           attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
@@ -290,6 +293,15 @@ module Mcp
 
           if args.key?(:finished) || args.key?(:runned)
             attrs[:finished] = args.key?(:finished) ? boolean_param(args[:finished]) : boolean_param(args[:runned])
+          end
+
+          if args.key?(:dispatch_attempts)
+            attrs[:dispatch_attempts] = args[:dispatch_attempts].to_i
+            if attrs[:dispatch_attempts].zero?
+              attrs[:dispatched] = false
+              attrs[:finished] = false
+              attrs[:dispatch_error] = nil
+            end
           end
 
           attrs[:topic_id] = args[:topic_id].presence if args.key?(:topic_id)

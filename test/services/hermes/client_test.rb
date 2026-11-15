@@ -76,6 +76,24 @@ class HermesClientTest < ActiveSupport::TestCase
     assert_equal "Received file", Hermes::PromptBuilder.extract_reply_text(response)
   end
 
+  test "profile_exists? distinguishes reachable profiles from missing ones and connection failures" do
+    stub_request(:get, "http://127.0.0.1:8642/p/coder/v1/models")
+      .with(headers: { "Authorization" => "Bearer test-secret-key" })
+      .to_return(status: 200, body: { "models" => [{ "name" => "coder" }] }.to_json, headers: { "Content-Type" => "application/json" })
+
+    stub_request(:get, "http://127.0.0.1:8642/p/planner/v1/models")
+      .with(headers: { "Authorization" => "Bearer test-secret-key" })
+      .to_return(status: 404, body: { "error" => "profile not found" }.to_json, headers: { "Content-Type" => "application/json" })
+
+    stub_request(:get, "http://127.0.0.1:8642/p/ghost/v1/models")
+      .with(headers: { "Authorization" => "Bearer test-secret-key" })
+      .to_raise(Errno::ECONNREFUSED)
+
+    assert_equal true, @client.profile_exists?("coder")
+    assert_equal false, @client.profile_exists?("planner")
+    assert_nil @client.profile_exists?("ghost")
+  end
+
   test "api_status_summary retrieves gateway load status" do
     status_payload = {
       "gateway_busy" => false,

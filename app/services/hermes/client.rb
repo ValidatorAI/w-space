@@ -94,11 +94,35 @@ module Hermes
       response = execute_http(url, req, timeout: @timeout)
       data = parse_json(response)
       parse_profile_names(data)
-    rescue HttpError, URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT => e
+    rescue HttpError => e
+      Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
+      nil
+    rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
       Rails.logger.warn("[Hermes::Client] Gateway unreachable while fetching profile names: #{e.class}: #{e.message}")
       nil
     rescue StandardError => e
       Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
+      nil
+    end
+
+    def profile_exists?(profile_name, timeout: nil)
+      profile = profile_name.to_s.strip
+      return false if profile.blank?
+
+      url = URI(build_url("/v1/models", profile: profile))
+      req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
+      execute_http(url, req, timeout: timeout || @timeout)
+      true
+    rescue HttpError => e
+      return false if e.status_code == 404
+
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} returned HTTP #{e.status_code}: #{e.message}")
+      nil
+    rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Timeout::Error, Errno::ETIMEDOUT => e
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} could not reach the Hermes gateway: #{e.class}: #{e.message}")
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} failed: #{e.class}: #{e.message}")
       nil
     end
 

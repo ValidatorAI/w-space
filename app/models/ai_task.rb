@@ -93,10 +93,10 @@ class AiTask < ApplicationRecord
       source: self
     }
 
-    if project.present?
-      project.attention_items.create!(attrs)
-    elsif room.present?
+    if room.present?
       room.attention_items.create!(attrs)
+    elsif project.present?
+      project.attention_items.create!(attrs)
     else
       AttentionItem.create!(attrs)
     end

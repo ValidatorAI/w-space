@@ -29,8 +29,15 @@ module Api
       task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
-      if task.update(task_params)
-        render json: serialize(task)
+      task_params_with_reset = task_params
+      if params.key?(:dispatch_attempts) && params[:dispatch_attempts].to_i.zero?
+        task_params_with_reset[:dispatched] = false
+        task_params_with_reset[:finished] = false
+        task_params_with_reset[:dispatch_error] = nil
+      end
+
+      if task.update(task_params_with_reset)
+        render json: serialize(task.reload)
       else
         render json: { error: task.errors.full_messages.to_sentence }, status: :unprocessable_entity
       end
@@ -93,6 +100,7 @@ module Api
         :finished,
         :added_to_kanban,
         :runned,
+        :dispatch_attempts,
         :topic_id,
         :parent_task_id,
         :grand_parent_id,

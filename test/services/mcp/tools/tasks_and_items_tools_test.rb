@@ -106,6 +106,7 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_equal true, rejected[:isError]
     assert_match(/profile_name|Unknown argument|unexpected/i, rejected[:content].first[:text])
 
+    Hermes::Client.any_instance.expects(:profile_exists?).with("agent-42").returns(true)
     accepted = create_task.call(
       description: "Alias assignee",
       project_id: @project.id,
@@ -178,8 +179,8 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_equal 1, AttentionItem.where(project_id: @project.id, category: "blockers", status: "pending").count
   end
 
-  test "create_ai_task rejects unknown assignee profiles when the gateway profile list is reachable" do
-    Hermes::Client.any_instance.expects(:available_profile_names).returns(%w[coder delegator])
+  test "create_ai_task rejects unknown assignee profiles when the gateway profile probe says they do not exist" do
+    Hermes::Client.any_instance.expects(:profile_exists?).with("planner").returns(false)
     create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
 
     result = create_task.call(

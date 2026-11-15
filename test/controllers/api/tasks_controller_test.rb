@@ -96,6 +96,30 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
+  test "PATCH dispatch_attempts=0 resets the task back to a dispatchable state" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Stalled task",
+      assigneee_profile: "planner",
+      dispatched: true,
+      finished: false,
+      dispatch_attempts: 3,
+      dispatch_error: "profile not found"
+    )
+
+    patch api_task_url(task.id),
+      params: { dispatch_attempts: 0 },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    task.reload
+    assert_equal 0, task.dispatch_attempts
+    assert_equal false, task.dispatched
+    assert_equal false, task.finished
+    assert_nil task.dispatch_error
+  end
+
   test "rolls task cost up through parent and grandparent tasks" do
     root = Task.create!(
       project: @project,

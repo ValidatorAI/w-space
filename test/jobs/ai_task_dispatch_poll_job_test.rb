@@ -77,4 +77,16 @@ class AiTaskDispatchPollJobTest < ActiveSupport::TestCase
     assert_equal true, good_task.dispatched
     assert_equal "coder", good_task.assigneee_profile
   end
+
+  test "dispatch failure blockers prefer the task room over the project" do
+    project = Project.create!(name: "Room project", path: "/tmp/room-project-#{SecureRandom.hex(4)}", slug: "room-project-#{SecureRandom.hex(4)}")
+    room = project.rooms.create!(name: "Ops room", type: "Rooms::Open", private: false, creator: User.create!(name: "ops", display_name: "Ops", email_address: "ops-#{SecureRandom.hex(4)}@example.com", role: :member))
+    task = AiTask.create!(project: project, room: room, description: "Room-scoped failure", assigneee_profile: "planner", dispatched: false)
+
+    task.send(:create_dispatch_failure_blocker!, "profile not found")
+
+    blocker = AttentionItem.order(:id).last
+    assert_equal room.id, blocker.room_id
+    assert_equal project.id, blocker.project_id
+  end
 end
