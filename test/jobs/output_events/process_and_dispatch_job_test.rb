@@ -33,6 +33,22 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_equal "deferred_merge_window", group.status
   end
 
+  test "self-schedules a stale dispatch reconciliation sweep after claim" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 305,
+      group_id: "grp-305",
+      event_data: { "room_id" => 1, "message_id" => 305, "content" => "Hello again" }
+    )
+
+    assert_enqueued_with(job: OutputEvents::ReconcileDispatchesJob) do
+      OutputEvents::ProcessAndDispatchJob.perform_now(event.id)
+    end
+
+    group = OutputEventDispatchGroup.find_by!(dedupe_key: "message:grp-305:1:305")
+    assert_equal "deferred_merge_window", group.status
+  end
+
   test "dispatches group and marks member events synced" do
     ev1 = OutputEvent.create!(
       event_type: "message_created",

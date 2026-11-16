@@ -33,6 +33,9 @@ module OutputEvents
       group = claim_result.group
       key = claim_result.dedupe_key
 
+      # Self-heal stale pending groups if the first claim never makes it through.
+      OutputEvents::ReconcileDispatchesJob.set(wait: 90.seconds).perform_later
+
       if Deduplicator.key_needs_settle?(key)
         # Reschedule execution with settle delay to allow sibling deliveries to settle
         group.update!(status: "deferred_merge_window")

@@ -105,6 +105,20 @@ bin/setup
 bin/rails server
 ```
 
+### Background workers
+
+The queued event-delivery and stale-dispatch recovery jobs run through Resque. In local development, start the worker pool alongside the app:
+
+```bash
+bundle exec resque-pool
+```
+
+This matches the project worker definition in [Procfile](Procfile), which runs:
+
+```bash
+FORK_PER_JOB=false INTERVAL=0.1 bundle exec resque-pool
+```
+
 For the runtime environment variables and Docker deployment examples, see [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md).
 
 Then open:

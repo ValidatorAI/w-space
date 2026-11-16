@@ -3,15 +3,27 @@ production:
     class: FileReservationCleanupJob
     queue: default
     schedule: every minute
+  output_events_reconcile_dispatches:
+    class: OutputEvents::ReconcileDispatchesJob
+    queue: default
+    schedule: every 2 minutes
 
 development:
   file_reservation_cleanup:
     class: FileReservationCleanupJob
     queue: default
     schedule: every minute
+  output_events_reconcile_dispatches:
+    class: OutputEvents::ReconcileDispatchesJob
+    queue: default
+    schedule: every 2 minutes
 
 test:
   file_reservation_cleanup:
     class: FileReservationCleanupJob
     queue: default
     schedule: every minute
+  output_events_reconcile_dispatches:
+    class: OutputEvents::ReconcileDispatchesJob
+    queue: default
+    schedule: every 2 minutes
