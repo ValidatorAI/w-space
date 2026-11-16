@@ -51,6 +51,20 @@ class FileReservation < ApplicationRecord
 
   private
 
+  def reservation_event_data
+    {
+      patterns: Array(patterns).join(", "),
+      agent_name: reservation_agent_name
+    }
+  end
+
+  def reservation_agent_name
+    holder&.effective_display_name.presence ||
+      holder&.display_name.presence ||
+      holder&.name.presence ||
+      "Unknown agent"
+  end
+
   def set_default_expiry
     self.expires_at ||= 1.hour.from_now
   end
@@ -79,7 +93,7 @@ class FileReservation < ApplicationRecord
       room: project.project_room,
       type: :reservation_acquired,
       mirror_to_meta: false,
-      data: { patterns: Array(patterns).join(", ") }
+      data: reservation_event_data
     )
   end
 
@@ -90,7 +104,7 @@ class FileReservation < ApplicationRecord
       room: project.project_room,
       type: :reservation_released,
       mirror_to_meta: false,
-      data: { patterns: Array(patterns).join(", ") }
+      data: reservation_event_data
     )
   end
 end

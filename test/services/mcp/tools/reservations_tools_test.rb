@@ -42,6 +42,38 @@ class ReservationsToolsTest < ActiveSupport::TestCase
     assert_includes payload[:content].first[:text], @holder.name
   end
 
+  test "reserve_file success path returns success JSON and does not raise on project-room broadcasts" do
+    @project.ensure_project_room!
+
+    reserve_tool = Mcp::Registry.find_tool("reserve_file", scope: :action)
+    payload = reserve_tool.call(
+      project_id: @project.id,
+      patterns: ["app/models/*.rb"],
+      user_name: @holder.name,
+      reason: "Competing edit"
+    )
+
+    assert_equal false, payload[:isError]
+    body = JSON.parse(payload[:content].first[:text])
+    assert_equal ["app/models/*.rb"], body["patterns"]
+    assert_equal @holder.name, body["holder"]["name"]
+
+    reservation = @project.file_reservations.last
+    renew_tool = Mcp::Registry.find_tool("renew_file_reservation", scope: :action)
+    renew_payload = renew_tool.call(
+      reservation_id: reservation.id,
+      user_name: @holder.name,
+      ttl_seconds: 900
+    )
+    assert_equal false, renew_payload[:isError]
+
+    release_tool = Mcp::Registry.find_tool("release_file_reservation", scope: :action)
+    release_payload = release_tool.call(reservation_id: reservation.id, user_name: @holder.name)
+    assert_equal false, release_payload[:isError]
+    release_body = JSON.parse(release_payload[:content].first[:text])
+    assert_equal "released", release_body["status"]
+  end
+
   test "renew_file_reservation enforces holder ownership and release_file_reservation is idempotent" do
     reservation = @project.file_reservations.create!(
       patterns: ["app/models/*.rb"],
