@@ -139,6 +139,20 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     assert appr.reload.approved?
   end
 
+  test "edit_approval_request routes through the shared decision flow and emits a decision event" do
+    req = @room.approval_requests.create!(request_type: "decision", payload: { "decision" => "Ship it" }, status: :pending)
+    tool = Mcp::Registry.find_tool("edit_approval_request", scope: :action)
+
+    assert_difference -> { OutputEvent.where(event_type: "decision_approved").count }, 1 do
+      result = tool.call(request_id: req.id, status: "approve", user_id: @user.id, note: "Approved by MCP")
+      assert_equal false, result[:isError]
+    end
+
+    assert req.reload.approved?
+    assert_equal @user.id, req.resolved_by_id
+    assert_equal "decision_approved", OutputEvent.order(:created_at).last.event_type
+  end
+
   test "project wrappers and room/actor guardrails behave correctly" do
     project = Project.create!(name: "MCP Project Wrapper", path: "/tmp/mcp-project-wrapper", slug: "mcp-project-wrapper")
     room = project.rooms.create!(type: "Rooms::Open", name: "Wrapper Room", creator: @user)

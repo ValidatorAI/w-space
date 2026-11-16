@@ -58,13 +58,23 @@ module Api
       return unless approval_request
 
       update_attrs = approval_request_params.to_h
-      update_attrs[:resolved_at] = Time.current if status_resolved?(update_attrs[:status]) && approval_request.resolved_at.blank?
+      decision = decision_from_update_attrs(update_attrs)
+      actor = resolve_decision_actor(update_attrs)
 
-      approval_request.update!(update_attrs)
+      if decision.present?
+        approval_request = ApprovalFlow.decide!(approval_request, actor, decision: decision, note: update_attrs[:note], force: force_decision?(update_attrs))
+        render json: serialize(approval_request).merge("echo_message_id" => approval_request.echo_message_id)
+        return
+      end
+
+      update_attrs[:resolved_at] = Time.current if status_resolved?(update_attrs[:status]) && approval_request.resolved_at.blank?
+      approval_request.update!(update_attrs.except(:decision, :note, :user_id, :force))
       broadcast_after_update(approval_request)
 
       render json: serialize(approval_request)
     rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    rescue ArgumentError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
@@ -98,13 +108,36 @@ module Api
 
     def approval_request_params
       params.permit(
-        :message_id, :request_type, :status, :requested_at, :resolved_at, :resolved_by_id,
+        :message_id, :request_type, :status, :requested_at, :resolved_at, :resolved_by_id, :user_id,
+        :decision, :note, :force,
         payload: {}
       )
     end
 
     def status_resolved?(status)
       status.to_s.present? && ApprovalRequest.statuses.key?(status.to_s) && status.to_s != "pending"
+    end
+
+    def decision_from_update_attrs(update_attrs)
+      decision = update_attrs[:decision].presence || update_attrs[:status].presence
+      return nil if decision.blank?
+
+      normalized = decision.to_s.downcase
+      return normalized if ApprovalFlow::DECISIONS.key?(normalized)
+      return "approve" if normalized == "approved"
+      return "confirm" if normalized == "confirmed"
+      return "deny" if normalized == "denied"
+      return "cancel" if normalized == "canceled" || normalized == "cancelled"
+
+      nil
+    end
+
+    def resolve_decision_actor(update_attrs)
+      User.find_by(id: update_attrs[:user_id] || update_attrs[:resolved_by_id]) || Current.user
+    end
+
+    def force_decision?(update_attrs)
+      ActiveModel::Type::Boolean.new.cast(update_attrs[:force])
     end
 
     def serialize(approval_request)
