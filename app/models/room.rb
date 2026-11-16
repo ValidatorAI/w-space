@@ -145,6 +145,15 @@ class Room < ApplicationRecord
     memberships.includes(:participant).map(&:participant)
   end
 
+  def member?(user)
+    return false if user.blank?
+
+    resolved_user = user.is_a?(User) ? user : User.find_by(id: user)
+    return false if resolved_user.nil?
+
+    memberships.exists?(participant_type: "User", participant_id: resolved_user.id)
+  end
+
   private
     def topic_tree_node(room_node)
       {

@@ -77,6 +77,7 @@ module Api
 
       user = User.find_by(id: params[:user_id])
       return render json: { error: "User not found" }, status: :not_found unless user
+      return render json: { error: "Forbidden" }, status: :forbidden unless room.member?(user)
 
       body = params[:body].presence
       attachment = params[:attachment].presence

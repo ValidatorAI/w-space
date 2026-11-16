@@ -333,6 +333,7 @@ module Mcp
 
           sender = resolve_sender(args, project: project)
           return failure("Sender (user or bot) not found") unless sender
+          return failure("Forbidden") unless room.member?(sender)
 
           message = room.messages.create!(
             body: args[:body],
@@ -433,6 +434,9 @@ module Mcp
           return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
+          return failure("Sender (user or bot) not found") unless sender
+          return failure("Forbidden") unless room.member?(sender)
+
           body_text = "#{LOADING_PREFIX} #{args[:body]}".strip
 
           msg = room.messages.create!(

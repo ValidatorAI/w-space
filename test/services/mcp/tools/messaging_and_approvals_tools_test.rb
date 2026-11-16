@@ -8,6 +8,7 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     @user = User.create!(name: "carol", display_name: "Carol Danvers", email_address: "carol@example.com", role: :member)
     @project = Project.create!(name: "Project Gamma", path: "/path/gamma", slug: "gamma")
     @room = Rooms::Open.create!(name: "General Room", creator: @user, project: @project)
+    @room.memberships.grant_to([@user])
   end
 
   test "message lifecycle and loading message" do
@@ -185,6 +186,8 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
   test "message creation resolves a profile-backed bot sender by profile name" do
     profile = AiProfile.create!(profile_name: "w_ai", bot: true, bot_name: "W Ai")
     AiProfiles::BotSync.call(profile: profile, previous_bot: false, previous_bot_name: nil)
+    bot_user = User.bot.find_by!(name: "W Ai")
+    @room.memberships.grant_to([bot_user])
     add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
 
     res = add_msg.call(room_id: @room.id, user_name: "w_ai", body: "Ping from the bot profile")
@@ -199,6 +202,17 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
       res = add_msg.call(room_id: @room.id, user_name: "missing-bot-user", body: "This should be rejected")
       assert_equal true, res[:isError]
       assert_includes res[:content].first[:text], "Sender (user or bot) not found"
+    end
+  end
+
+  test "add message rejects non-members before creating a message" do
+    outsider = User.create!(name: "outsider", display_name: "Outsider", email_address: "outsider@example.com", role: :member)
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    assert_no_difference("Message.count") do
+      res = add_msg.call(room_id: @room.id, user_id: outsider.id, body: "Forbidden MCP post")
+      assert_equal true, res[:isError]
+      assert_includes res[:content].first[:text], "Forbidden"
     end
   end
 
