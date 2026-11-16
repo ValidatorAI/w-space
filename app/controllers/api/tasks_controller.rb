@@ -29,26 +29,25 @@ module Api
       task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
+      attrs = task_params
       if params.key?(:dispatch_attempts)
         parsed_attempts = parse_dispatch_attempts!(params[:dispatch_attempts])
         return render json: { error: "dispatch_attempts must be an integer between 0 and #{AiTask::MAX_DISPATCH_ATTEMPTS}" }, status: :unprocessable_entity unless parsed_attempts
 
-        task_params_with_reset = task_params
         if parsed_attempts.zero?
-          task_params_with_reset[:dispatched] = false
-          task_params_with_reset[:finished] = false
-          task_params_with_reset[:dispatch_error] = nil
+          attrs[:dispatched] = false
+          attrs[:finished] = false
+          attrs[:dispatch_error] = nil
         end
-
-        if task.update(task_params_with_reset)
-          render json: serialize(task.reload)
-        else
-          render json: { error: task.errors.full_messages.to_sentence }, status: :unprocessable_entity
-        end
-        return
+      else
+        attrs.delete(:dispatch_attempts)
       end
 
-      if task.update(task_params)
+      if AiTask.finished_task_update_blocked?(task, attrs)
+        return render json: { error: "Finished tasks are frozen: cost and lifecycle fields cannot be changed after completion" }, status: :unprocessable_entity
+      end
+
+      if task.update(attrs)
         render json: serialize(task.reload)
       else
         render json: { error: task.errors.full_messages.to_sentence }, status: :unprocessable_entity
@@ -67,8 +66,14 @@ module Api
       task = AiTask.find_by(id: params[:task_id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
+      if task.finished?
+        return render json: { error: "Finished tasks are frozen: cost fields cannot be changed after completion" }, status: :unprocessable_entity
+      end
+
       task.apply_task_cost!(params[:token_used], params[:usd_used])
       render json: serialize(task)
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def children

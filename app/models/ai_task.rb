@@ -45,7 +45,24 @@ class AiTask < ApplicationRecord
     json
   end
 
+  def self.finished_task_update_blocked?(task, attrs)
+    return false unless task.present? && task.finished?
+    return false if attrs.blank?
+
+    cost_fields = attrs.slice(:token_used, :usd_used, :token_budget, :usd_budget)
+    return true if cost_fields.present?
+
+    lifecycle_fields = attrs.slice(:dispatched, :dispatch_attempts, :runned, :added_to_kanban)
+    return false if attrs.key?(:finished)
+
+    lifecycle_fields.present?
+  end
+
   def apply_task_cost!(new_token_used, new_usd_used)
+    if finished?
+      raise ArgumentError, "Finished tasks are frozen: cost fields cannot be changed after completion"
+    end
+
     old_token_used = token_used.to_i
     old_usd_used = usd_used.to_f
     next_token_used = new_token_used.nil? ? old_token_used : new_token_used.to_i

@@ -45,6 +45,28 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_in_delta 0.05, parent.usd_used, 0.001
   end
 
+  test "task_cost rejects writes on finished tasks and leaves lifecycle state unchanged" do
+    task = AiTask.create!(
+      description: "Closed MCP task",
+      project: @project,
+      token_used: 10,
+      usd_used: 2.5,
+      finished: true,
+      dispatched: true
+    )
+
+    cost_tool = Mcp::Registry.find_tool("task_cost", scope: :task)
+    result = cost_tool.call(task_id: task.id, token_used: 99, usd_used: 42.5)
+
+    assert_equal true, result[:isError]
+    assert_match(/finished|frozen|cost/i, result[:content].first[:text])
+
+    task.reload
+    assert_equal true, task.finished
+    assert_equal 10, task.token_used
+    assert_in_delta 2.5, task.usd_used, 0.01
+  end
+
   test "task context fields are split between proposal and actual execution" do
     create_task = Mcp::Registry.find_tool("create_task", scope: :task)
     create_result = create_task.call(

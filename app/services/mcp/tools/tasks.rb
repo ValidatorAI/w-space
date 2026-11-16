@@ -264,6 +264,10 @@ module Mcp
           task = AiTask.find(args[:task_id])
           attrs = {}
 
+          if AiTask.finished_task_update_blocked?(task, args)
+            raise ArgumentError, "Finished tasks are frozen: cost and lifecycle fields cannot be changed after completion"
+          end
+
           project = args[:project_id].present? ? resolve_project(args) : nil
           if args[:project_id].present? && project.nil?
             raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}"
@@ -409,6 +413,10 @@ module Mcp
 
         def execute(args)
           task = AiTask.find(args[:task_id])
+          if task.finished?
+            raise ArgumentError, "Finished tasks are frozen: cost fields cannot be changed after completion"
+          end
+
           task.apply_task_cost!(args[:token_used], args[:usd_used])
           success(task.as_json)
         end
