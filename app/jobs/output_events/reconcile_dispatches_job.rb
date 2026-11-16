@@ -4,13 +4,13 @@ module OutputEvents
 
     DEFAULT_LOOKBACK = 15.minutes
     MIN_STALE_AGE = 30.seconds
+    ORPHAN_BATCH_SIZE = 50
 
     def perform(max_age: nil)
       lookback_window = (max_age || Hermes.configuration.event_recovery_max_age_seconds.seconds)
       cutoff = Time.current - lookback_window
       stale_threshold = Time.current - MIN_STALE_AGE
 
-      # 1. Query Hermes Gateway health status
       hermes_client = Hermes::Client.new
       hermes_status = begin
         hermes_client.api_status_summary
@@ -20,15 +20,13 @@ module OutputEvents
       end
       Rails.logger.info("[OutputEvents::ReconcileDispatchesJob] Hermes status: #{hermes_status.to_json}")
 
-      # Check throttle threshold
       max_active_agents = Hermes.configuration.max_active_agents
       active_agents = hermes_status["active_agents"].to_i
       if active_agents >= max_active_agents && max_active_agents > 0
         Rails.logger.warn("[OutputEvents::ReconcileDispatchesJob] Skipping dispatch reconciliation: active_agents=#{active_agents} >= threshold=#{max_active_agents}")
-        return { reconciled_count: 0, throttled: true, hermes_status: hermes_status }
+        return { reconciled_count: 0, throttled: true, hermes_status: hermes_status, orphan_requeued_count: 0 }
       end
 
-      # 2. Find stale pending, deferred, or dispatching groups to re-drive
       stale_groups = OutputEventDispatchGroup
         .where(status: %w[pending deferred_merge_window dispatching])
         .where("created_at >= ? AND created_at <= ?", cutoff, stale_threshold)
@@ -69,7 +67,8 @@ module OutputEvents
         end
       end
 
-      # 3. Mark groups older than lookback cutoff as failed/expired
+      orphan_requeued_ids = recover_orphans(cutoff, limit: ORPHAN_BATCH_SIZE)
+
       expired_count = 0
       OutputEventDispatchGroup
         .where(status: %w[pending deferred_merge_window dispatching])
@@ -82,16 +81,42 @@ module OutputEvents
           expired_count += 1
         end
 
-      Rails.logger.info("[OutputEvents::ReconcileDispatchesJob] Reconciled #{reconciled.size} group(s), expired #{expired_count} group(s)")
+      Rails.logger.info("[OutputEvents::ReconcileDispatchesJob] Reconciled #{reconciled.size} group(s), orphaned #{orphan_requeued_ids.size} event(s), expired #{expired_count} group(s)")
       {
         reconciled_count: reconciled.size,
         reconciled_group_ids: reconciled,
+        orphan_requeued_count: orphan_requeued_ids.size,
+        orphan_requeued_ids: orphan_requeued_ids,
         expired_count: expired_count,
         hermes_status: hermes_status
       }
     end
 
     private
+
+    def recover_orphans(_cutoff, limit: ORPHAN_BATCH_SIZE)
+      OutputEvent
+        .where(synced: false)
+        .where("created_at <= ?", Time.current - MIN_STALE_AGE)
+        .where("updated_at <= ?", Time.current - MIN_STALE_AGE)
+        .order(:created_at, :id)
+        .limit(limit)
+        .filter_map do |event|
+          next if dispatch_group_references_event?(event)
+
+          event.touch(:updated_at)
+          ProcessAndDispatchJob.perform_later(event.id)
+          event.id
+        end
+    end
+
+    def dispatch_group_references_event?(event)
+      return false if event.blank?
+      return true if OutputEventDispatchGroup.exists?(lead_output_event_id: event.id)
+      return false if event.group_id.blank?
+
+      OutputEventDispatchGroup.where("dedupe_key LIKE ?", "%#{event.group_id}%").exists?
+    end
 
     def parse_group_result(group)
       return {} if group.blank? || group.result.blank?

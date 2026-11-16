@@ -112,6 +112,83 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
     end
   end
 
+  test "re-enqueues orphan unsynced events with no dispatch group after the settle window" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 506,
+      group_id: "grp-orphan-1",
+      event_data: { "room_id" => 1, "message_id" => 506, "content" => "orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id]) do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "ignores orphan unsynced events younger than the settle window" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 507,
+      group_id: "grp-orphan-young",
+      event_data: { "room_id" => 1, "message_id" => 507, "content" => "young orphan" },
+      synced: false,
+      created_at: 10.seconds.ago,
+      updated_at: 10.seconds.ago
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "does not re-enqueue orphan events while Hermes is busy" do
+    stub_request(:get, "http://127.0.0.1:9119/api/status")
+      .to_return(
+        status: 200,
+        body: { "gateway_busy" => true, "active_agents" => 3, "active_sessions" => 5, "overall" => "busy" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 508,
+      group_id: "grp-orphan-busy",
+      event_data: { "room_id" => 1, "message_id" => 508, "content" => "busy orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "two sweeps do not double-enqueue the same orphan event" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 509,
+      group_id: "grp-orphan-dup",
+      event_data: { "room_id" => 1, "message_id" => 509, "content" => "dup orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id]) do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
   test "throttles when active_agents exceeds threshold" do
     stub_request(:get, "http://127.0.0.1:9119/api/status")
       .to_return(
