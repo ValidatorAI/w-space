@@ -119,10 +119,22 @@ fi
 } > "$OUT/distribution.yaml"
 
 # ---- 5. README ----
+README_SRC="$SRC"
+case "$SRC" in
+  */.hermes*)
+    README_SRC="${SRC#*"/.hermes"}"
+    README_SRC="/.hermes$README_SRC"
+    ;;
+  */profiles/*)
+    README_SRC="${SRC#*/profiles}"
+    README_SRC="/profiles$README_SRC"
+    ;;
+esac
+
 cat > "$OUT/README.md" <<EOF
 # $PROFILE — Hermes profile distribution
 
-Generated $(date -Is) from $SRC by to-profile-dist.sh.
+Generated $(date -Is) from $README_SRC by to-profile-dist.sh.
 
 Install on any machine:
     hermes profile install $( [ -n "$REMOTE" ] && echo "<this-repo-git-url>" || echo "git@...:USER/$PROFILE.git" )
@@ -158,9 +170,17 @@ else
 fi
 [ -n "$LEAK" ] && warn "possible secret VALUES in: $(echo "$LEAK" | tr '\n' ' ') — grep them before pushing!"
 
-ARCH_SK=$(find "$SRC/skills/.archive" -name SKILL.md 2>/dev/null | wc -l)
+if [ -d "$SRC/skills/.archive" ]; then
+  ARCH_SK=$(find "$SRC/skills/.archive" -name SKILL.md 2>/dev/null | wc -l)
+else
+  ARCH_SK=0
+fi
 SIZE=$(du -sh "$OUT" | cut -f1)
-SKILLS=$(find "$OUT/skills" -name SKILL.md 2>/dev/null | wc -l)
+if [ -d "$OUT/skills" ]; then
+  SKILLS=$(find "$OUT/skills" -name SKILL.md 2>/dev/null | wc -l)
+else
+  SKILLS=0
+fi
 echo "distribution ready: $OUT ($SIZE, $SKILLS skills)"
 [ "$ARCH_SK" -gt 0 ] && echo "note: $ARCH_SK archived skills (skills/.archive/) intentionally not shipped — the installer cannot write skills/.* entries"
 echo "manifest:"; sed -n '1,4p' "$OUT/distribution.yaml" | sed 's/^/  /'
