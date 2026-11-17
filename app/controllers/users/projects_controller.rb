@@ -149,14 +149,9 @@ class Users::ProjectsController < ApplicationController
   end
 
   def knowledge_file
-    path_param = params[:path].to_s
     item_id = params[:item_id]
-
     directory_item = if item_id.present?
       @project.directory_items.find_by(id: item_id)
-    elsif path_param.present?
-      @project.directory_items.find_by(file_path: path_param) ||
-        @project.directory_items.find_by(name: path_param)
     end
 
     if directory_item&.content.present?
@@ -182,7 +177,12 @@ class Users::ProjectsController < ApplicationController
       return
     end
 
-    target_rel = directory_item&.file_path.presence || directory_item&.relative_path || path_param
+    return head :not_found unless directory_item.present?
+    return head :not_found if item_id.blank?
+
+    target_rel = directory_item.file_path.presence || directory_item.relative_path
+    return head :not_found if target_rel.blank?
+
     file_path = ProjectKnowledge.safe_resolve_path(@project, target_rel)
 
     unless file_path && File.file?(file_path)

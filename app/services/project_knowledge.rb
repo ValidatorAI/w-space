@@ -66,7 +66,16 @@ class ProjectKnowledge
         underline: true
       })
 
-      markdown.render(text.to_s)
+      rendered = markdown.render(text.to_s)
+      rendered = rendered.to_s.gsub(/javascript\s*:/i, "")
+      rendered = rendered.gsub(/on\w+\s*=\s*["'][^"']*["']/i, "")
+
+      allowed_tags = %w[
+        h1 h2 h3 h4 h5 h6 p br ul ol li blockquote pre code strong em a table thead tbody tr th td img
+      ]
+      allowed_attrs = %w[href src alt title target rel]
+
+      ActionController::Base.helpers.sanitize(rendered, tags: allowed_tags, attributes: allowed_attrs)
     end
 
     private

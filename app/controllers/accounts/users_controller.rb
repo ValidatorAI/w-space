@@ -66,9 +66,14 @@ class Accounts::UsersController < ApplicationController
     end
 
     def role_params
-      raw = params.require(:user).permit(:role)
-      role = raw[:role].to_s.strip
-      role.present? ? { role: role } : {}
+      payload = params.require(:user)
+      role = payload[:role].to_s.strip
+      return {} if role.blank?
+
+      valid_roles = User.roles.keys
+      return {} unless valid_roles.include?(role)
+
+      { role: role }
     end
 
     def create_user_params

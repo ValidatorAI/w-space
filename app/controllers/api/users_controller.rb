@@ -63,7 +63,13 @@ module Api
       end
 
       def user_params
-        params.fetch(:user, params).permit(:name, :display_name, :email_address, :password, :role)
+        payload = params.fetch(:user, params)
+        attrs = payload.to_h.slice("name", "display_name", "email_address", "password")
+
+        role_value = payload[:role].to_s.strip
+        attrs["role"] = role_value if role_value.present? && User.roles.key?(role_value)
+
+        attrs.with_indifferent_access
       end
   end
 end

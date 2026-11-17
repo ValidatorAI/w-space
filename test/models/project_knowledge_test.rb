@@ -169,4 +169,13 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_includes html, "<table>"
     assert_includes html, "<td>A</td>"
   end
+
+  test "sanitizes unsafe HTML in rendered markdown" do
+    markdown_text = "# Hello\n\n<script>alert(1)</script>\n\n[bad](javascript:alert(1))"
+    html = ProjectKnowledge.render_markdown(markdown_text)
+
+    assert_includes html, "<h1>Hello</h1>"
+    assert_not_includes html, "<script"
+    assert_not_includes html, "javascript:"
+  end
 end
