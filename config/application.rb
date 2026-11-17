@@ -6,8 +6,8 @@ Bundler.require(*Rails.groups)
 
 module Space
   class Application < Rails::Application
-    # Initialize configuration defaults for the installed Rails release.
-    config.load_defaults 8.0
+    # Initialize configuration defaults for the app's supported Rails version.
+    config.load_defaults 8.2
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

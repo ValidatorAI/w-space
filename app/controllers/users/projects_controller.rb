@@ -177,10 +177,12 @@ class Users::ProjectsController < ApplicationController
       return
     end
 
-    return head :not_found unless directory_item.present?
-    return head :not_found if item_id.blank?
+    target_rel = if directory_item.present?
+      directory_item.file_path.presence || directory_item.relative_path
+    else
+      params[:path].presence
+    end
 
-    target_rel = directory_item.file_path.presence || directory_item.relative_path
     return head :not_found if target_rel.blank?
 
     file_path = ProjectKnowledge.safe_resolve_path(@project, target_rel)

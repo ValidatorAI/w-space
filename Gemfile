@@ -3,7 +3,8 @@ source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # Rails
-gem "rails", "~> 8.0.2"
+# The app was generated against the Rails 8.2-era API surface, which is only available on the upstream main branch in this environment.
+gem "rails", github: "rails/rails", branch: "main"
 gem "ostruct"
 gem "benchmark"
 
