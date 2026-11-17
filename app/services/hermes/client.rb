@@ -227,12 +227,10 @@ module Hermes
       http.use_ssl = (url.scheme == "https")
       http.open_timeout = timeout
       http.read_timeout = timeout
-      
-      # CRITICAL FIX: disable keep-alive to prevent Ruby's persistent
-      # HTTP connection pool from reusing stale/timed-out sockets left
-      # by crashed/dispatch-failed ActiveJobs. Each agent delegation
-      # gets a clean TCP handshake to fail fast instead of hanging.
-      http.keep_alive = false
+
+      # Force a fresh connection for each outbound request so stale sockets
+      # from failed dispatch jobs do not get reused and hang the request loop.
+      req["Connection"] = "close"
 
       response = http.request(req)
       unless response.is_a?(Net::HTTPSuccess)
