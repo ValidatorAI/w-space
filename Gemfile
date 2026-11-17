@@ -11,6 +11,7 @@ gem "benchmark"
 # Drivers
 gem "sqlite3"
 gem "redis", "~> 5.4"
+gem "redis-client", ">= 0.28.0"
 
 # Deployment
 gem "puma", "~> 6.6"

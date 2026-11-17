@@ -284,7 +284,7 @@ GEM
     redcarpet (3.6.1)
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.25.2)
+    redis-client (0.31.0)
       connection_pool
     redis-namespace (1.11.0)
       redis (>= 4)
@@ -428,6 +428,7 @@ DEPENDENCIES
   rails_autolink
   redcarpet
   redis (~> 5.4)
+  redis-client (>= 0.28.0)
   resque (~> 2.7.0)
   resque-pool (~> 0.7.1)
   rqrcode
