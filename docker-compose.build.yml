@@ -26,8 +26,8 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: pwrwork/space:local
+      dockerfile: ${APP_DOCKERFILE:-Dockerfile}
+    image: ${APP_IMAGE:-pwrwork/space:local}
     container_name: pwr-space
     depends_on:
       - hermes
