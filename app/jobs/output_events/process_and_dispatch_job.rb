@@ -136,7 +136,7 @@ module OutputEvents
           profile: target_profile,
           files: files.presence
         )
-      rescue Hermes::Client::HttpError => e
+      rescue Hermes::Client::HttpError, IOError => e
         Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch failed: #{e.class.name}: #{e.message}")
 
         sibling_events.each { |ev| ev.update_columns(synced: false) }
