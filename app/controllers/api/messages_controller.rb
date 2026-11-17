@@ -72,17 +72,16 @@ module Api
 
     def create
       project = find_project(params[:project_id])
-      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
-      return render json: { error: "Room not found" }, status: :not_found unless room
-
       user = User.find_by(id: params[:user_id])
       return render json: { error: "User not found" }, status: :not_found unless user
-      return render json: { error: "Forbidden" }, status: :forbidden unless room.member?(user)
 
       body = params[:body].presence
       attachment = params[:attachment].presence
       message_mode = params[:mode].presence
       return render json: { error: "Provide at least one of: body, attachment" }, status: :bad_request unless body || attachment
+
+      room = project.present? ? find_room(project, params[:room_id]) : find_room(params[:room_id])
+      return render json: MessagePostingAuthorization.forbidden_response, status: :forbidden unless MessagePostingAuthorization.allowed?(room: room, actor: user)
 
       message = room.messages.create_with_attachment!(
         body: body, attachment: attachment, creator: user, client_message_id: SecureRandom.uuid

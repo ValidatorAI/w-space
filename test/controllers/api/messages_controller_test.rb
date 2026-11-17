@@ -80,17 +80,19 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal users(:jason).id, body["creator_id"]
   end
 
-  test "rejects a non-member posting to a room with a generic forbidden response" do
+  test "rejects non-member message posts identically for existing and missing rooms" do
     outsider = User.create!(name: "outsider", display_name: "Outsider", email_address: "outsider@example.com", role: :member)
 
-    assert_no_difference -> { Message.count } do
-      post api_room_messages_url(@room.id),
-        params: { user_id: outsider.id, body: "You shall not post" },
-        headers: { "Authorization" => "Bearer test-token" }
-    end
+    [@room.id, 999_999].each do |room_id|
+      assert_no_difference -> { Message.count } do
+        post api_room_messages_url(room_id),
+          params: { user_id: outsider.id, body: "You shall not post" },
+          headers: { "Authorization" => "Bearer test-token" }
+      end
 
-    assert_response :forbidden
-    assert_equal "Forbidden", JSON.parse(response.body)["error"]
+      assert_response :forbidden
+      assert_equal({ "error" => "Not allowed" }, JSON.parse(response.body))
+    end
   end
 
   test "records the REST message event trio for message creation with attachment and ask mode" do
@@ -254,12 +256,13 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "returns not found when posting to an unknown room" do
+  test "returns a generic forbidden response when posting to an unknown room as a non-member" do
     post api_project_room_messages_url(@project.id, -1),
       params: { user_id: users(:jason).id, body: "Posted via API" },
       headers: { "Authorization" => "Bearer test-token" }
 
-    assert_response :not_found
+    assert_response :forbidden
+    assert_equal({ "error" => "Not allowed" }, JSON.parse(response.body))
   end
 
   test "updates a message body with a valid token" do

@@ -328,12 +328,11 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project)
-          return failure("Room not found: provide room_id or room_name") unless room
-
           sender = resolve_sender(args, project: project)
           return failure("Sender (user or bot) not found") unless sender
-          return failure("Forbidden") unless room.member?(sender)
+
+          room = resolve_room(args, project: project)
+          return failure("Not allowed") unless MessagePostingAuthorization.allowed?(room: room, actor: sender)
 
           message = room.messages.create!(
             body: args[:body],

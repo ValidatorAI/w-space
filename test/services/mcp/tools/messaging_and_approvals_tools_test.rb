@@ -219,14 +219,16 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     end
   end
 
-  test "add message rejects non-members before creating a message" do
+  test "add message rejects non-members identically for existing and missing rooms" do
     outsider = User.create!(name: "outsider", display_name: "Outsider", email_address: "outsider@example.com", role: :member)
     add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
 
     assert_no_difference("Message.count") do
-      res = add_msg.call(room_id: @room.id, user_id: outsider.id, body: "Forbidden MCP post")
-      assert_equal true, res[:isError]
-      assert_includes res[:content].first[:text], "Forbidden"
+      [@room.id, 999_999].each do |room_id|
+        res = add_msg.call(room_id: room_id, user_id: outsider.id, body: "Forbidden MCP post")
+        assert_equal true, res[:isError]
+        assert_equal "Not allowed", res[:content].first[:text]
+      end
     end
   end
 
