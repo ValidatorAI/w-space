@@ -114,6 +114,8 @@ class AiTask < ApplicationRecord
       title: title,
       meta_text: "Dispatch error: #{error_message}",
       status: :pending,
+      room_id: room_id,
+      project_id: project_id,
       source: self
     }
 

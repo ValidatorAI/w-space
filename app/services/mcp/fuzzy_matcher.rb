@@ -34,7 +34,9 @@ module Mcp
       return Project.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
       exact = Project.where(name: query).order(created_at: :desc, id: :desc).first
-      exact ||= Project.where(slug: query).order(created_at: :desc, id: :desc).first
+      if Project.column_names.include?("slug")
+        exact ||= Project.where(slug: query).order(created_at: :desc, id: :desc).first
+      end
       return exact if exact.present?
 
       best_record = nil
@@ -63,7 +65,9 @@ module Mcp
       scope = scope.where(project_id: project_id) if project_id.present?
 
       exact = scope.where(name: query).order(created_at: :desc, id: :desc).first
-      exact ||= scope.where(slug: query).order(created_at: :desc, id: :desc).first
+      if scope.model.column_names.include?("slug")
+        exact ||= scope.where(slug: query).order(created_at: :desc, id: :desc).first
+      end
       return exact if exact.present?
 
       best_record = nil

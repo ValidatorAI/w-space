@@ -32,7 +32,7 @@ class Accounts::UsersController < ApplicationController
   end
 
   def update
-    UserAdminService.update(@user, role_params)
+    UserAdminService.update(@user, user_update_params)
     redirect_after_member_change
   rescue UserAdminService::ValidationError => e
     redirect_after_member_change(alert: e.record.errors.full_messages.to_sentence.presence || "Invalid user")
@@ -65,15 +65,17 @@ class Accounts::UsersController < ApplicationController
       params[:return_to] == "company_settings" && params[:modal_source] == "company_add_user_modal"
     end
 
-    def role_params
+    def user_update_params
       payload = params.require(:user)
-      role = payload[:role].to_s.strip
-      return {} if role.blank?
+      attrs = payload.permit(:name, :display_name, :email_address, :password, :role).to_h.with_indifferent_access
+      role = attrs[:role].to_s.strip
 
-      valid_roles = User.roles.keys
-      return {} unless valid_roles.include?(role)
+      if role.present?
+        return attrs if User.roles.key?(role)
+      end
 
-      { role: role }
+      attrs.delete(:role)
+      attrs.compact_blank
     end
 
     def create_user_params

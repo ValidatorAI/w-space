@@ -3,8 +3,37 @@ require "test_helper"
 class HermesConfigurationTest < ActiveSupport::TestCase
   self.fixture_table_names = []
 
+  setup do
+    %w[
+      HERMES_BASE_URI
+      HERMES_STATUS_URI
+      HERMES_MODEL
+      HERMES_DEFAULT_PROFILE
+      HERMES_HTTP_TIMEOUT
+      HERMES_DISPATCH_TIMEOUT
+      HERMES_MAX_ACTIVE_AGENTS
+      EVENT_MERGE_SETTLE_SECONDS
+      EVENT_RECOVERY_MAX_AGE_SECONDS
+      HERMES_EVENT_MAX_ATTACHMENTS
+      HERMES_EVENT_MAX_ATTACHMENT_BYTES
+    ].each { |key| ENV.delete(key) }
+  end
+
   teardown do
     Hermes.reset_configuration!
+    %w[
+      HERMES_BASE_URI
+      HERMES_STATUS_URI
+      HERMES_MODEL
+      HERMES_DEFAULT_PROFILE
+      HERMES_HTTP_TIMEOUT
+      HERMES_DISPATCH_TIMEOUT
+      HERMES_MAX_ACTIVE_AGENTS
+      EVENT_MERGE_SETTLE_SECONDS
+      EVENT_RECOVERY_MAX_AGE_SECONDS
+      HERMES_EVENT_MAX_ATTACHMENTS
+      HERMES_EVENT_MAX_ATTACHMENT_BYTES
+    ].each { |key| ENV.delete(key) }
   end
 
   test "has expected default configuration" do

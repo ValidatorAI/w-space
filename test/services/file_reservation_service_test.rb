@@ -45,10 +45,11 @@ class FileReservationServiceTest < ActiveSupport::TestCase
       holder: @holder,
       expires_at: 1.minute.from_now
     )
+    original_expiry = reservation.expires_at
 
     renewed = FileReservationService.renew(reservation: reservation, holder: @holder, ttl_seconds: 900)
     assert_equal reservation.id, renewed.id
-    assert renewed.expires_at > reservation.expires_at
+    assert renewed.expires_at > original_expiry
 
     assert_raises(FileReservationService::ForbiddenError) do
       FileReservationService.renew(reservation: reservation, holder: @other, ttl_seconds: 900)
