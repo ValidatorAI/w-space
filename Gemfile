@@ -3,7 +3,7 @@ source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # Rails
-gem "rails", github: "rails/rails", branch: "main"
+gem "rails", "~> 8.0.2"
 gem "ostruct"
 gem "benchmark"
 
@@ -19,11 +19,11 @@ gem "resque", "~> 2.7.0"
 gem "resque-pool", "~> 0.7.1"
 
 # Assets
-gem "propshaft", github: "rails/propshaft"
-gem "importmap-rails", github: "rails/importmap-rails"
+gem "propshaft", "~> 1.2.1"
+gem "importmap-rails", "~> 2.2.2"
 
 # Hotwire
-gem "turbo-rails", github: "hotwired/turbo-rails"
+gem "turbo-rails", "~> 2.0.16"
 gem "stimulus-rails"
 
 # Media handling
