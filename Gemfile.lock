@@ -145,6 +145,7 @@ GEM
     erubi (1.13.1)
     faker (3.5.2)
       i18n (>= 1.8.11, < 2)
+    ffi (1.17.2)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
@@ -155,6 +156,7 @@ GEM
     globalid (1.4.0)
       activesupport (>= 6.1)
     hashdiff (1.2.0)
+    herb (0.11.2)
     herb (0.11.2-aarch64-linux-gnu)
     herb (0.11.2-arm64-darwin)
     herb (0.11.2-x86_64-darwin)
@@ -200,6 +202,7 @@ GEM
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
+    mini_portile2 (2.8.9)
     minitest (5.26.2)
     mocha (2.7.1)
       ruby2_keywords (>= 0.0.5)
@@ -219,6 +222,9 @@ GEM
     net-smtp (0.5.2)
       net-protocol
     nio4r (2.7.5)
+    nokogiri (1.19.7)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
     nokogiri (1.19.7-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.7-arm64-darwin)
@@ -358,6 +364,8 @@ GEM
       rack-protection (= 4.1.1)
       rack-session (>= 2.0.0, < 3)
       tilt (~> 2.0)
+    sqlite3 (2.7.3)
+      mini_portile2 (~> 2.8.0)
     sqlite3 (2.7.3-aarch64-linux-gnu)
     sqlite3 (2.7.3-arm64-darwin)
     sqlite3 (2.7.3-x86_64-darwin)
@@ -366,6 +374,7 @@ GEM
       railties (>= 6.0.0)
     stringio (3.1.8)
     thor (1.4.0)
+    thruster (0.1.15)
     thruster (0.1.15-aarch64-linux)
     thruster (0.1.15-arm64-darwin)
     thruster (0.1.15-x86_64-darwin)
@@ -402,6 +411,7 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin
+  ruby
   x86_64-darwin
   x86_64-linux
 

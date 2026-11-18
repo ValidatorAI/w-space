@@ -1,0 +1,67 @@
+ARG RUBY_VERSION=3.4.5
+
+# Build stage: normal shell-enabled Alpine Ruby image
+FROM ruby:${RUBY_VERSION}-alpine AS build
+
+WORKDIR /rails
+
+RUN apk add --no-cache \
+    bash \
+    curl \
+    tzdata \
+    redis \
+    ffmpeg \
+    jemalloc \
+    sqlite \
+    sqlite-dev \
+    vips \
+    vips-dev \
+    build-base \
+    git \
+    pkgconfig \
+    yaml-dev \
+    musl-dev
+
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development" \
+    BUNDLE_FORCE_RUBY_PLATFORM="1" \
+    LD_PRELOAD="/usr/lib/libjemalloc.so.2"
+
+COPY Gemfile Gemfile.lock vendor ./
+RUN bundle config set --local force_ruby_platform true && \
+    bundle config set --local build.sqlite3 "--with-sqlite3-dir=/usr" && \
+    bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
+
+COPY . .
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+
+# Final hardened runtime stage
+FROM 89.106.206.40:5000/ruby:3.4-alpine-dhio AS runtime
+
+WORKDIR /rails
+
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development" \
+    HTTP_IDLE_TIMEOUT=60 \
+    HTTP_READ_TIMEOUT=300 \
+    HTTP_WRITE_TIMEOUT=300 \
+    LD_PRELOAD="/usr/lib/libjemalloc.so.2"
+
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+# Use Ruby directly; avoid shell-based startup in the final hardened image
+ENTRYPOINT ["ruby", "bin/boot"]
+
+ARG OCI_DESCRIPTION
+LABEL org.opencontainers.image.description="${OCI_DESCRIPTION}"
+ARG OCI_SOURCE
+LABEL org.opencontainers.image.source="${OCI_SOURCE}"
+LABEL org.opencontainers.image.licenses="MIT"
+
+EXPOSE 80 443
