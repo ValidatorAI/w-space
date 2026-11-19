@@ -59,6 +59,10 @@ class DebugController < ApplicationController
       .compact
   end
 
+  def output_events
+    @output_events = OutputEvent.order(created_at: :desc, id: :desc).limit(200).to_a
+  end
+
   private
     def build_project_tool_log_groups(project)
       logs = ToolCalLog.includes(:room, :topic)

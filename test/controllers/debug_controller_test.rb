@@ -224,4 +224,23 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Second Topic"
     assert_operator response.body.index("First Topic"), :<, response.body.index("Second Topic")
   end
+
+  test "debug output events page is available when admin debug is enabled" do
+    sign_in :david
+
+    OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 42,
+      group_id: 99,
+      event_data: { "message" => "hello", "kind" => "debug" },
+      synced: false
+    )
+
+    get "/debug/output_events"
+
+    assert_response :ok
+    assert_includes response.body, "Output events debug"
+    assert_includes response.body, "message_created"
+    assert_includes response.body, "hello"
+  end
 end

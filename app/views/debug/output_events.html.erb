@@ -1,0 +1,71 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Output events debug</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      <%= link_to "Back to debug", debug_path %>
+    </p>
+  </header>
+
+  <section class="card debug-project debug-project--tool-log">
+    <div class="debug-project__header debug-project__header--tool-log">
+      <div>
+        <h2 class="h5 debug-project__title">Recent output events</h2>
+        <p class="debug-project__meta">Showing <%= @output_events.size %> most recent events</p>
+      </div>
+    </div>
+
+    <div class="debug-project__body debug-project__body--tool-log">
+      <% if @output_events.any? %>
+        <div class="debug-tool-log-hierarchy">
+          <% @output_events.each do |event| %>
+            <details class="debug-tool-log-section debug-tool-log-section--project">
+              <summary class="h6 debug-tool-log-section__title">
+                <span><%= event.event_type %></span>
+                <span class="debug-tool-log-group__count"><%= event.id %></span>
+              </summary>
+
+              <div class="debug-tool-log-section__body">
+                <div class="debug-list">
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Type</strong></div>
+                    <div class="debug-list-item__meta"><%= event.event_type %></div>
+                  </div>
+
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Event ID</strong></div>
+                    <div class="debug-list-item__meta"><%= event.event_id || "n/a" %></div>
+                  </div>
+
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Group ID</strong></div>
+                    <div class="debug-list-item__meta"><%= event.group_id || "n/a" %></div>
+                  </div>
+
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Synced</strong></div>
+                    <div class="debug-list-item__meta"><%= event.synced ? "true" : "false" %></div>
+                  </div>
+
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Created at</strong></div>
+                    <div class="debug-list-item__meta"><%= event.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                  </div>
+
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main"><strong>Payload</strong></div>
+                    <div class="debug-list-item__detail"><%= JSON.pretty_generate(event.event_data) %></div>
+                  </div>
+                </div>
+              </div>
+            </details>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="debug-empty">No output events found.</p>
+      <% end %>
+    </div>
+  </section>
+</main>
