@@ -144,5 +144,10 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "topic_scope_sync"
     assert_operator response.body.index("Project logs"), :<, response.body.index("Room logs")
     assert_operator response.body.index("Room logs"), :<, response.body.index("Topic logs")
+    assert_select "details.debug-tool-log-section--project", 1
+    assert_select "details.debug-tool-log-section--room", 1
+    assert_select "details.debug-tool-log-section--topic", 1
+    assert_select "details.debug-tool-log-group--room", 1
+    assert_select "details.debug-tool-log-group--topic", 1
   end
 end

@@ -290,16 +290,35 @@
   border-color: rgba(251, 146, 60, 0.38);
 }
 
-.debug-tool-log-section__title {
+.debug-tool-log-section__title,
+.debug-tool-log-group__header {
+  align-items: center;
   background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.debug-tool-log-section__title {
   margin: 0;
   padding: 0.7rem 0.9rem;
+}
+
+.debug-tool-log-section__title::-webkit-details-marker,
+.debug-tool-log-group__header::-webkit-details-marker {
+  display: none;
+}
+
+.debug-tool-log-section__body,
+.debug-tool-log-group__body {
+  padding: 0.9rem;
 }
 
 .debug-tool-log-groups {
   display: grid;
   gap: 0.75rem;
-  padding: 0.9rem;
 }
 
 .debug-tool-log-group {
@@ -319,11 +338,7 @@
 }
 
 .debug-tool-log-group__header {
-  align-items: center;
   background: rgba(255, 255, 255, 0.04);
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
   padding: 0.6rem 0.8rem;
 }
 
