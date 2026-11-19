@@ -155,13 +155,28 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     sign_in :david
 
     project = Project.create!(path: "/tmp/debug-topic-page-#{Process.pid}-#{rand(1_000_000)}", name: "Topic Page Project")
-    topic = Topic.create!(project: project, name: "Topic Page Topic", active: true, need_an_action: false)
+    topic = Topic.create!(
+      project: project,
+      name: "Topic Page Topic",
+      active: true,
+      need_an_action: true,
+      importance_level: 3,
+      state: "ready",
+      memory: "important context",
+      related_topics: "peer topic",
+      required_actions: "review"
+    )
 
     get "/debug/topic/#{topic.id}"
 
     assert_response :ok
     assert_includes response.body, "Topic Page Topic"
     assert_includes response.body, "Topic debug"
+    assert_includes response.body, "Need an action"
+    assert_includes response.body, "Importance level"
+    assert_includes response.body, "State"
+    assert_includes response.body, "Memory"
+    assert_includes response.body, "important context"
   end
 
   test "debug topic page shows related messages ordered by date" do

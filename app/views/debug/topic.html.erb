@@ -50,6 +50,62 @@
                 </div>
                 <div class="debug-list-item__meta"><%= @topic.active ? "true" : "false" %></div>
               </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Need an action</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.need_an_action ? "true" : "false" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Importance level</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.importance_level || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>State</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.state.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Memory</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.memory.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Related topics</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.related_topics.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Required actions</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.required_actions.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Created at</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Updated at</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.updated_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+              </div>
             </div>
           </div>
         </details>
@@ -87,6 +143,13 @@
                   <div class="debug-list-item debug-list-item--project-log">
                     <div class="debug-list-item__main">
                       <strong><%= message&.creator&.display_name || message&.creator&.name || "Unknown sender" %></strong>
+                      <% if message.present? %>
+                        <%= link_to "Open",
+                              debug_message_path(message),
+                              class: "debug-topic-open-link",
+                              target: "_blank",
+                              rel: "noopener noreferrer" %>
+                      <% end %>
                     </div>
                     <div class="debug-list-item__meta">Created: <%= message_topic.created_date&.strftime("%Y-%m-%d %H:%M:%S") || message&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
                     <% if message.present? %>
