@@ -1,0 +1,162 @@
+.debug-page {
+  --debug-border: var(--color-border);
+  --debug-muted: var(--color-text-muted, #6b7280);
+}
+
+.debug-page__header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.debug-page__eyebrow {
+  color: var(--debug-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+}
+
+.debug-page__subtitle {
+  color: var(--debug-muted);
+  margin: 0;
+}
+
+.debug-projects {
+  display: grid;
+  gap: 1rem;
+}
+
+.debug-project {
+  border: 1px solid var(--debug-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.debug-project__header {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--debug-border);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.debug-project__title {
+  margin: 0;
+}
+
+.debug-project__meta {
+  color: var(--debug-muted);
+  font-size: 0.8rem;
+  margin: 0.25rem 0 0;
+}
+
+.debug-project__toggle {
+  background: transparent;
+  border: 1px solid var(--debug-border);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+}
+
+.debug-project__body {
+  padding: 1rem 1.25rem 1.1rem;
+}
+
+.debug-section + .debug-section {
+  margin-top: 1rem;
+}
+
+.debug-section__title {
+  margin: 0 0 0.7rem;
+}
+
+.debug-topic-tree,
+.debug-topic-children,
+.debug-anomalies {
+  list-style: none;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.debug-topic-tree {
+  padding-left: 0.25rem;
+}
+
+.debug-topic-node {
+  margin: 0.45rem 0;
+}
+
+.debug-topic-row {
+  align-items: baseline;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.debug-topic-toggle {
+  background: transparent;
+  border: 1px solid var(--debug-border);
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  line-height: 1.3;
+  min-width: 1.35rem;
+  padding: 0 0.2rem;
+}
+
+.debug-topic-spacer {
+  display: inline-block;
+  min-width: 1.35rem;
+}
+
+.debug-topic-content {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.debug-topic-name {
+  font-weight: 600;
+}
+
+.debug-topic-meta {
+  color: var(--debug-muted);
+  font-size: 0.8rem;
+}
+
+.debug-topic-children {
+  border-left: 1px dashed var(--debug-border);
+  margin-left: 0.8rem;
+  padding-left: 1rem;
+}
+
+.debug-anomaly {
+  margin: 0.25rem 0;
+}
+
+.debug-empty {
+  color: var(--debug-muted);
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .debug-page__header {
+    display: block;
+  }
+
+  .debug-project__header {
+    align-items: flex-start;
+    display: block;
+  }
+
+  .debug-project__toggle {
+    margin-top: 0.75rem;
+  }
+}

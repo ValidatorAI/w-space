@@ -1,42 +1,65 @@
-<main class="container py-4">
-  <h1>Debug</h1>
-  <p>Debug tools are enabled for admin users.</p>
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Debug</h1>
+    </div>
+    <p class="debug-page__subtitle">Debug tools are enabled for admin users.</p>
+  </header>
 
-  <section class="mt-4">
-    <h2 class="h4">Projects and Topic Trees</h2>
-
+  <section class="debug-projects">
     <% @project_topic_debug.each_value do |debug_data| %>
       <% project = debug_data[:project] %>
-      <article class="card mb-4">
-        <div class="card-body">
-          <h3 class="h5 mb-1"><%= project.display_name %></h3>
-          <p class="text-muted mb-3">Project ID: <%= project.id %></p>
+      <article class="card debug-project" data-controller="debug-tree">
+        <div class="debug-project__header">
+          <div>
+            <h2 class="h5 debug-project__title"><%= project.display_name %></h2>
+            <p class="debug-project__meta">Project ID: <%= project.id %></p>
+          </div>
 
-          <h4 class="h6">Topic tree</h4>
-          <% if debug_data[:roots].any? %>
-            <ul class="mb-3">
-              <% debug_data[:roots].each do |topic| %>
-                <%= render "topic_tree_node", topic: topic, children_by_parent_id: debug_data[:children_by_parent_id] %>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="text-muted">No root topics.</p>
-          <% end %>
+          <button
+            type="button"
+            class="debug-project__toggle"
+            data-debug-tree-target="toggle"
+            data-action="click->debug-tree#toggleProject"
+            aria-expanded="true"
+          >
+            Collapse
+          </button>
+        </div>
 
-          <h4 class="h6">Anomalies</h4>
-          <% if debug_data[:anomaly_entries].any? %>
-            <ul>
-              <% debug_data[:anomaly_entries].each do |entry| %>
-                <li>
-                  <strong><%= entry[:topic].name %></strong>
-                  (id=<%= entry[:topic].id %>, parent_id=<%= entry[:topic].parent_topic_id || "nil" %>)
-                  - <%= entry[:reasons].join("; ") %>
-                </li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="text-muted">No anomalies detected.</p>
-          <% end %>
+        <div class="debug-project__body" data-debug-tree-target="panel">
+          <div class="debug-section">
+            <h3 class="h6 debug-section__title">Topic tree</h3>
+
+            <% if debug_data[:roots].any? %>
+              <ul class="debug-topic-tree">
+                <% debug_data[:roots].each do |topic| %>
+                  <%= render "topic_tree_node", topic: topic, children_by_parent_id: debug_data[:children_by_parent_id] %>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="debug-empty">No root topics.</p>
+            <% end %>
+          </div>
+
+          <div class="debug-section">
+            <h3 class="h6 debug-section__title">Anomalies</h3>
+
+            <% if debug_data[:anomaly_entries].any? %>
+              <ul class="debug-anomalies">
+                <% debug_data[:anomaly_entries].each do |entry| %>
+                  <li class="debug-anomaly">
+                    <strong><%= entry[:topic].name %></strong>
+                    (id=<%= entry[:topic].id %>, parent_id=<%= entry[:topic].parent_topic_id || "nil" %>)
+                    - <%= entry[:reasons].join("; ") %>
+                  </li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="debug-empty">No anomalies detected.</p>
+            <% end %>
+          </div>
         </div>
       </article>
     <% end %>
