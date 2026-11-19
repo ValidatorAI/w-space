@@ -4,7 +4,10 @@
       <p class="debug-page__eyebrow">Admin</p>
       <h1>Debug</h1>
     </div>
-    <p class="debug-page__subtitle">Debug tools are enabled for admin users.</p>
+    <p class="debug-page__subtitle">
+      Debug tools are enabled for admin users.
+      <%= link_to "Hermes status", debug_hermes_status_path, class: "debug-topic-open-link" %>
+    </p>
   </header>
 
   <div class="debug-tabs" data-controller="debug-tabs">

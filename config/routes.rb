@@ -180,6 +180,7 @@ Rails.application.routes.draw do
   get "debug/topic/:id", to: "debug#topic", as: :debug_topic
   get "debug/message/:id", to: "debug#message", as: :debug_message
   get "debug/output_events", to: "debug#output_events", as: :debug_output_events
+  get "debug/hermes_status", to: "debug#hermes_status", as: :debug_hermes_status
 
   if ENV.fetch("DISABLE_API_ROUTES", "true") == "false"
     namespace :api do

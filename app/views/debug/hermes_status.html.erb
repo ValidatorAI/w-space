@@ -1,0 +1,37 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Hermes status</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      <%= link_to "Back to debug", debug_path %>
+    </p>
+  </header>
+
+  <section class="card debug-project debug-project--tool-log">
+    <div class="debug-project__header debug-project__header--tool-log">
+      <div>
+        <h2 class="h5 debug-project__title">Live Hermes status</h2>
+        <p class="debug-project__meta">Active workers: <%= @active_workers.inspect %></p>
+      </div>
+    </div>
+
+    <div class="debug-project__body debug-project__body--tool-log">
+      <div class="debug-list">
+        <% @status_rows.each do |key, value| %>
+          <div class="debug-list-item debug-list-item--project-log">
+            <div class="debug-list-item__main"><strong><%= key %></strong></div>
+            <div class="debug-list-item__meta">
+              <% if value.is_a?(Hash) || value.is_a?(Array) %>
+                <pre class="debug-list-item__detail"><%= JSON.pretty_generate(value) %></pre>
+              <% else %>
+                <%= value.inspect %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </section>
+</main>

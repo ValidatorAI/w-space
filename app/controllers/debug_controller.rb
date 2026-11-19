@@ -110,6 +110,12 @@ class DebugController < ApplicationController
     @output_events = @output_events.first(200)
   end
 
+  def hermes_status
+    @hermes_status = Hermes::Client.new.api_status
+    @status_rows = normalize_status_rows(@hermes_status)
+    @active_workers = extract_status_numeric_value(@hermes_status, "active_workers", "active_agents", "workers", "active_sessions")
+  end
+
   private
     def build_project_tool_log_groups(project)
       logs = ToolCalLog.includes(:room, :topic)
@@ -208,6 +214,25 @@ class DebugController < ApplicationController
           result = status_value(item)
           return result if result.present?
         end
+      end
+
+      nil
+    end
+
+    def normalize_status_rows(status_payload)
+      data = status_payload.to_h if status_payload.respond_to?(:to_h)
+      return [] unless data.is_a?(Hash)
+
+      data.map { |key, value| [key.to_s, value] }
+    end
+
+    def extract_status_numeric_value(status_payload, *keys)
+      data = status_payload.to_h if status_payload.respond_to?(:to_h)
+      return nil unless data.is_a?(Hash)
+
+      keys.each do |key|
+        value = data[key]
+        return value if value.present?
       end
 
       nil

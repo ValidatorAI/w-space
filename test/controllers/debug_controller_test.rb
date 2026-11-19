@@ -225,6 +225,26 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_operator response.body.index("First Topic"), :<, response.body.index("Second Topic")
   end
 
+  test "debug hermes status page is available when admin debug is enabled" do
+    sign_in :david
+
+    Hermes::Client.any_instance.stubs(:api_status).returns(
+      "overall" => "ok",
+      "gateway_busy" => false,
+      "active_workers" => 4,
+      "active_agents" => 4,
+      "active_sessions" => 2
+    )
+
+    get "/debug/hermes_status"
+
+    assert_response :ok
+    assert_includes response.body, "Hermes status"
+    assert_includes response.body, "active_workers"
+    assert_includes response.body, "4"
+    assert_includes response.body, "overall"
+  end
+
   test "debug output events page is available when admin debug is enabled" do
     sign_in :david
 
