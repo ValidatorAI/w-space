@@ -137,6 +137,7 @@ class Users::ProjectsController < ApplicationController
     @takeaways = @project.project_all_hands_takeaways.active.ordered
     @action_items = @project.project_all_hands_action_items.active.ordered
     @decisions = @project.project_all_hands_decisions.active.ordered
+    @running_meetings = ProjectAllHandsMeeting.current_running_for(@project)
   end
 
   def knowledge

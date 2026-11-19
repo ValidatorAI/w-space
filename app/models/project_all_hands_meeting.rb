@@ -6,22 +6,91 @@ class ProjectAllHandsMeeting < ApplicationRecord
   has_many :decisions, class_name: "ProjectAllHandsDecision", dependent: :destroy
 
   validates :title, presence: true
+  validates :bbb_meeting_id, presence: true, uniqueness: true
+  validates :moderator_pw, presence: true
+  validates :attendee_pw, presence: true
 
-  scope :ordered, -> { order(position: :asc, held_at: :desc, created_at: :desc) }
+  before_validation :set_defaults, on: :create
+
+  scope :ordered, -> { order(position: :asc, created_at: :desc) }
 
   def pending_action_items_count
     action_items.pending.count
   end
 
-  def formatted_held_date
-    held_at.present? ? held_at.strftime("%B %-d, %Y") : nil
+  def create_in_big_blue_button!
+    self.bbb_meeting_id ||= "project-all-hands-#{project_id}-#{SecureRandom.uuid}"
+    self.moderator_pw ||= SecureRandom.alphanumeric(16)
+    self.attendee_pw ||= SecureRandom.alphanumeric(16)
+
+    response = BigBlueButtonService.create_meeting(
+      name: title,
+      meeting_id: bbb_meeting_id,
+      moderator_pw: moderator_pw,
+      attendee_pw: attendee_pw
+    )
+
+    self.join_url = extract_join_url(response)
+    self.running = true
+    self.started_at ||= Time.current
+    self.last_seen_at = Time.current
+    save!
+    self
   end
 
-  def metadata_line
-    parts = []
-    parts << formatted_held_date if formatted_held_date.present?
-    parts << "#{duration_minutes} mins" if duration_minutes.present?
-    parts << "Led by @#{leader_name}" if leader_name.present?
-    parts.join(" • ")
+  def moderator_join_url
+    return join_url if join_url.present?
+
+    response = BigBlueButtonService.join_moderator(
+      meeting_id: bbb_meeting_id,
+      full_name: Current.user&.effective_display_name || "Moderator",
+      user_id: "moderator-#{id}",
+      password: moderator_pw
+    )
+
+    self.join_url = extract_join_url(response)
+    self.running = true
+    self.last_seen_at = Time.current
+    save! if persisted?
+    join_url
   end
+
+  def member_join_url(full_name = "Guest")
+    response = BigBlueButtonService.join_member(
+      meeting_id: bbb_meeting_id,
+      full_name: full_name,
+      user_id: "attendee-#{id}",
+      password: attendee_pw
+    )
+
+    extract_join_url(response)
+  end
+
+  def self.current_running_for(project)
+    response = BigBlueButtonService.get_all_meetings
+    raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
+    meeting_ids = raw_meetings.filter_map do |meeting|
+      value = meeting.is_a?(Hash) ? (meeting[:meetingID] || meeting["meetingID"]) : nil
+      value.presence
+    end
+
+    project.project_all_hands_meetings.where(bbb_meeting_id: meeting_ids).order(created_at: :desc)
+  rescue StandardError, WebMock::NetConnectNotAllowedError => e
+    Rails.logger.warn("Unable to load BBB meetings for project #{project.id}: #{e.class}: #{e.message}")
+    project.project_all_hands_meetings.none
+  end
+
+  private
+    def set_defaults
+      self.bbb_meeting_id ||= "project-all-hands-#{project_id || "unknown"}-#{SecureRandom.uuid}"
+      self.moderator_pw ||= SecureRandom.alphanumeric(16)
+      self.attendee_pw ||= SecureRandom.alphanumeric(16)
+      self.position ||= 0
+    end
+
+    def extract_join_url(response)
+      return nil if response.blank?
+
+      response[:url].presence || response["url"].presence || response.dig(:joinURL).presence || response.dig(:join_url).presence
+    end
 end

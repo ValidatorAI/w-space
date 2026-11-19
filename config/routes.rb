@@ -38,7 +38,8 @@ Rails.application.routes.draw do
   get "join/:join_code", to: "users#new", as: :join
   post "join/:join_code", to: "users#create"
 
-  get "meeting", to: "all_hands#show", as: :meeting
+  post "meeting", to: "all_hands#create", as: :create_meeting
+  get "meeting/:id", to: "all_hands#show", as: :meeting
 
   resources :qr_code, only: :show
 

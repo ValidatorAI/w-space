@@ -16,6 +16,7 @@ class Project < ApplicationRecord
   has_many :project_all_hands_takeaways, class_name: "ProjectAllHandsTakeaway", dependent: :destroy
   has_many :project_all_hands_action_items, class_name: "ProjectAllHandsActionItem", dependent: :destroy
   has_many :project_all_hands_decisions, class_name: "ProjectAllHandsDecision", dependent: :destroy
+  has_many :project_all_hands_meetings, class_name: "ProjectAllHandsMeeting", dependent: :destroy
   has_many :notes, class_name: "ProjectNote", dependent: :destroy
   has_many :external_assets, class_name: "ProjectExternalAsset", dependent: :destroy
   has_many :adrs, class_name: "ProjectAdr", dependent: :destroy

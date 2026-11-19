@@ -19,11 +19,11 @@ class BigBlueButtonService
       request(:create, params)
     end
 
-    def join_moderator(meeting_id:, full_name:, user_id: nil, **extra)
+    def join_moderator(meeting_id:, full_name:, user_id: nil, password: nil, **extra)
       params = {
         meetingID: meeting_id,
         fullName: full_name,
-        password: moderator_password
+        password: password.presence || moderator_password
       }
       params[:userID] = user_id if user_id.present?
       params.merge!(extra)
@@ -31,11 +31,11 @@ class BigBlueButtonService
       request(:join, params)
     end
 
-    def join_member(meeting_id:, full_name:, user_id: nil, **extra)
+    def join_member(meeting_id:, full_name:, user_id: nil, password: nil, **extra)
       params = {
         meetingID: meeting_id,
         fullName: full_name,
-        password: attendee_password
+        password: password.presence || attendee_password
       }
       params[:userID] = user_id if user_id.present?
       params.merge!(extra)

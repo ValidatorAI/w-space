@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_11_19_000000) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "custom_styles"
@@ -122,8 +122,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
     t.text "assigneee_profile"
     t.datetime "created_at", null: false
     t.text "description", null: false
-    t.integer "dispatch_attempts", default: 0, null: false
-    t.text "dispatch_error"
     t.boolean "dispatched", default: false, null: false
     t.boolean "finished", default: false, null: false
     t.integer "grand_parent_id"
@@ -141,6 +139,8 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
     t.datetime "updated_at", null: false
     t.float "usd_budget"
     t.float "usd_used"
+    t.integer "dispatch_attempts", default: 0, null: false
+    t.text "dispatch_error"
     t.index ["grand_parent_id"], name: "index_ai_tasks_on_grand_parent_id"
     t.index ["input_event_entity_id"], name: "index_ai_tasks_on_input_event_entity_id"
     t.index ["parent_task_id"], name: "index_ai_tasks_on_parent_task_id"
@@ -295,11 +295,11 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
     t.datetime "created_at", null: false
     t.boolean "exclusive", default: true, null: false
     t.datetime "expires_at", null: false
-    t.integer "holder_user_id"
     t.json "patterns", default: [], null: false
     t.integer "project_id", null: false
     t.text "reason"
     t.datetime "updated_at", null: false
+    t.integer "holder_user_id"
     t.index ["expires_at"], name: "index_file_reservations_on_expires_at"
     t.index ["holder_user_id"], name: "index_file_reservations_on_holder_user_id"
     t.index ["project_id", "expires_at"], name: "index_file_reservations_on_project_id_and_expires_at"
@@ -307,31 +307,26 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
   end
 
   create_table "mcp_call_logs", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "duration_ms"
-    t.text "error_message"
-    t.boolean "is_error", default: false, null: false
     t.string "jsonrpc_id"
+    t.string "tool_call_name", null: false
     t.json "params_sanitized"
+    t.boolean "is_error", default: false, null: false
+    t.text "error_message"
     t.text "result_preview"
     t.integer "result_size"
-    t.string "tool_call_name", null: false
+    t.integer "duration_ms"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_mcp_call_logs_on_created_at"
-    t.index ["is_error"], name: "index_mcp_call_logs_on_is_error"
-    t.index ["tool_call_name"], name: "index_mcp_call_logs_on_tool_call_name"
   end
 
   create_table "mcp_exceptions", force: :cascade do |t|
-    t.text "backtrace"
-    t.datetime "created_at", null: false
-    t.text "error_message", null: false
-    t.string "exception_class", null: false
-    t.json "params_sanitized"
     t.string "tool_call_name", null: false
+    t.string "exception_class", null: false
+    t.text "error_message", null: false
+    t.text "backtrace"
+    t.json "params_sanitized"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_mcp_exceptions_on_created_at"
-    t.index ["tool_call_name"], name: "index_mcp_exceptions_on_tool_call_name"
   end
 
   create_table "mcps", force: :cascade do |t|
@@ -473,6 +468,25 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
     t.datetime "updated_at", null: false
     t.index ["position"], name: "index_project_all_hands_decisions_on_position"
     t.index ["project_id"], name: "index_project_all_hands_decisions_on_project_id"
+  end
+
+  create_table "project_all_hands_meetings", force: :cascade do |t|
+    t.integer "project_id", null: false
+    t.string "title", null: false
+    t.string "bbb_meeting_id", null: false
+    t.string "moderator_pw", null: false
+    t.string "attendee_pw", null: false
+    t.string "join_url"
+    t.boolean "running", default: false, null: false
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.datetime "last_seen_at"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bbb_meeting_id"], name: "index_project_all_hands_meetings_on_bbb_meeting_id", unique: true
+    t.index ["position"], name: "index_project_all_hands_meetings_on_position"
+    t.index ["project_id"], name: "index_project_all_hands_meetings_on_project_id"
   end
 
   create_table "project_all_hands_takeaways", force: :cascade do |t|
@@ -831,6 +845,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_11_15_000000) do
   add_foreign_key "project_adrs", "projects"
   add_foreign_key "project_all_hands_action_items", "projects"
   add_foreign_key "project_all_hands_decisions", "projects"
+  add_foreign_key "project_all_hands_meetings", "projects"
   add_foreign_key "project_all_hands_takeaways", "projects"
   add_foreign_key "project_bottlenecks", "projects"
   add_foreign_key "project_directory_items", "project_directory_items", column: "parent_id"

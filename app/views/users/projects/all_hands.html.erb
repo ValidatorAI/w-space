@@ -56,6 +56,41 @@
 
     <div id="message-area" class="message-area project-all-hands-area" data-controller="all-hands-notes">
       <div class="project-all-hands-content">
+        <div class="all-hands-card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <h3 class="all-hands-card-title" style="margin: 0;">Current Running Meetings</h3>
+            <button type="button" class="btn btn--primary" onclick="document.getElementById('new-meeting-dialog').showModal();">New Meeting</button>
+          </div>
+
+          <% if @running_meetings.any? %>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+              <% @running_meetings.each do |meeting| %>
+                <%= link_to meeting.title, meeting_path(id: meeting.id), class: "btn btn--ghost", style: "display: inline-flex; align-items: center; gap: 8px;" %>
+              <% end %>
+            </div>
+          <% else %>
+            <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">No meetings are currently running for this project.</p>
+          <% end %>
+        </div>
+
+        <dialog id="new-meeting-dialog" style="min-width: min(480px, 90vw); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 12px; padding: 0; background: #0f172a; color: white;">
+          <%= form_with url: create_meeting_path, method: :post, local: true, html: { style: "padding: 20px;" } do |f| %>
+            <%= hidden_field_tag :project_id, @project.id %>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 20px;">Create meeting</h3>
+              <button type="button" onclick="document.getElementById('new-meeting-dialog').close();" aria-label="Close" style="background: transparent; border: 0; color: white; font-size: 20px; cursor: pointer;">×</button>
+            </div>
+
+            <label for="meeting-title" style="display: block; margin-bottom: 8px; font-size: 14px; color: #cbd5e1;">Meeting name</label>
+            <%= text_field_tag "project_all_hands_meeting[title]", nil, id: "meeting-title", required: true, placeholder: "Daily standup", style: "width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.4); background: rgba(15, 23, 42, 0.75); color: white; box-sizing: border-box; margin-bottom: 16px;" %>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <button type="button" class="btn btn--ghost" onclick="document.getElementById('new-meeting-dialog').close();">Cancel</button>
+              <%= f.submit "Start meeting", class: "btn btn--primary" %>
+            </div>
+          <% end %>
+        </dialog>
+
         <div class="all-hands-grid">
           <div class="all-hands-card">
             <h3 class="all-hands-card-title">✨ AI Summary &amp; Key Takeaways</h3>
