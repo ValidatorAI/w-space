@@ -6,13 +6,11 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     @previous_admin_debug_lower = ENV["admin_debug"]
     ENV["ADMIN_DEBUG"] = "true"
     ENV.delete("admin_debug")
-    Rails.application.reload_routes!
   end
 
   teardown do
     ENV["ADMIN_DEBUG"] = @previous_admin_debug
     ENV["admin_debug"] = @previous_admin_debug_lower
-    Rails.application.reload_routes!
   end
 
   test "admin can access debug page when flag is enabled" do
@@ -32,15 +30,13 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "debug route is unavailable when flag is disabled" do
-    ENV["ADMIN_DEBUG"] = "false"
-    Rails.application.reload_routes!
+  test "debug page is not found when flag is disabled" do
+    sign_in :david
 
-    assert_raises(ActionController::RoutingError) do
-      get "/debug"
-    end
-  ensure
-    ENV["ADMIN_DEBUG"] = "true"
-    Rails.application.reload_routes!
+    ENV["ADMIN_DEBUG"] = "false"
+
+    get "/debug"
+
+    assert_response :not_found
   end
 end

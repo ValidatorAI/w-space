@@ -176,10 +176,7 @@ Rails.application.routes.draw do
 
   get "webmanifest"    => "pwa#manifest"
   get "service-worker" => "pwa#service_worker"
-
-  if ENV.fetch("ADMIN_DEBUG", ENV.fetch("admin_debug", "false")).to_s.strip.casecmp("true").zero?
-    get "debug", to: "debug#show", as: :debug
-  end
+  get "debug", to: "debug#show", as: :debug
 
   if ENV.fetch("DISABLE_API_ROUTES", "true") == "false"
     namespace :api do
