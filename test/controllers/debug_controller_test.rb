@@ -242,5 +242,42 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Output events debug"
     assert_includes response.body, "message_created"
     assert_includes response.body, "hello"
+    assert_select "select[name='flag']", 1
+    assert_select "select[name='project_id']", 1
+  end
+
+  test "debug output events page filters by flag, project_id, synced, and status" do
+    sign_in :david
+
+    matching = OutputEvent.create!(
+      event_type: "project_created",
+      event_id: 11,
+      group_id: 1,
+      event_data: {
+        "message" => "match",
+        "project_id" => 7,
+        "items" => [{ "status" => "resolved" }],
+        "status" => "resolved"
+      },
+      synced: true
+    )
+
+    other = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 12,
+      group_id: 2,
+      event_data: { "message" => "other", "project_id" => 8, "status" => "pending" },
+      synced: false
+    )
+
+    get "/debug/output_events?flag=project_created&project_id=7&synced=true&status=resolved"
+
+    assert_response :ok
+    assert_includes response.body, matching.event_type
+    assert_includes response.body, "match"
+    assert_select "select[name='flag'] option[selected='selected'][value='project_created']", 1
+    assert_select "select[name='project_id'] option[selected='selected'][value='7']", 1
+    assert_select "select[name='status'] option[selected='selected'][value='resolved']", 1
+    assert_not_includes response.body, "other"
   end
 end

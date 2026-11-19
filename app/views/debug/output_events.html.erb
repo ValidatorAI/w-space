@@ -18,6 +18,51 @@
     </div>
 
     <div class="debug-project__body debug-project__body--tool-log">
+      <%= form_with url: debug_output_events_path, method: :get, class: "debug-output-events__filters", local: true do %>
+        <div class="debug-list" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div class="debug-list-item debug-list-item--project-log">
+            <div class="debug-list-item__main"><strong>Flag</strong></div>
+            <div class="debug-list-item__meta">
+              <%= select_tag :flag,
+                    options_for_select([["All", ""]] + @event_type_options.map { |event_type| [event_type, event_type] }, @filters[:flag]),
+                    class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="debug-list-item debug-list-item--project-log">
+            <div class="debug-list-item__main"><strong>Project ID</strong></div>
+            <div class="debug-list-item__meta">
+              <%= select_tag :project_id,
+                    options_for_select([["All", ""]] + @project_id_options.map { |project_id| [project_id.to_s, project_id.to_s] }, @filters[:project_id]),
+                    class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="debug-list-item debug-list-item--project-log">
+            <div class="debug-list-item__main"><strong>Synced</strong></div>
+            <div class="debug-list-item__meta">
+              <%= select_tag :synced,
+                    options_for_select([["All", ""], ["true", "true"], ["false", "false"]], @filters[:synced]),
+                    class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="debug-list-item debug-list-item--project-log">
+            <div class="debug-list-item__main"><strong>Status</strong></div>
+            <div class="debug-list-item__meta">
+              <%= select_tag :status,
+                    options_for_select([["All", ""]] + @status_options.map { |status| [status.to_s, status.to_s] }, @filters[:status]),
+                    class: "form-control" %>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
+          <%= submit_tag "Apply filters", class: "btn btn-primary" %>
+          <%= link_to "Clear", debug_output_events_path, class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+
       <% if @output_events.any? %>
         <div class="debug-tool-log-hierarchy">
           <% @output_events.each do |event| %>

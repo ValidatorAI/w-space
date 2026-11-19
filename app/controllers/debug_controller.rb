@@ -60,7 +60,54 @@ class DebugController < ApplicationController
   end
 
   def output_events
-    @output_events = OutputEvent.order(created_at: :desc, id: :desc).limit(200).to_a
+    @filters = {
+      flag: params[:flag].to_s.presence,
+      project_id: params[:project_id].to_s.presence,
+      synced: params[:synced].to_s.presence,
+      status: params[:status].to_s.presence
+    }
+
+    @event_type_options = OutputEvent.order(:event_type).distinct.pluck(:event_type)
+    @project_id_options = OutputEvent.pluck(:event_data).filter_map do |event_data|
+      next if event_data.blank?
+
+      payload = event_data.to_h.stringify_keys
+      project_id = payload["project_id"]
+      next if project_id.blank?
+
+      project_id.to_s
+    end.uniq.sort_by { |value| value.to_i }
+    @status_options = OutputEvent.pluck(:event_data).filter_map do |event_data|
+      status_value(event_data)
+    end.uniq.sort
+
+    scope = OutputEvent.order(created_at: :desc, id: :desc)
+
+    if @filters[:flag].present?
+      scope = scope.where(event_type: @filters[:flag])
+    end
+
+    @output_events = scope.to_a
+
+    if @filters[:project_id].present?
+      project_id = @filters[:project_id].to_i
+      @output_events.select! do |event|
+        event.event_data.to_h.stringify_keys["project_id"].to_s == project_id.to_s
+      end
+    end
+
+    if @filters[:synced].present?
+      synced_value = ActiveModel::Type::Boolean.new.cast(@filters[:synced])
+      @output_events.select! { |event| event.synced == synced_value }
+    end
+
+    if @filters[:status].present?
+      @output_events.select! do |event|
+        status_value(event.event_data).to_s == @filters[:status].to_s
+      end
+    end
+
+    @output_events = @output_events.first(200)
   end
 
   private
@@ -143,6 +190,27 @@ class DebugController < ApplicationController
       end
 
       path.delete(topic.id)
+    end
+
+    def status_value(event_data)
+      value = event_data
+      return if value.blank?
+
+      if value.is_a?(Hash)
+        return value["status"] if value.key?("status")
+
+        value.each_value do |nested_value|
+          result = status_value(nested_value)
+          return result if result.present?
+        end
+      elsif value.is_a?(Array)
+        value.each do |item|
+          result = status_value(item)
+          return result if result.present?
+        end
+      end
+
+      nil
     end
 
     def ensure_admin_debug_enabled
