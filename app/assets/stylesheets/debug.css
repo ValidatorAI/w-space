@@ -25,6 +25,38 @@
   margin: 0;
 }
 
+.debug-tabs {
+  display: grid;
+  gap: 1rem;
+}
+
+.debug-tabs__nav {
+  border-bottom: 1px solid var(--debug-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.debug-tab {
+  background: transparent;
+  border: 1px solid var(--debug-border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+}
+
+.debug-tab.active,
+.debug-tab[aria-selected="true"] {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--debug-border);
+}
+
+.debug-tab-panel {
+  display: block;
+}
+
 .debug-projects {
   display: grid;
   gap: 1rem;
@@ -139,6 +171,32 @@
 
 .debug-anomaly {
   margin: 0.25rem 0;
+}
+
+.debug-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.debug-list-item {
+  border: 1px solid var(--debug-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.debug-list-item__main {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.debug-list-item__meta,
+.debug-list-item__detail {
+  color: var(--debug-muted);
+  font-size: 0.82rem;
 }
 
 .debug-empty {

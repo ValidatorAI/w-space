@@ -9,6 +9,19 @@ class DebugController < ApplicationController
     all_parent_ids = topics_by_project_id.values.flatten.filter_map(&:parent_topic_id).uniq
     @parent_topic_project_lookup = Topic.where(id: all_parent_ids).pluck(:id, :project_id).to_h
 
+    @project_room_history = @projects.index_with do |project|
+      RoomHistoryTopic.includes(:room, :topic)
+        .joins(:room)
+        .where(rooms: { project_id: project.id })
+        .order(created_date: :desc, id: :desc)
+    end
+
+    @project_tool_logs = @projects.index_with do |project|
+      ToolCalLog.includes(:room, :topic)
+        .where(project_id: project.id)
+        .ordered
+    end
+
     @project_topic_debug = @projects.index_with do |project|
       build_project_topic_debug(project, topics_by_project_id.fetch(project.id, []))
     end

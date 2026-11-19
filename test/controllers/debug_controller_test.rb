@@ -75,4 +75,25 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Cycle B"
     assert_includes response.body, "not reachable from a root topic"
   end
+
+  test "debug page shows project topic, room history, and tool call log tabs" do
+    sign_in :david
+
+    project = Project.create!(path: "/tmp/debug-tab-project-#{Process.pid}-#{rand(1_000_000)}", name: "Debug Tabs")
+    creator = User.find_by(email_address: "david@37signals.com") || User.first
+    room = project.rooms.create!(name: "Debug Room", type: "Rooms::Project", private: false, creator: creator)
+    topic = Topic.create!(project: project, name: "Topic with history", active: true, need_an_action: false)
+    RoomHistoryTopic.create!(room: room, topic: topic, created_date: 1.day.ago, last_state: "active")
+    ToolCalLog.create!(project: project, room: room, topic: topic, used_tool_name: "show_debug_tabs", created_date: 2.hours.ago, change_log: "debug tab check")
+
+    get "/debug"
+
+    assert_response :ok
+    assert_includes response.body, "Project / Topic"
+    assert_includes response.body, "Project / Room / History"
+    assert_includes response.body, "Project / Tool Call Log"
+    assert_includes response.body, "Topic with history"
+    assert_includes response.body, "show_debug_tabs"
+    assert_includes response.body, "Debug Room"
+  end
 end
