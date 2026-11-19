@@ -199,7 +199,7 @@
             <div class="debug-project__body debug-project__body--tool-log">
               <% if project_logs.any? || room_logs.any? || topic_logs.any? %>
                 <div class="debug-tool-log-hierarchy">
-                  <details class="debug-tool-log-section debug-tool-log-section--project" open>
+                  <details class="debug-tool-log-section debug-tool-log-section--project">
                     <summary class="h6 debug-tool-log-section__title">
                       <span>Project logs</span>
                       <span class="debug-tool-log-group__count"><%= project_logs.size %></span>
@@ -226,7 +226,7 @@
                     </div>
                   </details>
 
-                  <details class="debug-tool-log-section debug-tool-log-section--room" open>
+                  <details class="debug-tool-log-section debug-tool-log-section--room">
                     <summary class="h6 debug-tool-log-section__title">
                       <span>Room logs</span>
                       <span class="debug-tool-log-group__count"><%= room_logs.values.sum(&:size) %></span>
@@ -235,7 +235,7 @@
                       <% if room_logs.any? %>
                         <div class="debug-tool-log-groups">
                           <% room_logs.each do |room, logs| %>
-                            <details class="debug-tool-log-group debug-tool-log-group--room" open>
+                            <details class="debug-tool-log-group debug-tool-log-group--room">
                               <summary class="debug-tool-log-group__header">
                                 <span><%= room&.name || "Unknown room" %></span>
                                 <span class="debug-tool-log-group__count"><%= logs.size %></span>
@@ -265,7 +265,7 @@
                     </div>
                   </details>
 
-                  <details class="debug-tool-log-section debug-tool-log-section--topic" open>
+                  <details class="debug-tool-log-section debug-tool-log-section--topic">
                     <summary class="h6 debug-tool-log-section__title">
                       <span>Topic logs</span>
                       <span class="debug-tool-log-group__count"><%= topic_logs.values.sum(&:size) %></span>
@@ -274,7 +274,7 @@
                       <% if topic_logs.any? %>
                         <div class="debug-tool-log-groups">
                           <% topic_logs.each do |topic, logs| %>
-                            <details class="debug-tool-log-group debug-tool-log-group--topic" open>
+                            <details class="debug-tool-log-group debug-tool-log-group--topic">
                               <summary class="debug-tool-log-group__header">
                                 <span><%= topic&.name || "Unknown topic" %></span>
                                 <span class="debug-tool-log-group__count"><%= logs.size %></span>
