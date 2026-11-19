@@ -22,6 +22,7 @@ The app uses these values at boot time and in the runtime services.
 | `DEFAULT_ADMIN_EMAIL` | No | `admin@pwrwork.local` | Initial admin email. |
 | `DEFAULT_ADMIN_PASSWORD` | No | `pwrpassword` | Initial admin password. |
 | `ENABLE_AI_CONFIG_PAGE` | No | `FALSE` | Enables the AI settings/config page. |
+| `ADMIN_DEBUG` | No | `false` | Enables the `/debug` page route when set to `true`; page still requires an authenticated admin user. Also accepts legacy/lowercase `admin_debug`. |
 | `HERMES_BASE_URI` | Yes for real runtime | `http://127.0.0.1:8642` | Hermes API base URL. Also accepts legacy `BASE_URI`. |
 | `HERMES_STATUS_URI` | No | `http://127.0.0.1:9119` | Hermes status endpoint. Also accepts legacy `STATUS_BASE_URI`. |
 | `HERMES_DASHBOARD` | No | `true` | Enables the Hermes dashboard server. |
@@ -75,6 +76,7 @@ DEFAULT_ADMIN_PASSWORD=pwrpassword
 
 # Sidebar feature flag
 ENABLE_AI_CONFIG_PAGE=FALSE
+ADMIN_DEBUG=false
 
 # Hermes Agent Server Settings
 HERMES_BASE_URI=http://127.0.0.1:8642
