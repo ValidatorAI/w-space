@@ -67,21 +67,27 @@ class ProjectAllHandsMeeting < ApplicationRecord
 
   def self.current_running_for(project)
     response = BigBlueButtonService.get_all_meetings
-    meeting_names = extract_remote_meeting_names(response)
-    project_prefix = project.display_name.to_s.strip
+    remote_meetings = extract_remote_meetings(response)
+    project_prefix = "#{project.display_name.to_s.strip} - "
 
-    if meeting_names.blank?
+    if remote_meetings.blank?
       return project.project_all_hands_meetings.none
     end
 
-    matching_names = meeting_names.select { |name| name.to_s.start_with?("#{project_prefix} - ") }
-    meeting_ids = project.project_all_hands_meetings.where(title: matching_names.map { |name| name.to_s.sub(/^#{Regexp.escape(project_prefix)} - /, "") }).pluck(:bbb_meeting_id)
+    matching_ids = remote_meetings.filter_map do |meeting|
+      next unless meeting.is_a?(Hash)
 
-    if meeting_ids.blank?
+      meeting_name = meeting[:meetingName].presence || meeting["meetingName"].presence || meeting[:name].presence || meeting["name"].presence
+      next unless meeting_name.to_s.start_with?(project_prefix)
+
+      meeting[:meetingID].presence || meeting["meetingID"].presence
+    end
+
+    if matching_ids.blank?
       return project.project_all_hands_meetings.none
     end
 
-    project.project_all_hands_meetings.where(bbb_meeting_id: meeting_ids).order(created_at: :desc)
+    project.project_all_hands_meetings.where(bbb_meeting_id: matching_ids).order(created_at: :desc)
   rescue StandardError, WebMock::NetConnectNotAllowedError => e
     Rails.logger.warn("Unable to load BBB meetings for project #{project.id}: #{e.class}: #{e.message}")
     project.project_all_hands_meetings.none
@@ -124,19 +130,13 @@ class ProjectAllHandsMeeting < ApplicationRecord
       end
     end
 
-    def self.extract_remote_meeting_names(response)
+    def self.extract_remote_meetings(response)
       return [] if response.blank?
 
-      raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
-      raw_meetings.filter_map do |meeting|
-        next if meeting.blank?
+      raw_meetings = response.dig(:meetings, :meeting) || response.dig("meetings", "meeting")
+      return [] if raw_meetings.blank?
 
-        value = if meeting.is_a?(Hash)
-          meeting[:meetingName] || meeting["meetingName"] || meeting[:name] || meeting["name"]
-        else
-          nil
-        end
-        value.presence
-      end
+      meetings = raw_meetings.is_a?(Array) ? raw_meetings : [raw_meetings]
+      meetings.filter_map { |meeting| meeting.is_a?(Hash) ? meeting : nil }
     end
 end

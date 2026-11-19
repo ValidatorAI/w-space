@@ -357,6 +357,35 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Watch Recording", @response.body
   end
 
+  test "all hands shows project-scoped BBB meetings when BBB returns a single meeting hash" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "local-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.stubs(:get_all_meetings).returns({
+      meetings: {
+        meeting: {
+          meetingID: meeting.bbb_meeting_id,
+          meetingName: "#{project.display_name} - Daily standup"
+        }
+      }
+    })
+
+    get user_company_project_all_hands_url(id: project.id)
+
+    assert_response :success
+    assert_match meeting.title, @response.body
+    assert_match meeting_path(id: meeting.id, role: "member"), @response.body
+    assert_match 'data-turbo="false"', @response.body
+  end
+
   test "all hands hides local meetings when BBB has not reported them as running" do
     project = create_project_for(users(:david))
     meeting = project.project_all_hands_meetings.create!(
