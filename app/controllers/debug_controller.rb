@@ -26,6 +26,23 @@ class DebugController < ApplicationController
     end
   end
 
+  def topic
+    @topic = Topic.includes(:project, :parent_topic, :child_topics)
+      .find(params[:id])
+
+    @topic_room_history = RoomHistoryTopic.includes(:room, :topic)
+      .where(topic_id: @topic.id)
+      .order(created_date: :asc, id: :asc)
+      .to_a
+
+    @topic_tool_logs = ToolCalLog.includes(:room, :topic)
+      .where(topic_id: @topic.id)
+      .ordered
+      .to_a
+
+    @topic_child_topics = @topic.child_topics.order(:created_at, :id).to_a
+  end
+
   private
     def build_project_tool_log_groups(project)
       logs = ToolCalLog.includes(:room, :topic)

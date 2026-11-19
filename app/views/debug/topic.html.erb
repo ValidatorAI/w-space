@@ -1,0 +1,127 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Topic debug</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      <%= link_to "Back to debug", debug_path %>
+    </p>
+  </header>
+
+  <section class="card debug-project debug-project--tool-log">
+    <div class="debug-project__header debug-project__header--tool-log">
+      <div>
+        <h2 class="h5 debug-project__title"><%= @topic.name %></h2>
+        <p class="debug-project__meta">Topic ID: <%= @topic.id %> | Project: <%= @topic.project&.display_name || "n/a" %></p>
+      </div>
+    </div>
+
+    <div class="debug-project__body debug-project__body--tool-log">
+      <div class="debug-tool-log-hierarchy">
+        <div class="debug-tool-log-section debug-tool-log-section--topic">
+          <h3 class="h6 debug-tool-log-section__title">Topic details</h3>
+          <div class="debug-tool-log-section__body">
+            <div class="debug-list">
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Name</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.name %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Project</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.project&.display_name || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Parent topic</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.parent_topic&.name || "None" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Active</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.active ? "true" : "false" %></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="debug-tool-log-section debug-tool-log-section--room">
+          <h3 class="h6 debug-tool-log-section__title">Room history</h3>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_room_history.any? %>
+              <div class="debug-list">
+                <% @topic_room_history.each do |entry| %>
+                  <div class="debug-list-item debug-list-item--room-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= entry.room&.name || "Unknown room" %></strong>
+                    </div>
+                    <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if entry.last_state.present? %>
+                      <div class="debug-list-item__detail">last_state: <%= entry.last_state %></div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No room history entries for this topic.</p>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="debug-tool-log-section debug-tool-log-section--project">
+          <h3 class="h6 debug-tool-log-section__title">Tool call logs</h3>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_tool_logs.any? %>
+              <div class="debug-list">
+                <% @topic_tool_logs.each do |log| %>
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= log.used_tool_name %></strong>
+                      <span class="debug-list-item__meta">(tool_cal_log_id=<%= log.id %>)</span>
+                    </div>
+                    <div class="debug-list-item__meta">Room: <%= log.room&.name || "Unknown room" %></div>
+                    <div class="debug-list-item__meta">Created: <%= log.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if log.change_log.present? %>
+                      <div class="debug-list-item__detail"><%= log.change_log %></div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No tool call logs for this topic.</p>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="debug-tool-log-section debug-tool-log-section--topic">
+          <h3 class="h6 debug-tool-log-section__title">Child topics</h3>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_child_topics.any? %>
+              <div class="debug-list">
+                <% @topic_child_topics.each do |child| %>
+                  <div class="debug-list-item debug-list-item--topic-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= child.name %></strong>
+                    </div>
+                    <div class="debug-list-item__meta">Topic ID: <%= child.id %></div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No child topics.</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

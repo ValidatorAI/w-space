@@ -150,4 +150,17 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.debug-tool-log-group--room", 1
     assert_select "details.debug-tool-log-group--topic", 1
   end
+
+  test "debug topic page is available when admin debug is enabled" do
+    sign_in :david
+
+    project = Project.create!(path: "/tmp/debug-topic-page-#{Process.pid}-#{rand(1_000_000)}", name: "Topic Page Project")
+    topic = Topic.create!(project: project, name: "Topic Page Topic", active: true, need_an_action: false)
+
+    get "/debug/topic/#{topic.id}"
+
+    assert_response :ok
+    assert_includes response.body, "Topic Page Topic"
+    assert_includes response.body, "Topic debug"
+  end
 end
