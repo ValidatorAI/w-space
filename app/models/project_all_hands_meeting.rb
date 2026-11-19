@@ -67,17 +67,17 @@ class ProjectAllHandsMeeting < ApplicationRecord
   end
 
   def self.current_running_for(project)
-    response = BigBlueButtonService.get_all_meetings
-    raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
-    meeting_ids = raw_meetings.filter_map do |meeting|
-      value = meeting.is_a?(Hash) ? (meeting[:meetingID] || meeting["meetingID"]) : nil
-      value.presence
-    end
+    active_scope = project.project_all_hands_meetings.where(running: true).order(created_at: :desc)
 
-    project.project_all_hands_meetings.where(bbb_meeting_id: meeting_ids).order(created_at: :desc)
+    response = BigBlueButtonService.get_all_meetings
+    meeting_ids = extract_remote_meeting_ids(response)
+
+    return active_scope if meeting_ids.blank?
+
+    active_scope.where(bbb_meeting_id: meeting_ids).or(active_scope)
   rescue StandardError, WebMock::NetConnectNotAllowedError => e
     Rails.logger.warn("Unable to load BBB meetings for project #{project.id}: #{e.class}: #{e.message}")
-    project.project_all_hands_meetings.none
+    active_scope
   end
 
   private
@@ -91,6 +91,21 @@ class ProjectAllHandsMeeting < ApplicationRecord
     def extract_join_url(response)
       return nil if response.blank?
 
-      response[:url].presence || response["url"].presence || response.dig(:joinURL).presence || response.dig(:join_url).presence
+      response[:url].presence ||
+        response["url"].presence ||
+        response[:location].presence ||
+        response["location"].presence ||
+        response.dig(:joinURL).presence ||
+        response.dig(:join_url).presence
+    end
+
+    def self.extract_remote_meeting_ids(response)
+      return [] if response.blank?
+
+      raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
+      raw_meetings.filter_map do |meeting|
+        value = meeting.is_a?(Hash) ? (meeting[:meetingID] || meeting["meetingID"]) : nil
+        value.presence
+      end
     end
 end

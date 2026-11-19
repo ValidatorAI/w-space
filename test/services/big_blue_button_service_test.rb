@@ -57,6 +57,38 @@ class BigBlueButtonServiceTest < ActiveSupport::TestCase
     assert_includes member_result[:request_url], "/api/join"
   end
 
+  test "join requests preserve BBB redirect URLs when the server responds with a 302" do
+    redirect_response = Struct.new(:body, :headers) do
+      def [](key)
+        headers[key.to_s] || headers[key.to_sym]
+      end
+    end.new("", { "location" => "https://class.yogasina.com/html5client/join?sessionToken=abc123" })
+
+    Net::HTTP.expects(:get_response).returns(redirect_response).once
+
+    result = BigBlueButtonService.join_moderator(
+      meeting_id: "room-123",
+      full_name: "Alice Admin",
+      password: "adminpass"
+    )
+
+    assert_equal "https://class.yogasina.com/html5client/join?sessionToken=abc123", result[:url]
+    assert_equal "https://class.yogasina.com/html5client/join?sessionToken=abc123", result[:location]
+    assert_includes result[:request_url], "/api/join"
+  end
+
+  test "checksum signs the action and params before the shared secret" do
+    original_secret = ENV["BBB_SECRET"]
+    ENV["BBB_SECRET"] = "fTms153XMPu9iPiIOf6FYTfmBcuhvrfXXd0wEDTQ"
+
+    query_string = "meetingID=room-123&name=Standup"
+    expected = OpenSSL::Digest::SHA1.hexdigest("getMeetings#{query_string}#{ENV.fetch("BBB_SECRET")}")
+
+    assert_equal expected, BigBlueButtonService.send(:checksum, "getMeetings", { name: "Standup", meetingID: "room-123" })
+  ensure
+    ENV["BBB_SECRET"] = original_secret
+  end
+
   test "get_all_meetings exposes a list-meetings helper" do
     response = Struct.new(:body).new(
       <<~XML

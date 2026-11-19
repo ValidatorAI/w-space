@@ -59,6 +59,24 @@ class BigBlueButtonService
         else
           {}
         end
+
+        headers = if response.respond_to?(:headers)
+          response.headers
+        elsif response.respond_to?(:to_hash)
+          response.to_hash["headers"] || response.to_hash[:headers]
+        end
+
+        location = if headers.is_a?(Hash)
+          headers["location"].presence || headers["Location"].presence || headers[:location].presence || headers[:Location].presence
+        elsif response.respond_to?(:[]) && !response.is_a?(Struct)
+          response["location"].presence || response["Location"].presence
+        end
+
+        if location.present?
+          result[:location] = location
+          result[:url] = location if result[:url].blank?
+        end
+
         result[:request_url] = uri.to_s
         result
       end
@@ -81,7 +99,7 @@ class BigBlueButtonService
           .map { |key, value| "#{key}=#{CGI.escape(value.to_s)}" }
           .join("&")
 
-        OpenSSL::Digest::SHA1.hexdigest("#{bbb_secret}#{action}#{query_string}")
+        OpenSSL::Digest::SHA1.hexdigest("#{action}#{query_string}#{bbb_secret}")
       end
 
       def server_url
