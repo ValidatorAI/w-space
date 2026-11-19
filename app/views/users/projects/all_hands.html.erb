@@ -65,7 +65,7 @@
           <% if @running_meetings.any? %>
             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
               <% @running_meetings.each do |meeting| %>
-                <%= link_to meeting.title, meeting_path(id: meeting.id), class: "btn btn--ghost", style: "display: inline-flex; align-items: center; gap: 8px;" %>
+                <%= link_to meeting.title, meeting_path(id: meeting.id), class: "btn btn--ghost", style: "display: inline-flex; align-items: center; gap: 8px;", data: { turbo: false } %>
               <% end %>
             </div>
           <% else %>

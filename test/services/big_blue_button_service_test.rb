@@ -57,7 +57,7 @@ class BigBlueButtonServiceTest < ActiveSupport::TestCase
     assert_includes member_result[:request_url], "/api/join"
   end
 
-  test "join requests preserve BBB redirect URLs when the server responds with a 302" do
+  test "join requests expose the BBB API join URL as the redirect target" do
     redirect_response = Struct.new(:body, :headers) do
       def [](key)
         headers[key.to_s] || headers[key.to_sym]
@@ -72,9 +72,37 @@ class BigBlueButtonServiceTest < ActiveSupport::TestCase
       password: "adminpass"
     )
 
-    assert_equal "https://class.yogasina.com/html5client/join?sessionToken=abc123", result[:url]
+    assert_includes result[:url], "/bigbluebutton/api/join"
+    assert_includes result[:url], "meetingID=room-123"
+    assert_includes result[:url], "fullName=Alice+Admin"
+    assert_includes result[:url], "password=adminpass"
+    assert_not_includes result[:url], "userID="
     assert_equal "https://class.yogasina.com/html5client/join?sessionToken=abc123", result[:location]
     assert_includes result[:request_url], "/api/join"
+  end
+
+  test "join requests omit userID for BBB join operations" do
+    response = Struct.new(:body).new(
+      <<~XML
+        <response>
+          <returncode>SUCCESS</returncode>
+          <messageKey>ok</messageKey>
+          <message>user joined</message>
+          <url>https://bbb.example.com/join/abc</url>
+        </response>
+      XML
+    )
+
+    Net::HTTP.expects(:get_response).returns(response).once
+
+    result = BigBlueButtonService.join_moderator(
+      meeting_id: "room-123",
+      full_name: "Alice Admin",
+      password: "adminpass",
+      user_id: "moderator-42"
+    )
+
+    assert_not_includes result[:request_url], "userID="
   end
 
   test "checksum signs the action and params before the shared secret" do

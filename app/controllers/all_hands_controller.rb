@@ -2,11 +2,8 @@ class AllHandsController < ApplicationController
   before_action :set_meeting, only: :show
 
   def show
-    if @meeting.join_url.blank?
-      @meeting.update!(join_url: @meeting.moderator_join_url)
-    end
-
-    @iframe_src = @meeting.join_url.presence || "about:blank"
+    @target_url = @meeting.moderator_join_url.presence || user_company_project_all_hands_path(user_id: "me", id: @meeting.project_id)
+    render :show
   end
 
   def create

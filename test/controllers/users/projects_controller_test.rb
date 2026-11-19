@@ -376,6 +376,36 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match meeting.title, @response.body
     assert_match meeting_path(id: meeting.id), @response.body
+    assert_match 'data-turbo="false"', @response.body
+  end
+
+  test "meeting show refreshes a stale join URL before browser redirect" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "redirect-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      join_url: "https://class.yogasina.com/html5client/join?sessionToken=stale-token",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.expects(:join_moderator).with(
+      meeting_id: meeting.bbb_meeting_id,
+      full_name: anything,
+      user_id: "moderator-#{meeting.id}",
+      password: "modpass"
+    ).returns({ url: "https://class.yogasina.com/html5client/join?sessionToken=fresh-token" })
+
+    get meeting_url(id: meeting.id)
+
+    assert_response :success
+    assert_match "Redirecting to meeting", @response.body
+    assert_match "window.location.href", @response.body
+    assert_match "fresh-token", @response.body
+    assert_match "https://class.yogasina.com/html5client/join?sessionToken=fresh-token", @response.body
   end
 
   test "all hands with dynamic project data" do

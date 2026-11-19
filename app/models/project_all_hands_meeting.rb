@@ -39,8 +39,6 @@ class ProjectAllHandsMeeting < ApplicationRecord
   end
 
   def moderator_join_url
-    return join_url if join_url.present?
-
     response = BigBlueButtonService.join_moderator(
       meeting_id: bbb_meeting_id,
       full_name: Current.user&.effective_display_name || "Moderator",
@@ -48,11 +46,12 @@ class ProjectAllHandsMeeting < ApplicationRecord
       password: moderator_pw
     )
 
-    self.join_url = extract_join_url(response)
+    fresh_join_url = extract_join_url(response)
+    self.join_url = fresh_join_url if fresh_join_url.present?
     self.running = true
     self.last_seen_at = Time.current
     save! if persisted?
-    join_url
+    fresh_join_url
   end
 
   def member_join_url(full_name = "Guest")
