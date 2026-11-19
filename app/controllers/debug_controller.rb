@@ -13,7 +13,8 @@ class DebugController < ApplicationController
       RoomHistoryTopic.includes(:room, :topic)
         .joins(:room)
         .where(rooms: { project_id: project.id })
-        .order(created_date: :desc, id: :desc)
+        .order(created_date: :asc, id: :asc)
+        .group_by { |entry| entry.room }
     end
 
     @project_tool_logs = @projects.index_with do |project|

@@ -122,29 +122,47 @@
         <% @projects.each do |project| %>
           <% room_history = @project_room_history[project] || [] %>
 
-          <article class="card debug-project">
-            <div class="debug-project__header">
+          <article class="card debug-project debug-project--history">
+            <div class="debug-project__header debug-project__header--history">
               <div>
                 <h2 class="h5 debug-project__title"><%= project.display_name %></h2>
                 <p class="debug-project__meta">Project ID: <%= project.id %></p>
               </div>
             </div>
 
-            <div class="debug-project__body">
+            <div class="debug-project__body debug-project__body--history">
               <% if room_history.any? %>
-                <div class="debug-list">
-                  <% room_history.each do |entry| %>
-                    <div class="debug-list-item">
-                      <div class="debug-list-item__main">
-                        <strong><%= entry.topic&.name || "Unknown topic" %></strong>
-                        <span class="debug-list-item__meta">(topic_id=<%= entry.topic_id || "n/a" %>)</span>
-                      </div>
-                      <div class="debug-list-item__meta">Room: <%= entry.room&.name || "Unknown room" %></div>
-                      <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
-                      <% if entry.last_state.present? %>
-                        <div class="debug-list-item__detail">last_state: <%= entry.last_state %></div>
+                <div class="debug-room-history-groups">
+                  <% room_history.each do |room, entries| %>
+                    <% topic_names = entries.filter_map { |entry| entry.topic&.name }.uniq.first(3) %>
+
+                    <details class="debug-room-history-group debug-room-history-group--room" data-room-history-group>
+                      <summary class="debug-room-history-group__summary">
+                        <span><%= room&.name || "Unknown room" %></span>
+                        <span class="debug-room-history-group__count"><%= entries.size %></span>
+                      </summary>
+
+                      <% if topic_names.any? %>
+                        <div class="debug-room-history-group__topics">
+                          Topic: <%= topic_names.join(", ") %>
+                        </div>
                       <% end %>
-                    </div>
+
+                      <div class="debug-list debug-room-history-group__body">
+                        <% entries.each do |entry| %>
+                          <div class="debug-list-item debug-list-item--history">
+                            <div class="debug-list-item__main">
+                              <strong>Topic: <%= entry.topic&.name || "Unknown topic" %></strong>
+                              <span class="debug-list-item__meta">(topic_id=<%= entry.topic_id || "n/a" %>)</span>
+                            </div>
+                            <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                            <% if entry.last_state.present? %>
+                              <div class="debug-list-item__detail">last_state: <%= entry.last_state %></div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </details>
                   <% end %>
                 </div>
               <% else %>

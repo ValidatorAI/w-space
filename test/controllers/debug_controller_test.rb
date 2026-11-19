@@ -96,4 +96,28 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "show_debug_tabs"
     assert_includes response.body, "Debug Room"
   end
+
+  test "room history tab groups projects and rooms and keeps history in ascending date order" do
+    sign_in :david
+
+    project = Project.create!(path: "/tmp/debug-room-history-project-#{Process.pid}-#{rand(1_000_000)}", name: "Room History Project")
+    creator = User.find_by(email_address: "david@37signals.com") || User.first
+    room_alpha = project.rooms.create!(name: "Room Alpha", type: "Rooms::Open", private: false, creator: creator)
+    room_beta = project.rooms.create!(name: "Room Beta", type: "Rooms::Open", private: false, creator: creator)
+
+    topic_a = Topic.create!(project: project, name: "Alpha Topic", active: true, need_an_action: false)
+    topic_b = Topic.create!(project: project, name: "Beta Topic", active: true, need_an_action: false)
+
+    old_alpha = RoomHistoryTopic.create!(room: room_alpha, topic: topic_a, created_date: 4.days.ago, last_state: "older alpha")
+    new_alpha = RoomHistoryTopic.create!(room: room_alpha, topic: topic_a, created_date: 1.day.ago, last_state: "newer alpha")
+    middle_beta = RoomHistoryTopic.create!(room: room_beta, topic: topic_b, created_date: 2.days.ago, last_state: "beta history")
+
+    get "/debug"
+
+    assert_response :ok
+    assert_operator response.body.index("Room Alpha"), :<, response.body.index("Room Beta")
+    assert_operator response.body.index(old_alpha.last_state), :<, response.body.index(new_alpha.last_state)
+    assert_operator response.body.index("older alpha"), :<, response.body.index("newer alpha")
+    assert_operator response.body.index("older alpha"), :<, response.body.index("beta history")
+  end
 end
