@@ -357,7 +357,7 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Watch Recording", @response.body
   end
 
-  test "all hands shows locally active meetings when BBB has not reported them yet" do
+  test "all hands hides local meetings when BBB has not reported them as running" do
     project = create_project_for(users(:david))
     meeting = project.project_all_hands_meetings.create!(
       title: "Daily standup",
@@ -374,9 +374,9 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     get user_company_project_all_hands_url(id: project.id)
 
     assert_response :success
-    assert_match meeting.title, @response.body
-    assert_match meeting_path(id: meeting.id), @response.body
-    assert_match 'data-turbo="false"', @response.body
+    assert_match "No meetings are currently running for this project.", @response.body
+    assert_no_match meeting_path(id: meeting.id, role: "member"), @response.body
+    assert_no_match 'data-turbo="false"', @response.body
   end
 
   test "meeting show joins as moderator when role is moderator" do

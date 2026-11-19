@@ -24,7 +24,7 @@ class ProjectAllHandsMeeting < ApplicationRecord
     self.attendee_pw ||= SecureRandom.alphanumeric(16)
 
     response = BigBlueButtonService.create_meeting(
-      name: title,
+      name: project_meeting_name,
       meeting_id: bbb_meeting_id,
       moderator_pw: moderator_pw,
       attendee_pw: attendee_pw
@@ -66,20 +66,36 @@ class ProjectAllHandsMeeting < ApplicationRecord
   end
 
   def self.current_running_for(project)
-    active_scope = project.project_all_hands_meetings.where(running: true).order(created_at: :desc)
-
     response = BigBlueButtonService.get_all_meetings
-    meeting_ids = extract_remote_meeting_ids(response)
+    meeting_names = extract_remote_meeting_names(response)
+    project_prefix = project.display_name.to_s.strip
 
-    return active_scope if meeting_ids.blank?
+    if meeting_names.blank?
+      return project.project_all_hands_meetings.none
+    end
 
-    active_scope.where(bbb_meeting_id: meeting_ids).or(active_scope)
+    matching_names = meeting_names.select { |name| name.to_s.start_with?("#{project_prefix} - ") }
+    meeting_ids = project.project_all_hands_meetings.where(title: matching_names.map { |name| name.to_s.sub(/^#{Regexp.escape(project_prefix)} - /, "") }).pluck(:bbb_meeting_id)
+
+    if meeting_ids.blank?
+      return project.project_all_hands_meetings.none
+    end
+
+    project.project_all_hands_meetings.where(bbb_meeting_id: meeting_ids).order(created_at: :desc)
   rescue StandardError, WebMock::NetConnectNotAllowedError => e
     Rails.logger.warn("Unable to load BBB meetings for project #{project.id}: #{e.class}: #{e.message}")
-    active_scope
+    project.project_all_hands_meetings.none
   end
 
   private
+    def project_meeting_name
+      project_name = project&.display_name.to_s.strip
+      base_title = title.to_s.strip
+      return base_title if project_name.blank?
+
+      "#{project_name} - #{base_title}"
+    end
+
     def set_defaults
       self.bbb_meeting_id ||= "project-all-hands-#{project_id || "unknown"}-#{SecureRandom.uuid}"
       self.moderator_pw ||= SecureRandom.alphanumeric(16)
@@ -104,6 +120,22 @@ class ProjectAllHandsMeeting < ApplicationRecord
       raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
       raw_meetings.filter_map do |meeting|
         value = meeting.is_a?(Hash) ? (meeting[:meetingID] || meeting["meetingID"]) : nil
+        value.presence
+      end
+    end
+
+    def self.extract_remote_meeting_names(response)
+      return [] if response.blank?
+
+      raw_meetings = Array(response.dig(:meetings, :meeting)).flatten
+      raw_meetings.filter_map do |meeting|
+        next if meeting.blank?
+
+        value = if meeting.is_a?(Hash)
+          meeting[:meetingName] || meeting["meetingName"] || meeting[:name] || meeting["name"]
+        else
+          nil
+        end
         value.presence
       end
     end
