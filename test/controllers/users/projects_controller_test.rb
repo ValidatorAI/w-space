@@ -379,7 +379,7 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match 'data-turbo="false"', @response.body
   end
 
-  test "meeting show refreshes a stale join URL before browser redirect" do
+  test "meeting show joins as moderator when role is moderator" do
     project = create_project_for(users(:david))
     meeting = project.project_all_hands_meetings.create!(
       title: "Daily standup",
@@ -399,13 +399,39 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
       password: "modpass"
     ).returns({ url: "https://class.yogasina.com/html5client/join?sessionToken=fresh-token" })
 
-    get meeting_url(id: meeting.id)
+    get meeting_url(id: meeting.id, role: "moderator")
 
     assert_response :success
     assert_match "Redirecting to meeting", @response.body
     assert_match "window.location.href", @response.body
     assert_match "fresh-token", @response.body
     assert_match "https://class.yogasina.com/html5client/join?sessionToken=fresh-token", @response.body
+  end
+
+  test "meeting show joins as member when role is member" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "member-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.expects(:join_member).with(
+      meeting_id: meeting.bbb_meeting_id,
+      full_name: anything,
+      user_id: "attendee-#{meeting.id}",
+      password: "memberpass"
+    ).returns({ url: "https://class.yogasina.com/html5client/join?sessionToken=member-token" })
+
+    get meeting_url(id: meeting.id, role: "member")
+
+    assert_response :success
+    assert_match "member-token", @response.body
+    assert_match "https://class.yogasina.com/html5client/join?sessionToken=member-token", @response.body
   end
 
   test "all hands with dynamic project data" do

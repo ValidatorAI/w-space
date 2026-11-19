@@ -2,7 +2,12 @@ class AllHandsController < ApplicationController
   before_action :set_meeting, only: :show
 
   def show
-    @target_url = @meeting.moderator_join_url.presence || user_company_project_all_hands_path(user_id: "me", id: @meeting.project_id)
+    if params[:role].to_s == "moderator"
+      @target_url = @meeting.moderator_join_url.presence || user_company_project_all_hands_path(user_id: "me", id: @meeting.project_id)
+    else
+      @target_url = @meeting.member_join_url(Current.user&.effective_display_name || "Guest").presence || user_company_project_all_hands_path(user_id: "me", id: @meeting.project_id)
+    end
+
     render :show
   end
 
@@ -14,7 +19,7 @@ class AllHandsController < ApplicationController
     meeting = project.project_all_hands_meetings.create!(title: title)
     meeting.create_in_big_blue_button!
 
-    redirect_to meeting_path(id: meeting.id), notice: "Meeting started"
+    redirect_to meeting_path(id: meeting.id, role: "moderator"), notice: "Meeting started"
   rescue ActiveRecord::RecordNotFound
     redirect_to user_company_project_all_hands_path(user_id: "me", id: params[:project_id]), alert: "Project not found."
   rescue StandardError => e
