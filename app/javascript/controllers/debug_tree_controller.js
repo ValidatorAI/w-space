@@ -8,7 +8,7 @@ export default class extends Controller {
 
     const expanded = !this.panelTarget.hidden
     this.panelTarget.hidden = expanded
-    this.toggleTarget.textContent = expanded ? "Expand" : "Collapse"
+    this.toggleTarget.textContent = expanded ? "Collapse" : "Expand"
     this.toggleTarget.setAttribute("aria-expanded", String(!expanded))
   }
 
