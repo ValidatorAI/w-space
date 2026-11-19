@@ -162,7 +162,7 @@
 }
 
 .debug-topic-content {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
@@ -170,6 +170,24 @@
 
 .debug-topic-name {
   font-weight: 600;
+}
+
+.debug-topic-open-link {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+  color: inherit;
+  display: inline-flex;
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 0.18rem 0.5rem;
+  text-decoration: none;
+}
+
+.debug-topic-open-link:hover,
+.debug-topic-open-link:focus {
+  background: rgba(99, 102, 241, 0.16);
+  text-decoration: none;
 }
 
 .debug-topic-meta {
@@ -335,6 +353,13 @@
 .debug-tool-log-group--topic {
   border-color: rgba(251, 146, 60, 0.42);
   background: rgba(251, 146, 60, 0.04);
+}
+
+.debug-tool-log-group__label {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .debug-tool-log-group__header {

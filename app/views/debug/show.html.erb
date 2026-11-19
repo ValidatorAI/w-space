@@ -153,6 +153,13 @@
                           <div class="debug-list-item debug-list-item--history">
                             <div class="debug-list-item__main">
                               <strong>Topic: <%= entry.topic&.name || "Unknown topic" %></strong>
+                              <% if entry.topic.present? %>
+                                <%= link_to "Open",
+                                      debug_topic_path(entry.topic),
+                                      class: "debug-topic-open-link",
+                                      target: "_blank",
+                                      rel: "noopener noreferrer" %>
+                              <% end %>
                               <span class="debug-list-item__meta">(topic_id=<%= entry.topic_id || "n/a" %>)</span>
                             </div>
                             <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
@@ -276,7 +283,16 @@
                           <% topic_logs.each do |topic, logs| %>
                             <details class="debug-tool-log-group debug-tool-log-group--topic">
                               <summary class="debug-tool-log-group__header">
-                                <span><%= topic&.name || "Unknown topic" %></span>
+                                <div class="debug-tool-log-group__label">
+                                  <span><%= topic&.name || "Unknown topic" %></span>
+                                  <% if topic.present? %>
+                                    <%= link_to "Open",
+                                          debug_topic_path(topic),
+                                          class: "debug-topic-open-link",
+                                          target: "_blank",
+                                          rel: "noopener noreferrer" %>
+                                  <% end %>
+                                </div>
                                 <span class="debug-tool-log-group__count"><%= logs.size %></span>
                               </summary>
                               <div class="debug-tool-log-group__body">
