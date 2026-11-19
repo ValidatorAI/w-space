@@ -78,6 +78,32 @@
         </div>
 
         <div class="debug-tool-log-section debug-tool-log-section--project">
+          <h3 class="h6 debug-tool-log-section__title">Topic messages</h3>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_messages.any? %>
+              <div class="debug-list">
+                <% @topic_messages.each do |message_topic| %>
+                  <% message = message_topic.message %>
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= message&.creator&.display_name || message&.creator&.name || "Unknown sender" %></strong>
+                    </div>
+                    <div class="debug-list-item__meta">Created: <%= message_topic.created_date&.strftime("%Y-%m-%d %H:%M:%S") || message&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if message.present? %>
+                      <div class="debug-list-item__detail"><%= message.plain_text_body.presence || "(empty message)" %></div>
+                    <% else %>
+                      <div class="debug-list-item__detail">Missing message record</div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No related messages for this topic.</p>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="debug-tool-log-section debug-tool-log-section--project">
           <h3 class="h6 debug-tool-log-section__title">Tool call logs</h3>
           <div class="debug-tool-log-section__body">
             <% if @topic_tool_logs.any? %>

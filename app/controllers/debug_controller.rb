@@ -40,6 +40,11 @@ class DebugController < ApplicationController
       .ordered
       .to_a
 
+    @topic_messages = MessageTopic.includes(:message)
+      .where(topic_id: @topic.id)
+      .order(created_date: :asc, id: :asc)
+      .to_a
+
     @topic_child_topics = @topic.child_topics.order(:created_at, :id).to_a
   end
 
