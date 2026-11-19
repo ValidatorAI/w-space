@@ -1,4 +1,44 @@
 <main class="container py-4">
   <h1>Debug</h1>
   <p>Debug tools are enabled for admin users.</p>
+
+  <section class="mt-4">
+    <h2 class="h4">Projects and Topic Trees</h2>
+
+    <% @project_topic_debug.each_value do |debug_data| %>
+      <% project = debug_data[:project] %>
+      <article class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 mb-1"><%= project.display_name %></h3>
+          <p class="text-muted mb-3">Project ID: <%= project.id %></p>
+
+          <h4 class="h6">Topic tree</h4>
+          <% if debug_data[:roots].any? %>
+            <ul class="mb-3">
+              <% debug_data[:roots].each do |topic| %>
+                <%= render "topic_tree_node", topic: topic, children_by_parent_id: debug_data[:children_by_parent_id] %>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-muted">No root topics.</p>
+          <% end %>
+
+          <h4 class="h6">Anomalies</h4>
+          <% if debug_data[:anomaly_entries].any? %>
+            <ul>
+              <% debug_data[:anomaly_entries].each do |entry| %>
+                <li>
+                  <strong><%= entry[:topic].name %></strong>
+                  (id=<%= entry[:topic].id %>, parent_id=<%= entry[:topic].parent_topic_id || "nil" %>)
+                  - <%= entry[:reasons].join("; ") %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-muted">No anomalies detected.</p>
+          <% end %>
+        </div>
+      </article>
+    <% end %>
+  </section>
 </main>

@@ -1,0 +1,13 @@
+<li>
+  <strong><%= topic.name %></strong>
+  (id=<%= topic.id %>, parent_id=<%= topic.parent_topic_id || "nil" %>)
+
+  <% children = children_by_parent_id.fetch(topic.id, []) %>
+  <% if children.any? %>
+    <ul>
+      <% children.each do |child| %>
+        <%= render "topic_tree_node", topic: child, children_by_parent_id: children_by_parent_id %>
+      <% end %>
+    </ul>
+  <% end %>
+</li>
