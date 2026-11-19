@@ -120,4 +120,29 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_operator response.body.index("older alpha"), :<, response.body.index("newer alpha")
     assert_operator response.body.index("older alpha"), :<, response.body.index("beta history")
   end
+
+  test "tool call log tab groups project, room, and topic logs in hierarchy order" do
+    sign_in :david
+
+    project = Project.create!(path: "/tmp/debug-tool-hierarchy-#{Process.pid}-#{rand(1_000_000)}", name: "Tool Hierarchy Project")
+    creator = User.find_by(email_address: "david@37signals.com") || User.first
+    room = project.rooms.create!(name: "Tool Room", type: "Rooms::Open", private: false, creator: creator)
+    topic = Topic.create!(project: project, name: "Tool Topic", active: true, need_an_action: false)
+
+    ToolCalLog.create!(project: project, used_tool_name: "project_scope_sync", created_date: 2.hours.ago, change_log: "project level log")
+    ToolCalLog.create!(project: project, room: room, used_tool_name: "room_scope_sync", created_date: 1.hour.ago, change_log: "room level log")
+    ToolCalLog.create!(project: project, room: room, topic: topic, used_tool_name: "topic_scope_sync", created_date: 30.minutes.ago, change_log: "topic level log")
+
+    get "/debug"
+
+    assert_response :ok
+    assert_includes response.body, "Project logs"
+    assert_includes response.body, "Room logs"
+    assert_includes response.body, "Topic logs"
+    assert_includes response.body, "project_scope_sync"
+    assert_includes response.body, "room_scope_sync"
+    assert_includes response.body, "topic_scope_sync"
+    assert_operator response.body.index("Project logs"), :<, response.body.index("Room logs")
+    assert_operator response.body.index("Room logs"), :<, response.body.index("Topic logs")
+  end
 end

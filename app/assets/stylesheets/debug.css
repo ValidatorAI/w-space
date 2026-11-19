@@ -251,6 +251,104 @@
   border-color: rgba(16, 185, 129, 0.42);
 }
 
+.debug-project--tool-log {
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+.debug-project__header--tool-log {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.14), rgba(251, 191, 36, 0.08));
+  border-bottom-color: rgba(245, 158, 11, 0.4);
+}
+
+.debug-project__body--tool-log {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.05), rgba(255, 255, 255, 0.02));
+}
+
+.debug-tool-log-hierarchy {
+  display: grid;
+  gap: 1rem;
+}
+
+.debug-tool-log-section {
+  border: 1px solid var(--debug-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.debug-tool-log-section--project {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.07), rgba(255, 255, 255, 0.02));
+  border-color: rgba(59, 130, 246, 0.38);
+}
+
+.debug-tool-log-section--room {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.08), rgba(255, 255, 255, 0.02));
+  border-color: rgba(168, 85, 247, 0.38);
+}
+
+.debug-tool-log-section--topic {
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.08), rgba(255, 255, 255, 0.02));
+  border-color: rgba(251, 146, 60, 0.38);
+}
+
+.debug-tool-log-section__title {
+  background: rgba(255, 255, 255, 0.04);
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+}
+
+.debug-tool-log-groups {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.debug-tool-log-group {
+  border: 1px solid var(--debug-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.debug-tool-log-group--room {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.04);
+}
+
+.debug-tool-log-group--topic {
+  border-color: rgba(251, 146, 60, 0.42);
+  background: rgba(251, 146, 60, 0.04);
+}
+
+.debug-tool-log-group__header {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.debug-tool-log-group__count {
+  background: rgba(99, 102, 241, 0.12);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+}
+
+.debug-list-item--project-log {
+  border-color: rgba(59, 130, 246, 0.38);
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.debug-list-item--room-log {
+  border-color: rgba(168, 85, 247, 0.38);
+  background: rgba(168, 85, 247, 0.03);
+}
+
+.debug-list-item--topic-log {
+  border-color: rgba(251, 146, 60, 0.38);
+  background: rgba(251, 146, 60, 0.03);
+}
+
 .debug-list-item__main {
   align-items: baseline;
   display: flex;

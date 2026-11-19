@@ -18,9 +18,7 @@ class DebugController < ApplicationController
     end
 
     @project_tool_logs = @projects.index_with do |project|
-      ToolCalLog.includes(:room, :topic)
-        .where(project_id: project.id)
-        .ordered
+      build_project_tool_log_groups(project)
     end
 
     @project_topic_debug = @projects.index_with do |project|
@@ -29,6 +27,21 @@ class DebugController < ApplicationController
   end
 
   private
+    def build_project_tool_log_groups(project)
+      logs = ToolCalLog.includes(:room, :topic)
+        .where(project_id: project.id)
+        .ordered
+        .to_a
+
+      {
+        project_logs: logs.select { |log| log.room_id.blank? },
+        room_logs: logs.select { |log| log.room_id.present? && log.topic_id.blank? }
+          .group_by { |log| log.room },
+        topic_logs: logs.select { |log| log.topic_id.present? }
+          .group_by { |log| log.topic }
+      }
+    end
+
     def build_project_topic_debug(project, topics)
       topics_by_id = topics.index_by(&:id)
       children_by_parent_id = topics.group_by(&:parent_topic_id)
