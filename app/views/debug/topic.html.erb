@@ -19,8 +19,8 @@
 
     <div class="debug-project__body debug-project__body--tool-log">
       <div class="debug-tool-log-hierarchy">
-        <div class="debug-tool-log-section debug-tool-log-section--topic">
-          <h3 class="h6 debug-tool-log-section__title">Topic details</h3>
+        <details class="debug-tool-log-section debug-tool-log-section--topic">
+          <summary class="h6 debug-tool-log-section__title">Topic details</summary>
           <div class="debug-tool-log-section__body">
             <div class="debug-list">
               <div class="debug-list-item debug-list-item--topic-log">
@@ -52,10 +52,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </details>
 
-        <div class="debug-tool-log-section debug-tool-log-section--room">
-          <h3 class="h6 debug-tool-log-section__title">Room history</h3>
+        <details class="debug-tool-log-section debug-tool-log-section--room">
+          <summary class="h6 debug-tool-log-section__title">Room history</summary>
           <div class="debug-tool-log-section__body">
             <% if @topic_room_history.any? %>
               <div class="debug-list">
@@ -75,10 +75,10 @@
               <p class="debug-empty">No room history entries for this topic.</p>
             <% end %>
           </div>
-        </div>
+        </details>
 
-        <div class="debug-tool-log-section debug-tool-log-section--project">
-          <h3 class="h6 debug-tool-log-section__title">Topic messages</h3>
+        <details class="debug-tool-log-section debug-tool-log-section--project">
+          <summary class="h6 debug-tool-log-section__title">Topic messages</summary>
           <div class="debug-tool-log-section__body">
             <% if @topic_messages.any? %>
               <div class="debug-list">
@@ -101,10 +101,10 @@
               <p class="debug-empty">No related messages for this topic.</p>
             <% end %>
           </div>
-        </div>
+        </details>
 
-        <div class="debug-tool-log-section debug-tool-log-section--project">
-          <h3 class="h6 debug-tool-log-section__title">Tool call logs</h3>
+        <details class="debug-tool-log-section debug-tool-log-section--project">
+          <summary class="h6 debug-tool-log-section__title">Tool call logs</summary>
           <div class="debug-tool-log-section__body">
             <% if @topic_tool_logs.any? %>
               <div class="debug-list">
@@ -126,10 +126,10 @@
               <p class="debug-empty">No tool call logs for this topic.</p>
             <% end %>
           </div>
-        </div>
+        </details>
 
-        <div class="debug-tool-log-section debug-tool-log-section--topic">
-          <h3 class="h6 debug-tool-log-section__title">Child topics</h3>
+        <details class="debug-tool-log-section debug-tool-log-section--topic">
+          <summary class="h6 debug-tool-log-section__title">Child topics</summary>
           <div class="debug-tool-log-section__body">
             <% if @topic_child_topics.any? %>
               <div class="debug-list">
@@ -146,7 +146,7 @@
               <p class="debug-empty">No child topics.</p>
             <% end %>
           </div>
-        </div>
+        </details>
       </div>
     </div>
   </section>

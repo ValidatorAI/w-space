@@ -178,6 +178,7 @@ Rails.application.routes.draw do
   get "service-worker" => "pwa#service_worker"
   get "debug", to: "debug#show", as: :debug
   get "debug/topic/:id", to: "debug#topic", as: :debug_topic
+  get "debug/message/:id", to: "debug#message", as: :debug_message
 
   if ENV.fetch("DISABLE_API_ROUTES", "true") == "false"
     namespace :api do

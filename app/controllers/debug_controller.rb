@@ -48,6 +48,17 @@ class DebugController < ApplicationController
     @topic_child_topics = @topic.child_topics.order(:created_at, :id).to_a
   end
 
+  def message
+    @message = Message.includes(:room, :creator, :message_topics)
+      .find(params[:id])
+
+    @related_topics = @message.message_topics
+      .includes(:topic)
+      .order(created_date: :asc, id: :asc)
+      .map(&:topic)
+      .compact
+  end
+
   private
     def build_project_tool_log_groups(project)
       logs = ToolCalLog.includes(:room, :topic)

@@ -1,0 +1,77 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Message debug</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      <%= link_to "Back to debug", debug_path %>
+    </p>
+  </header>
+
+  <section class="card debug-project debug-project--tool-log">
+    <div class="debug-project__header debug-project__header--tool-log">
+      <div>
+        <h2 class="h5 debug-project__title">Message <%= @message.id %></h2>
+        <p class="debug-project__meta">Room: <%= @message.room&.name || "n/a" %> | Project: <%= @message.room&.project&.display_name || "n/a" %></p>
+      </div>
+    </div>
+
+    <div class="debug-project__body debug-project__body--tool-log">
+      <div class="debug-tool-log-hierarchy">
+        <details class="debug-tool-log-section debug-tool-log-section--project">
+          <summary class="h6 debug-tool-log-section__title">Message details</summary>
+          <div class="debug-tool-log-section__body">
+            <div class="debug-list">
+              <div class="debug-list-item debug-list-item--project-log">
+                <div class="debug-list-item__main">
+                  <strong>Author</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @message.creator&.display_name || @message.creator&.name || "Unknown creator" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--project-log">
+                <div class="debug-list-item__main">
+                  <strong>Created</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @message.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--project-log">
+                <div class="debug-list-item__main">
+                  <strong>Body</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @message.plain_text_body.presence || "(empty message)" %></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="debug-tool-log-section debug-tool-log-section--topic">
+          <summary class="h6 debug-tool-log-section__title">Related topics</summary>
+          <div class="debug-tool-log-section__body">
+            <% if @related_topics.any? %>
+              <div class="debug-list">
+                <% @related_topics.each do |topic| %>
+                  <div class="debug-list-item debug-list-item--topic-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= topic.name %></strong>
+                      <%= link_to "Open",
+                            debug_topic_path(topic),
+                            class: "debug-topic-open-link",
+                            target: "_blank",
+                            rel: "noopener noreferrer" %>
+                    </div>
+                    <div class="debug-list-item__meta">Topic ID: <%= topic.id %> | Project: <%= topic.project&.display_name || "n/a" %></div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No related topics for this message.</p>
+            <% end %>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>

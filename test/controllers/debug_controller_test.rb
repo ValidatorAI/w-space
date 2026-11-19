@@ -186,4 +186,27 @@ class DebugControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "newer message"
     assert_operator response.body.index("older message"), :<, response.body.index("newer message")
   end
+
+  test "debug message page shows related topics for the message" do
+    sign_in :david
+
+    project = Project.create!(path: "/tmp/debug-message-topics-#{Process.pid}-#{rand(1_000_000)}", name: "Message Topics Project")
+    creator = User.find_by(email_address: "david@37signals.com") || User.first
+    room = project.rooms.create!(name: "Message Topics Room", type: "Rooms::Open", private: false, creator: creator)
+    first_topic = Topic.create!(project: project, name: "First Topic", active: true, need_an_action: false)
+    second_topic = Topic.create!(project: project, name: "Second Topic", active: true, need_an_action: false)
+    message = room.messages.create!(body: "debug message body", creator: creator, created_at: 2.days.ago)
+
+    MessageTopic.create!(topic: second_topic, message: message, created_date: 1.day.ago)
+    MessageTopic.create!(topic: first_topic, message: message, created_date: 2.days.ago)
+
+    get "/debug/message/#{message.id}"
+
+    assert_response :ok
+    assert_includes response.body, "Message debug"
+    assert_includes response.body, "debug message body"
+    assert_includes response.body, "First Topic"
+    assert_includes response.body, "Second Topic"
+    assert_operator response.body.index("First Topic"), :<, response.body.index("Second Topic")
+  end
 end
