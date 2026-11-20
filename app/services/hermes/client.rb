@@ -70,10 +70,10 @@ module Hermes
     end
 
     def api_status
-      url = URI("#{@status_base_uri}/api/status")
+      url = URI(normalized_status_url)
       req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
       response = execute_http(url, req, timeout: @timeout)
-      parse_json(response)
+      normalize_status_payload(parse_json(response))
     rescue Exception => e
       { "overall" => "unavailable", "error" => e.message, "gateway_busy" => true, "active_agents" => nil, "active_sessions" => nil }
     end
@@ -84,7 +84,7 @@ module Hermes
         "gateway_busy" => status["gateway_busy"],
         "active_agents" => status["active_agents"],
         "active_sessions" => status["active_sessions"],
-        "overall" => status["overall"]
+        "overall" => status["overall"] || status["status"] || status.dig("readiness", "status")
       }
     end
 
@@ -139,6 +139,22 @@ module Hermes
     end
 
     private
+
+    def normalized_status_url
+      status_url = @status_base_uri.to_s.chomp("/")
+      return status_url if status_url.end_with?("/health/detailed")
+      return status_url.sub(%r{/api/status\z}, "/health/detailed") if status_url.end_with?("/api/status")
+
+      "#{status_url}/health/detailed"
+    end
+
+    def normalize_status_payload(payload)
+      return payload unless payload.is_a?(Hash)
+
+      normalized = payload.dup
+      normalized["overall"] ||= normalized["status"] || normalized.dig("readiness", "status") || "unknown"
+      normalized
+    end
 
     def post_json(path, payload:, profile:, session_id: nil, session_key: nil, timeout: nil)
       url = URI(build_url(path, profile: profile))

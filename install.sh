@@ -374,7 +374,7 @@ fi
 maybe_add_default_env "RAILS_ENV" "production"
 maybe_add_default_env "PORT" "3000"
 maybe_add_default_env "HERMES_BASE_URI" "http://hermes:8642"
-maybe_add_default_env "HERMES_STATUS_URI" "http://hermes:9119"
+maybe_add_default_env "HERMES_STATUS_URI" "http://hermes:8642/health/detailed"
 maybe_add_default_env "HERMES_DASHBOARD" "true"
 maybe_add_default_env "HERMES_DASHBOARD_HOST" "0.0.0.0"
 maybe_add_default_env "HERMES_DASHBOARD_PORT" "8080"

@@ -14,7 +14,7 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
       "overall" => "healthy"
     }
 
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(status: 200, body: @hermes_status.to_json, headers: { "Content-Type" => "application/json" })
   end
 
@@ -145,7 +145,7 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
   end
 
   test "does not re-enqueue orphan events while Hermes is busy" do
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => true, "active_agents" => 3, "active_sessions" => 5, "overall" => "busy" }.to_json,
@@ -190,7 +190,7 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
   end
 
   test "throttles when active_agents exceeds threshold" do
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => true, "active_agents" => 3, "active_sessions" => 5, "overall" => "busy" }.to_json,

@@ -309,7 +309,7 @@ $defaults = @(
     @{ Key = 'RAILS_ENV'; Value = 'production' },
     @{ Key = 'PORT'; Value = '3000' },
     @{ Key = 'HERMES_BASE_URI'; Value = 'http://hermes:8642' },
-    @{ Key = 'HERMES_STATUS_URI'; Value = 'http://hermes:9119' },
+    @{ Key = 'HERMES_STATUS_URI'; Value = 'http://hermes:8642/health/detailed' },
     @{ Key = 'HERMES_DASHBOARD'; Value = 'true' },
     @{ Key = 'HERMES_DASHBOARD_HOST'; Value = '0.0.0.0' },
     @{ Key = 'HERMES_DASHBOARD_PORT'; Value = '8080' },

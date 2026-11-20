@@ -39,7 +39,7 @@ class HermesConfigurationTest < ActiveSupport::TestCase
   test "has expected default configuration" do
     config = Hermes.configuration
     assert_equal "http://127.0.0.1:8642", config.base_uri
-    assert_equal "http://127.0.0.1:9119", config.status_uri
+    assert_equal "http://127.0.0.1:8642/health/detailed", config.status_uri
     assert_equal "hermes", config.model
     assert_equal "delegator", config.default_profile
     assert_equal 60.0, config.timeout

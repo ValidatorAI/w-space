@@ -159,7 +159,7 @@ module OutputEvents
           dispatch_group_id: group.id
         )
         return
-      rescue Net::ReadTimeout, Net::OpenTimeout, Faraday::TimeoutError, Timeout::Error,
+      rescue Net::ReadTimeout, Net::OpenTimeout, Timeout::Error,
              EOFError, Errno::ECONNRESET, Errno::ETIMEDOUT, Errno::EPIPE, SocketError => e
         Rails.logger.error("[OutputEvents::ProcessAndDispatchJob] Hermes dispatch timed out: #{e.class.name}: #{e.message}")
 

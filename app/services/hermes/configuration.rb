@@ -1,7 +1,7 @@
 module Hermes
   class Configuration
     DEFAULT_BASE_URI = "http://127.0.0.1:8642".freeze
-    DEFAULT_STATUS_URI = "http://127.0.0.1:9119".freeze
+    DEFAULT_STATUS_URI = "#{DEFAULT_BASE_URI}/health/detailed".freeze
     DEFAULT_MODEL = "hermes".freeze
     DEFAULT_PROFILE = "delegator".freeze
     DEFAULT_TIMEOUT = 60.0
@@ -32,7 +32,7 @@ module Hermes
 
     def reset!
       @base_uri = (ENV["HERMES_BASE_URI"] || ENV["BASE_URI"] || DEFAULT_BASE_URI).chomp("/")
-      @status_uri = (ENV["HERMES_STATUS_URI"] || ENV["STATUS_BASE_URI"] || DEFAULT_STATUS_URI).chomp("/")
+      @status_uri = (ENV["HERMES_STATUS_URI"].presence || ENV["STATUS_BASE_URI"].presence || "#{@base_uri}/health/detailed").to_s.chomp("/")
       @api_key = ENV["HERMES_API_KEY"] || ENV["API_SERVER_KEY"] || ENV["API_KEY"]
       @model = ENV["HERMES_MODEL"] || ENV["MODEL"] || DEFAULT_MODEL
       @default_profile = ENV["HERMES_DEFAULT_PROFILE"] || ENV["BASE_HERMES_PROFILE"] || DEFAULT_PROFILE

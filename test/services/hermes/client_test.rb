@@ -6,7 +6,6 @@ class HermesClientTest < ActiveSupport::TestCase
   setup do
     @client = Hermes::Client.new(
       base_uri: "http://127.0.0.1:8642",
-      status_base_uri: "http://127.0.0.1:9119",
       api_key: "test-secret-key",
       default_profile: "delegator"
     )
@@ -95,6 +94,13 @@ class HermesClientTest < ActiveSupport::TestCase
   end
 
   test "api_status_summary retrieves gateway load status" do
+    override_client = Hermes::Client.new(
+      base_uri: "http://127.0.0.1:8642",
+      status_base_uri: "http://127.0.0.1:9119",
+      api_key: "test-secret-key",
+      default_profile: "delegator"
+    )
+
     status_payload = {
       "gateway_busy" => false,
       "active_agents" => 2,
@@ -102,14 +108,39 @@ class HermesClientTest < ActiveSupport::TestCase
       "overall" => "healthy"
     }
 
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:9119/health/detailed")
+      .with(headers: { "Authorization" => "Bearer test-secret-key" })
+      .to_return(status: 200, body: status_payload.to_json, headers: { "Content-Type" => "application/json" })
+
+    summary = override_client.api_status_summary
+    assert_equal false, summary["gateway_busy"]
+    assert_equal 2, summary["active_agents"]
+    assert_equal 5, summary["active_sessions"]
+    assert_equal "healthy", summary["overall"]
+  end
+
+  test "api_status_summary accepts detailed health payload from the base URI" do
+    status_payload = {
+      "status" => "degraded",
+      "gateway_busy" => false,
+      "active_agents" => 0,
+      "active_sessions" => 2,
+      "readiness" => {
+        "status" => "degraded",
+        "checks" => {
+          "gateway" => { "status" => "ok" }
+        }
+      }
+    }
+
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .with(headers: { "Authorization" => "Bearer test-secret-key" })
       .to_return(status: 200, body: status_payload.to_json, headers: { "Content-Type" => "application/json" })
 
     summary = @client.api_status_summary
     assert_equal false, summary["gateway_busy"]
-    assert_equal 2, summary["active_agents"]
-    assert_equal 5, summary["active_sessions"]
-    assert_equal "healthy", summary["overall"]
+    assert_equal 0, summary["active_agents"]
+    assert_equal 2, summary["active_sessions"]
+    assert_equal "degraded", summary["overall"]
   end
 end

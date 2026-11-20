@@ -9,7 +9,7 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     ENV["HERMES_MAX_ACTIVE_AGENTS"] = "2"
     Hermes.configuration.max_active_agents = 2
 
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => false, "active_agents" => 0, "active_sessions" => 0, "overall" => "healthy" }.to_json,
@@ -321,7 +321,7 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
   end
 
   test "throttles dispatch when Hermes active agents exceed threshold" do
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => true, "active_agents" => 2, "active_sessions" => 5, "overall" => "busy" }.to_json,

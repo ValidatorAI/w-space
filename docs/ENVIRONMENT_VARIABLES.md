@@ -24,7 +24,7 @@ The app uses these values at boot time and in the runtime services.
 | `ENABLE_AI_CONFIG_PAGE` | No | `FALSE` | Enables the AI settings/config page. |
 | `ADMIN_DEBUG` | No | `false` | Allows access to `/debug` only when set to `true`; page still requires an authenticated admin user. Also accepts legacy/lowercase `admin_debug`. |
 | `HERMES_BASE_URI` | Yes for real runtime | `http://127.0.0.1:8642` | Hermes API base URL. Also accepts legacy `BASE_URI`. |
-| `HERMES_STATUS_URI` | No | `http://127.0.0.1:9119` | Hermes status endpoint. Also accepts legacy `STATUS_BASE_URI`. |
+| `HERMES_STATUS_URI` | No | `${HERMES_BASE_URI}/health/detailed` | Optional override for the Hermes detailed health endpoint. Legacy `STATUS_BASE_URI` is still accepted. |
 | `HERMES_DASHBOARD` | No | `true` | Enables the Hermes dashboard server. |
 | `HERMES_DASHBOARD_HOST` | No | `0.0.0.0` | Bind address for the Hermes dashboard. |
 | `HERMES_DASHBOARD_PORT` | No | `8080` | Port used by the Hermes dashboard. |
@@ -80,7 +80,8 @@ ADMIN_DEBUG=false
 
 # Hermes Agent Server Settings
 HERMES_BASE_URI=http://127.0.0.1:8642
-HERMES_STATUS_URI=http://127.0.0.1:9119
+# Optional legacy override. Defaults to ${HERMES_BASE_URI}/health/detailed.
+# HERMES_STATUS_URI=http://127.0.0.1:8642/health/detailed
 HERMES_DASHBOARD=true
 HERMES_DASHBOARD_HOST=0.0.0.0
 HERMES_DASHBOARD_PORT=8080
