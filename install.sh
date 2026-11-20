@@ -363,7 +363,7 @@ print_generated_summary() {
   echo "Generated/validated env file: $ENV_FILE"
   echo "Compose file: $COMPOSE_FILE"
   echo "App URL: http://localhost:3000"
-  echo "Hermes dashboard: http://localhost:8080"
+  echo "Hermes dashboard: disabled by default (set HERMES_DASHBOARD=true to enable at http://localhost:8080)"
 }
 
 mkdir -p "$SCRIPT_DIR"
@@ -375,7 +375,7 @@ maybe_add_default_env "RAILS_ENV" "production"
 maybe_add_default_env "PORT" "3000"
 maybe_add_default_env "HERMES_BASE_URI" "http://hermes:8642"
 maybe_add_default_env "HERMES_STATUS_URI" "http://hermes:8642/health/detailed"
-maybe_add_default_env "HERMES_DASHBOARD" "true"
+maybe_add_default_env "HERMES_DASHBOARD" "false"
 maybe_add_default_env "HERMES_DASHBOARD_HOST" "0.0.0.0"
 maybe_add_default_env "HERMES_DASHBOARD_PORT" "8080"
 maybe_add_default_env "HERMES_MODEL" "hermes"

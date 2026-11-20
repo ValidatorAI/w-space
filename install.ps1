@@ -310,7 +310,7 @@ $defaults = @(
     @{ Key = 'PORT'; Value = '3000' },
     @{ Key = 'HERMES_BASE_URI'; Value = 'http://hermes:8642' },
     @{ Key = 'HERMES_STATUS_URI'; Value = 'http://hermes:8642/health/detailed' },
-    @{ Key = 'HERMES_DASHBOARD'; Value = 'true' },
+    @{ Key = 'HERMES_DASHBOARD'; Value = 'false' },
     @{ Key = 'HERMES_DASHBOARD_HOST'; Value = '0.0.0.0' },
     @{ Key = 'HERMES_DASHBOARD_PORT'; Value = '8080' },
     @{ Key = 'HERMES_MODEL'; Value = 'hermes' },
