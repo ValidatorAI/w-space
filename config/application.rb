@@ -16,5 +16,8 @@ module Space
 
     # Fallback to English if translation key is missing
     config.i18n.fallbacks = true
+
+    # Embed anti-CSRF authenticity token in all forms including remote forms
+    config.action_view.embed_authenticity_token_in_remote_forms = true
   end
 end

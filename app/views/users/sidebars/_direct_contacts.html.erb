@@ -5,6 +5,7 @@
     <div class="direct-contacts__list">
       <% direct_contacts.each do |contact| %>
         <%= button_to rooms_directs_path(user_ids: [ contact.id ]),
+              authenticity_token: true,
               class: "btn direct-contacts__contact",
               form_class: "direct-contacts__form",
               form: { data: { action: "turbo:submit-end->direct-contacts-modal#close" } },
@@ -28,6 +29,7 @@
     <div class="direct-contacts__list">
       <% direct_bot_contacts.each do |contact| %>
         <%= button_to rooms_directs_path(user_ids: [ contact.id ]),
+              authenticity_token: true,
               class: "btn direct-contacts__contact",
               form_class: "direct-contacts__form",
               form: { data: { action: "turbo:submit-end->direct-contacts-modal#close" } },

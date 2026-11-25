@@ -6,7 +6,7 @@
   </div>
 
   <div class="flex-item-justify-end">
-    <%= form_with url: session_path, method: :delete, data: { controller: "sessions" } do %>
+    <%= form_with url: session_path, method: :delete, authenticity_token: true, data: { controller: "sessions" } do %>
       <%= hidden_field_tag :push_subscription_endpoint, nil, data: { sessions_target: "pushSubscriptionEndpoint" } %>
 
       <button class="btn" data-action="sessions#logout:prevent">

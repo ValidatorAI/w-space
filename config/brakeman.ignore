@@ -1,55 +1,22 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "58c19ad06ce51511be9d6d9e5828f4a0ed96ab52c963ff37b4b4a606620ab66b",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/messages/show.html.erb",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => @room.messages.find(params[:id]), { :locals => ({ :brakemanunresolvedmodel => @room.messages.find(params[:id]) }) })",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "MessagesController",
-          "method": "show",
-          "line": 31,
-          "file": "app/controllers/messages_controller.rb",
-          "rendered": {
-            "name": "messages/show",
-            "file": "app/views/messages/show.html.erb"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "messages/show"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "File Access",
       "warning_code": 16,
-      "fingerprint": "6748c8e1c0ffcf9865b1177337595107f096596d7cb93038e8b3e0017215df9d",
+      "fingerprint": "077d0df785d8ac9ff3e168159b7110abf30ae4b9006dacf77388763fd693e921",
       "check_name": "SendFile",
       "message": "Parameter value used in file name",
       "file": "app/controllers/users/projects_controller.rb",
-      "line": 219,
+      "line": 222,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "send_file(ProjectKnowledge.safe_resolve_path(Current.user.projects.find_by(:id => params[:id]), (Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).file_path or Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).relative_path)), :disposition => \"inline\")",
+      "code": "send_file(ProjectKnowledge.safe_resolve_path(Current.user.projects.find_by(:id => params[:id]), ((Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).file_path or Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).relative_path) or params[:path])), :disposition => \"inline\")",
+      "render_path": null,
       "location": {
         "type": "method",
         "class": "Users::ProjectsController",
         "method": "knowledge_file"
       },
-      "user_input": "params[:item_id]",
+      "user_input": "params[:path]",
       "confidence": "Weak",
       "cwe_id": [
         22
@@ -59,19 +26,20 @@
     {
       "warning_type": "File Access",
       "warning_code": 16,
-      "fingerprint": "a17472f1c3430c05248553c5ff3d097460c19f6d4db4e5bb1c8139173a4f9b0c",
+      "fingerprint": "7c01ebb4745d34c94ba19e738f2992f0a19a4af42687e9b4dd92f5e3f483d456",
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "app/controllers/users/projects_controller.rb",
-      "line": 198,
+      "line": 201,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.read(ProjectKnowledge.safe_resolve_path(Current.user.projects.find_by(:id => params[:id]), (Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).file_path or Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).relative_path)), :encoding => \"UTF-8\")",
+      "code": "File.read(ProjectKnowledge.safe_resolve_path(Current.user.projects.find_by(:id => params[:id]), ((Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).file_path or Current.user.projects.find_by(:id => params[:id]).directory_items.find_by(:id => params[:item_id]).relative_path) or params[:path])), :encoding => \"UTF-8\")",
+      "render_path": null,
       "location": {
         "type": "method",
         "class": "Users::ProjectsController",
         "method": "knowledge_file"
       },
-      "user_input": "params[:item_id]",
+      "user_input": "params[:path]",
       "confidence": "Weak",
       "cwe_id": [
         22

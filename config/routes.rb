@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
   resource :account do
     scope module: "accounts" do
-      resources :users do
+      resources :users, only: %i[ index create update destroy ] do
         member do
           patch :activate
         end
