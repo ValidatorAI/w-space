@@ -1,0 +1,216 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Topic debug</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      <%= link_to "Back to debug", debug_path %>
+    </p>
+  </header>
+
+  <section class="card debug-project debug-project--tool-log">
+    <div class="debug-project__header debug-project__header--tool-log">
+      <div>
+        <h2 class="h5 debug-project__title"><%= @topic.name %></h2>
+        <p class="debug-project__meta">Topic ID: <%= @topic.id %> | Project: <%= @topic.project&.display_name || "n/a" %></p>
+      </div>
+    </div>
+
+    <div class="debug-project__body debug-project__body--tool-log">
+      <div class="debug-tool-log-hierarchy">
+        <details class="debug-tool-log-section debug-tool-log-section--topic">
+          <summary class="h6 debug-tool-log-section__title">Topic details</summary>
+          <div class="debug-tool-log-section__body">
+            <div class="debug-list">
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Name</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.name %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Project</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.project&.display_name || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Parent topic</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.parent_topic&.name || "None" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Active</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.active ? "true" : "false" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Need an action</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.need_an_action ? "true" : "false" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Importance level</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.importance_level || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>State</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.state.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Memory</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.memory.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Related topics</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.related_topics.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Required actions</strong>
+                </div>
+                <div class="debug-list-item__detail"><%= @topic.required_actions.presence || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Created at</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+              </div>
+
+              <div class="debug-list-item debug-list-item--topic-log">
+                <div class="debug-list-item__main">
+                  <strong>Updated at</strong>
+                </div>
+                <div class="debug-list-item__meta"><%= @topic.updated_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="debug-tool-log-section debug-tool-log-section--room">
+          <summary class="h6 debug-tool-log-section__title">Room history</summary>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_room_history.any? %>
+              <div class="debug-list">
+                <% @topic_room_history.each do |entry| %>
+                  <div class="debug-list-item debug-list-item--room-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= entry.room&.name || "Unknown room" %></strong>
+                    </div>
+                    <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if entry.last_state.present? %>
+                      <div class="debug-list-item__detail">last_state: <%= entry.last_state %></div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No room history entries for this topic.</p>
+            <% end %>
+          </div>
+        </details>
+
+        <details class="debug-tool-log-section debug-tool-log-section--project">
+          <summary class="h6 debug-tool-log-section__title">Topic messages</summary>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_messages.any? %>
+              <div class="debug-list">
+                <% @topic_messages.each do |message_topic| %>
+                  <% message = message_topic.message %>
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= message&.creator&.display_name || message&.creator&.name || "Unknown sender" %></strong>
+                      <% if message.present? %>
+                        <%= link_to "Open",
+                              debug_message_path(message),
+                              class: "debug-topic-open-link",
+                              target: "_blank",
+                              rel: "noopener noreferrer" %>
+                      <% end %>
+                    </div>
+                    <div class="debug-list-item__meta">Created: <%= message_topic.created_date&.strftime("%Y-%m-%d %H:%M:%S") || message&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if message.present? %>
+                      <div class="debug-list-item__detail"><%= message.plain_text_body.presence || "(empty message)" %></div>
+                    <% else %>
+                      <div class="debug-list-item__detail">Missing message record</div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No related messages for this topic.</p>
+            <% end %>
+          </div>
+        </details>
+
+        <details class="debug-tool-log-section debug-tool-log-section--project">
+          <summary class="h6 debug-tool-log-section__title">Tool call logs</summary>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_tool_logs.any? %>
+              <div class="debug-list">
+                <% @topic_tool_logs.each do |log| %>
+                  <div class="debug-list-item debug-list-item--project-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= log.used_tool_name %></strong>
+                      <span class="debug-list-item__meta">(tool_cal_log_id=<%= log.id %>)</span>
+                    </div>
+                    <div class="debug-list-item__meta">Room: <%= log.room&.name || "Unknown room" %></div>
+                    <div class="debug-list-item__meta">Created: <%= log.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                    <% if log.change_log.present? %>
+                      <div class="debug-list-item__detail"><%= log.change_log %></div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No tool call logs for this topic.</p>
+            <% end %>
+          </div>
+        </details>
+
+        <details class="debug-tool-log-section debug-tool-log-section--topic">
+          <summary class="h6 debug-tool-log-section__title">Child topics</summary>
+          <div class="debug-tool-log-section__body">
+            <% if @topic_child_topics.any? %>
+              <div class="debug-list">
+                <% @topic_child_topics.each do |child| %>
+                  <div class="debug-list-item debug-list-item--topic-log">
+                    <div class="debug-list-item__main">
+                      <strong><%= child.name %></strong>
+                    </div>
+                    <div class="debug-list-item__meta">Topic ID: <%= child.id %></div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="debug-empty">No child topics.</p>
+            <% end %>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>

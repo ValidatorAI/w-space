@@ -7,5 +7,7 @@ class QrCodeController < ApplicationController
 
     expires_in 1.year, public: true
     render plain: qr_code, content_type: "image/svg+xml"
+  rescue ArgumentError, StandardError
+    head :not_found
   end
 end

@@ -34,6 +34,29 @@ class Api::ProjectUsersControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user.name, body["name"]
   end
 
+  test "rejects bot project members" do
+    bot = users(:bender)
+
+    post api_project_project_users_url(@project.id),
+         params: { user_id: bot.id },
+         headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_equal "bots cannot be project members", body["error"]
+  end
+
+  test "adds a human project member" do
+    other_user = users(:jason)
+
+    post api_project_project_users_url(@project.id),
+         params: { user_id: other_user.id },
+         headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :created
+    assert @project.reload.users.exists?(id: other_user.id)
+  end
+
   test "returns not found for a missing project" do
     get api_project_project_users_url(-1), headers: { "Authorization" => "Bearer test-token" }
 

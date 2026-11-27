@@ -62,6 +62,16 @@ class Api::DecisionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "rejects bot actors for approval decisions" do
+    post api_project_room_decisions_url(@project.id, @room.id),
+      params: { user_id: users(:bender).id, approval_request_id: @approval_request.id, decision: "approve" },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    assert_equal "pending", @approval_request.reload.status
+    assert_nil @approval_request.resolved_by
+  end
+
   test "returns not found when approval request does not belong to the room" do
     other_room = @project.rooms.create!(type: "Rooms::Open", name: "Other", creator: users(:david))
 

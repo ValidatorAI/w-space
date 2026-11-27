@@ -46,9 +46,16 @@
 #     class: AgentPresenceCheckJob
 #
 #   file_reservation_cleanup:
-#     schedule: every 5 minutes
+#     schedule: every minute
 #     class: FileReservationCleanupJob
 #
 #   output_events_reconcile_dispatches:
 #     schedule: every minute
 #     class: OutputEvents::ReconcileDispatchesJob
+
+Rails.application.config.to_prepare do
+  if defined?(SolidQueue) && Rails.application.config.active_job.queue_adapter == :solid_queue
+    # Keep the reservation cleanup periodic while the app's recurring scheduler is enabled.
+    # The actual schedule is configured in config/recurring.yml.
+  end
+end

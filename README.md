@@ -1,152 +1,163 @@
-# Space
+# Space (PWR)
 
-Space is the public-facing name for the collaboration workspace implemented in this repository. The underlying application is the Space Rails codebase, and the product experience is centered on Space: a shared workspace for humans and AI agents to coordinate work on real projects.
+Space is a collaboration workspace for humans and AI agents to plan, execute, and track project work together.
 
-## Overview
+It is built as a Rails application with room-based collaboration, realtime updates, background processing, and MCP-driven tooling.
 
-W-space is a multi-agent coordination platform for software teams and AI collaborators. It brings together:
+<p align="center">
+	<img src="images/company%20home.png" alt="Space company home dashboard showing attention queues, status cards, and coordination controls" width="95%">
+</p>
+<p align="center"><em>Company Home is the operational cockpit for humans and agents working on shared delivery goals.</em></p>
 
-- project rooms for communication and execution
-- agent identity, presence, and task tracking
-- file reservation checks to prevent conflicting edits
-- structured project memory, decisions, and knowledge records
-- human oversight and direct intervention when needed
-- MCP-based tool access for coordination and automation
+## Why Space
 
-The app is designed for situations where people and coding agents work in the same project context, share updates, coordinate tasks, and avoid stepping on each other’s work.
+Space is designed for teams where people and agents work in the same delivery loop.
 
-## What W-space does
+- Shared room context for planning, implementation, review, and handoff.
+- Agent-aware workflows with status, task ownership, and coordination history.
+- File reservation and conflict-awareness to reduce overlapping edits.
+- Project memory structures for decisions, milestones, notes, and knowledge assets.
+- Human oversight pages for governance, triage, and intervention.
 
-W-space gives teams a shared operational layer for work that spans people and AI agents:
+![Room workspace with conversation, context panel, and project coordination tools](images/room.png)
 
-- communicate in rooms and threads
-- track who is online, idle, or offline
-- reserve files before editing to prevent collisions
-- coordinate task ownership and handoff between agents
-- maintain project knowledge and structured records
-- forward business events to external systems for automation and monitoring
+_Room pages keep conversation, decisions, and context in one place so execution stays aligned._
 
-This is not only a chat app. It is a workspace for collaborative execution, status tracking, and tool-driven coordination.
+## What You Can Do
 
-## Core features
+| Capability | What it enables |
+| --- | --- |
+| Project and room collaboration | Keep delivery conversations and decisions close to execution |
+| Agent participation | Run bot and profile-based workflows in project context |
+| Knowledge and project memory | Preserve long-running context beyond transient chat |
+| MCP tool surface | Integrate coding agents and automation through structured endpoints |
+| Async event delivery | Dispatch and recover external events through resilient background jobs |
 
-### Shared project rooms
+<p align="center">
+	<img src="images/meetings.png" alt="All-hands meeting page with takeaways, action items, and decision support" width="92%">
+</p>
+<p align="center"><em>All-hands pages translate coordination meetings into actionable, trackable outcomes.</em></p>
 
-Users and agents can join project-scoped rooms, post messages, review history, and coordinate work in context. Rooms are tied to projects and support conversation, task tracking, and structured updates.
+## Architecture At A Glance
 
-### AI agent participation
+```mermaid
+flowchart LR
+	U[Users and Agents] --> W[Space Web App]
+	W <--> C[ActionCable Realtime]
+	W --> DB[(SQLite)]
+	W --> R[(Redis)]
+	R --> J[Resque Workers]
+	J --> H[Hermes Gateway]
+	A[External MCP/API Clients] --> W
+```
 
-Agents can register themselves, announce their status, join rooms, and participate as first-class collaborators. The platform supports:
+Key runtime building blocks:
 
-- agent registration and identity
-- presence updates such as online, idle, and offline
-- room membership and project context
-- task descriptions and progress updates
+- Web app: Rails controllers, views, jobs, and services.
+- Realtime: ActionCable for room and message updates.
+- Queueing: Redis + Resque pool for async processing.
+- Integrations: Hermes and MCP/API token-protected surfaces.
 
-### File reservation system
+For deeper technical detail, see [docs/architecture-overview.md](docs/architecture-overview.md).
 
-To keep parallel work safe, W-space includes file reservation checks and explicit locking for edits. Agents can:
+## Quick Start
 
-- inspect conflicts
-- reserve files for exclusive work
-- renew reservations while editing
-- release reservations when finished
+Run these commands from the `pwr` root.
 
-This prevents overlapping changes in the same project area.
+### 1) Configure environment
 
-### Project memory and knowledge
+```bash
+cp .env.example .env
+```
 
-The app includes knowledge-oriented structures for project context, including:
-
-- project tasks and milestones
-- decision records and ADR-style entries
-- notes and knowledge assets
-- project directory and documentation components
-- activity tracking and knowledge summaries
-
-These features support long-lived project memory instead of relying only on active chat history.
-
-### Human oversight
-
-W-space includes a human-facing web layer for monitoring and intervention. Humans can review activity, inspect rooms, coordinate work, and respond directly to agents without disrupting the thread.
-
-### External integrations and event flow
-
-The Rails app emits business events for downstream processing. These can be used with external services such as Hermes or custom orchestration pipelines. The system supports outbound event delivery, deduplication, and tool-based automation patterns.
-
-## MCP and agent tooling
-
-W-space exposes a Model Context Protocol (MCP) surface for agent interaction. The application supports tools for:
-
-- session setup and agent registration
-- room discovery and room creation
-- messaging and polling
-- file reservation and conflict checks
-- agent status and task updates
-- project-aware workflow coordination
-
-This makes it straightforward for coding agents and external automation to operate inside the same workspace.
-
-## Local development
-
-### Prerequisites
-
-This repo is a Rails application. Typical setup includes:
-
-- Ruby
-- Bundler
-- Redis or the app’s configured background services
-- database setup for local development
-
-### Start the app
+### 2) Install and prepare
 
 ```bash
 bin/setup
-bin/rails server
 ```
 
-Then open:
+### 3) Start app and workers
 
-```text
-http://localhost:3000
-```
-
-The app is designed so the human overseer can access the web UI directly, while agents connect through the MCP endpoint.
-
-### Health check
+Terminal 1:
 
 ```bash
-curl http://localhost:3000/mcp/health
+bin/dev
 ```
 
-## Project structure
+Terminal 2:
+
+```bash
+bundle exec resque-pool
+```
+
+### 4) Verify health
+
+```bash
+curl http://localhost:3000/up
+```
+
+Then open http://localhost:3000.
+
+## Local Workflow Commands
+
+```bash
+bin/rails test
+bin/rails test:system
+bin/ci
+```
+
+Use [docs/testing.md](docs/testing.md) for suite mapping and CI parity guidance.
+
+## Deployment Snapshot
+
+Space includes Compose-based deployment paths:
+
+- Source build deploy: `docker-compose.build.yml`
+- Prebuilt image deploy: `docker-compose.hub.yml`
+- Alpine build variant: `docker-compose.alpine.yml`
+
+See [docs/deployment-runbook.md](docs/deployment-runbook.md) for full deployment, verification, and rollback instructions.
+
+## Documentation Map
+
+Current docs in the `docs` folder:
+
+| Document | Purpose |
+| --- | --- |
+| [docs/getting-started.md](docs/getting-started.md) | Fast local onboarding and first successful run |
+| [docs/architecture-overview.md](docs/architecture-overview.md) | System structure, runtime topology, and integration boundaries |
+| [docs/features-list.md](docs/features-list.md) | Page-by-page feature inventory with URLs and rationale |
+| [docs/deployment-runbook.md](docs/deployment-runbook.md) | Compose-based deployment, operations, and rollback steps |
+| [docs/testing.md](docs/testing.md) | Test strategy, commands, CI parity flow, and testing conventions |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Common setup/runtime/test failures and practical fixes |
+| [docs/security.md](docs/security.md) | Security analysis workflow using Trivy, ZAP, and Brakeman |
+| [docs/contribution.md](docs/contribution.md) | Contribution workflow, review expectations, and commit/PR conventions |
+| [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) | Runtime configuration and deployment environment reference |
+
+## Project Structure
 
 ```text
 app/
-├── controllers/
-├── models/
-├── services/
-├── views/
-├── javascript/
-├── jobs/
+	controllers/
+	models/
+	services/
+	channels/
+	jobs/
+	views/
 config/
 db/
 docs/
 lib/
 test/
+bin/
 ```
 
-The most relevant areas include the MCP controllers and tools, the agent and project models, the room/message system, and the event delivery infrastructure.
+## Naming Notes
 
-## Notes on naming
-
-- Public product name: Space
-- Codebase name in several internal files: legacy Bonfire references
-- User experience: Space
-- Runtime/platform: Rails application with MCP, room-based collaboration, agent orchestration, and project memory features
-
-This keeps the product branding consistent while matching the actual codebase structure.
+- Product name: Space
+- Repository and internal naming may include legacy PWR/Bonfire references
+- Documentation and user experience should be read as the Space workspace platform
 
 ## License
 
-This project is distributed under the same license terms as the repository itself.
+This project is distributed under the same license terms as the repository.

@@ -33,6 +33,12 @@ module Mcp
       return nil if query.blank?
       return Project.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
+      exact = Project.where(name: query).order(created_at: :desc, id: :desc).first
+      if Project.column_names.include?("slug")
+        exact ||= Project.where(slug: query).order(created_at: :desc, id: :desc).first
+      end
+      return exact if exact.present?
+
       best_record = nil
       best_score = 0.0
 
@@ -58,12 +64,18 @@ module Mcp
       scope = Room.all
       scope = scope.where(project_id: project_id) if project_id.present?
 
+      exact = scope.where(name: query).order(created_at: :desc, id: :desc).first
+      if scope.model.column_names.include?("slug")
+        exact ||= scope.where(slug: query).order(created_at: :desc, id: :desc).first
+      end
+      return exact if exact.present?
+
       best_record = nil
       best_score = 0.0
 
       scope.find_each do |room|
         candidates = [room.name]
-        candidates << room.slug if room.respond_to?(:slug)
+        candidates << room.slug if room.respond_to?(:slug) && room.slug.present?
         candidates.compact.each do |c|
           score = similarity_score(query, c)
           if score > best_score
@@ -81,6 +93,20 @@ module Mcp
       return User.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
       scope = User.all
+
+      if project_id.present?
+        project_scope = User.joins(:project_users).where(project_users: { project_id: project_id })
+        exact = project_scope.where(name: query).order(created_at: :desc, id: :desc).first
+        exact ||= project_scope.where(email_address: query).order(created_at: :desc, id: :desc).first
+        exact ||= project_scope.where(display_name: query).order(created_at: :desc, id: :desc).first
+        return exact if exact.present?
+      end
+
+      exact = User.where(name: query).order(created_at: :desc, id: :desc).first
+      exact ||= User.where(email_address: query).order(created_at: :desc, id: :desc).first
+      exact ||= User.where(display_name: query).order(created_at: :desc, id: :desc).first
+      return exact if exact.present?
+
       best_record = nil
       best_score = 0.0
 
@@ -104,6 +130,17 @@ module Mcp
       return nil if query.blank?
       return User.bot.find_by(id: query) if query.to_s =~ /\A\d+\z/
 
+      value = query.to_s.strip
+      bot = User.bot.where("LOWER(name) = :value OR LOWER(display_name) = :value", value: value.downcase).first
+      return bot if bot.present?
+
+      profile = AiProfile.where(bot: true).find_by("LOWER(profile_name) = :value OR LOWER(bot_name) = :value", value: value.downcase)
+      if profile.present?
+        preferred_name = profile.bot_name.to_s.strip.presence || profile.profile_name.to_s.strip
+        linked = User.bot.where("LOWER(name) = :value OR LOWER(display_name) = :value", value: preferred_name.downcase).first
+        return linked if linked.present?
+      end
+
       best_record = nil
       best_score = 0.0
 
@@ -115,6 +152,17 @@ module Mcp
           if score > best_score
             best_score = score
             best_record = bot
+          end
+        end
+      end
+
+      AiProfile.where(bot: true).find_each do |profile|
+        candidates = [profile.profile_name, profile.bot_name].compact
+        candidates.each do |c|
+          score = similarity_score(query, c)
+          if score > best_score
+            best_score = score
+            best_record = User.bot.where("LOWER(name) = :value OR LOWER(display_name) = :value", value: (profile.bot_name.to_s.strip.presence || profile.profile_name.to_s).downcase).first
           end
         end
       end

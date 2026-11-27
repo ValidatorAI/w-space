@@ -64,7 +64,7 @@ module Api
       if item.update(item_params)
         new_status = item.status.presence || old_status
         if action.present? && action.to_s != "update"
-          item.record_action_event!(actor: Current.user || User.first, action: action, status: new_status)
+          item.record_action_event!(actor: resolve_api_actor, action: action, status: new_status)
         end
         render json: serialize(item)
       else
@@ -79,7 +79,7 @@ module Api
       return render json: { error: "Company status item not found" }, status: :not_found unless item
 
       action = params[:action].presence || "delete"
-      item.record_action_event!(actor: Current.user || User.first, action: action, status: item.status.presence || "deleted") if item.respond_to?(:record_action_event!)
+      item.record_action_event!(actor: resolve_api_actor, action: action, status: item.status.presence || "deleted") if item.respond_to?(:record_action_event!)
       item.destroy
       head :no_content
     end

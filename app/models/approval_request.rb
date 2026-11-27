@@ -1,6 +1,8 @@
 class ApprovalRequest < ApplicationRecord
   include ActionView::RecordIdentifier
 
+  attr_accessor :echo_message_id
+
   belongs_to :room, optional: true
   belongs_to :message, optional: true
   belongs_to :resolved_by, class_name: "User", optional: true
@@ -91,6 +93,8 @@ class ApprovalRequest < ApplicationRecord
   private
 
   def record_transition!(new_status:, action:, actor:, note:)
+    return self if status != "pending"
+
     decision_adr = nil
     transaction do
       update!(

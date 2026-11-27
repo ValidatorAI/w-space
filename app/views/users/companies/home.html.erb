@@ -78,10 +78,13 @@
         <div class="home-attention-grid">
           <% AttentionItem::CATEGORIES.each do |cat| %>
             <% items = @items_by_category[cat] || [] %>
+            <% total_count = @category_totals[cat].to_i %>
+            <% expanded = @expanded_categories.include?(cat) %>
+            <% more_items = @category_has_more[cat] %>
             <div class="home-attention-card" data-home-attention-target="card" data-category="<%= cat %>">
               <h3>
                 <%= AttentionItem.category_title(cat) %>
-                <span class="badge <%= AttentionItem.category_badge_class(cat) %> home-card-count"><%= items.count %></span>
+                <span class="badge <%= AttentionItem.category_badge_class(cat) %> home-card-count"><%= total_count %></span>
               </h3>
 
               <div class="card-items-list">
@@ -89,6 +92,13 @@
                   <%= render partial: "attention_items/attention_item", collection: items %>
                 <% else %>
                   <div class="company-cell-muted txt-small" style="padding: 8px 0;">No active items</div>
+                <% end %>
+
+                <% if more_items %>
+                  <% remaining = expanded ? @expanded_categories - [cat] : @expanded_categories + [cat] %>
+                  <% query = expanded ? { expanded_categories: remaining } : { expanded_categories: @expanded_categories + [cat] } %>
+                  <% show_path = user_company_home_path(user_id: "me", **query) %>
+                  <%= link_to expanded ? "Show less" : "Show more", show_path, class: "company-cell-muted txt-small" %>
                 <% end %>
               </div>
             </div>

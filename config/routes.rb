@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
   resource :account do
     scope module: "accounts" do
-      resources :users do
+      resources :users, only: %i[ index create update destroy ] do
         member do
           patch :activate
         end
@@ -37,6 +37,9 @@ Rails.application.routes.draw do
 
   get "join/:join_code", to: "users#new", as: :join
   post "join/:join_code", to: "users#create"
+
+  post "meeting", to: "all_hands#create", as: :create_meeting
+  get "meeting/:id", to: "all_hands#show", as: :meeting
 
   resources :qr_code, only: :show
 
@@ -176,13 +179,18 @@ Rails.application.routes.draw do
 
   get "webmanifest"    => "pwa#manifest"
   get "service-worker" => "pwa#service_worker"
+  get "debug", to: "debug#show", as: :debug
+  get "debug/topic/:id", to: "debug#topic", as: :debug_topic
+  get "debug/message/:id", to: "debug#message", as: :debug_message
+  get "debug/output_events", to: "debug#output_events", as: :debug_output_events
+  get "debug/hermes_status", to: "debug#hermes_status", as: :debug_hermes_status
 
   if ENV.fetch("DISABLE_API_ROUTES", "true") == "false"
     namespace :api do
       get "company_status_periods/by_slug/:slug", to: "company_status_periods#by_slug", as: :by_slug_api_company_status_periods
       get "company_status_periods/by_name", to: "company_status_periods#by_name", as: :name_api_company_status_periods
 
-      resources :rooms, only: %i[ index show ] do
+      resources :rooms, only: %i[ index show create update ] do
         resources :messages, only: %i[ index show create update destroy ] do
           get :attachment, on: :member
         end
@@ -193,7 +201,8 @@ Rails.application.routes.draw do
         get :search, on: :collection
       end
 
-      resources :projects, only: %i[ index show ] do
+      resources :projects, only: %i[ index show create update destroy ] do
+        post :ensure_room, on: :member
         resources :rooms, only: %i[ index show ] do
           resources :messages, only: %i[ index show create update destroy ] do
             get :attachment, on: :member
@@ -206,14 +215,47 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :ai_profiles, only: %i[ index show ]
-      resources :ai_settings, only: %i[ index show ]
-      resources :mcps, only: %i[ index show ]
-      resources :tools, only: %i[ index show ]
-      resources :skills, only: %i[ index show ]
-      resources :ai_profile_tools, only: %i[ index show ]
-      resources :ai_profile_skills, only: %i[ index show ]
-      resources :ai_profile_mcps, only: %i[ index show ]
+      resources :approval_requests, only: %i[ show ]
+
+      resources :decision_rooms, only: %i[ index create ]
+
+      resources :ai_profiles, only: %i[ index show create update destroy ] do
+        post :reset_ai_config, on: :member
+      end
+      resources :ai_settings, only: %i[ index show create update destroy ]
+      resources :mcps, only: %i[ index show create update destroy ]
+      resources :tools, only: %i[ index show ] do
+        patch :toggle, on: :member
+      end
+      resources :skills, only: %i[ index show create update destroy ] do
+        patch :toggle_default, on: :member
+        post :learn, on: :collection
+      end
+      resources :ai_profile_tools, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+      resources :ai_profile_skills, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+      resources :ai_profile_mcps, only: %i[ index show ] do
+        patch :toggle_enabled, on: :member
+      end
+
+      patch "/ai_profiles/:profile_id/tools/:tool_id/enabled", to: "ai_profile_tools#toggle_enabled", as: :toggle_ai_profile_tool
+      patch "/ai_profiles/:profile_id/skills/:skill_id/enabled", to: "ai_profile_skills#toggle_enabled", as: :toggle_ai_profile_skill
+      patch "/ai_profiles/:profile_id/mcps/:mcp_id/enabled", to: "ai_profile_mcps#toggle_enabled", as: :toggle_ai_profile_mcp
+
+      post "ai_admin/restart_w_bridge", to: "ai_admin#restart_w_bridge", as: :ai_admin_restart_w_bridge
+      post "ai_admin/reset_ai_config", to: "ai_admin#reset_ai_config", as: :ai_admin_reset_ai_config
+
+      resources :users, only: %i[ index show create update destroy ] do
+        post :activate, on: :member
+        patch :activate, on: :member
+      end
+      resources :directs, only: %i[ index create ]
+      get "rooms/:id/members", to: "rooms#members", as: :room_members
+      post "rooms/:id/members", to: "rooms#members"
+      delete "rooms/:room_id/members/:user_id", to: "room_members#destroy", as: :room_member
 
       resources :topics, only: %i[ index show create update destroy ]
       resources :message_analysis, only: %i[ index show create update destroy ], controller: "message_analysis"
@@ -228,9 +270,15 @@ Rails.application.routes.draw do
       end
 
       resources :attention_items, only: %i[ index show create update destroy ]
+      resources :file_reservations, path: "reservations", only: %i[ index show create update destroy ]
+      resources :output_events, only: %i[ index show ] do
+        post :redeliver, on: :member
+      end
+      resources :tool_cal_logs, only: %i[ index show ]
+      get "health", to: "health#show", as: :api_health
 
       # Flat routes since message ids are globally unique; no project/room scoping required.
-      resources :messages, only: %i[ show update destroy ] do
+      resources :messages, only: %i[ index show update destroy ] do
         get :attachment, on: :member
       end
 
@@ -244,7 +292,10 @@ Rails.application.routes.draw do
       end
 
       resources :projects, only: [] do
-        resources :project_users, only: %i[ index show ], path: "users"
+        resources :project_users, only: %i[ index show create destroy ], path: "users"
+        get "members", to: "project_users#index", as: :project_members
+        post "members", to: "project_users#create"
+        delete "members/:id", to: "project_users#destroy", as: :project_member
         resources :project_all_hands_takeaways, only: %i[ index show create update destroy ]
         resources :project_all_hands_decisions, only: %i[ index show create update destroy ]
         resources :project_all_hands_action_items, only: %i[ index show create update destroy ]

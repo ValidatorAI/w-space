@@ -83,7 +83,7 @@ module Api
     end
 
     def period_params
-      params.permit(:account_id, :name, :slug, :current, :starts_on, :ends_on, :position)
+      params.permit(:name, :slug, :current, :starts_on, :ends_on, :position)
     end
 
     def serialize(period)

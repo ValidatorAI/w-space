@@ -82,8 +82,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           req = room.approval_requests.create!(
             request_type: args[:request_type].presence || "action",
@@ -121,8 +121,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
 
@@ -145,6 +145,8 @@ module Mcp
       end
 
       class EditApprovalRequestTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
         def name = "edit_approval_request"
         def description = "Update an approval request"
         def aliases = ["EditApprovalRequest"]
@@ -154,8 +156,13 @@ module Mcp
             type: "object",
             properties: {
               request_id: { type: %w[string integer] },
+              decision: { type: "string" },
               status: { type: "string" },
-              payload: { type: "object" }
+              note: { type: "string" },
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" },
+              payload: { type: "object" },
+              force: { type: "boolean" }
             },
             required: ["request_id"]
           }
@@ -163,13 +170,55 @@ module Mcp
 
         def execute(args)
           req = ApprovalRequest.find(args[:request_id])
+          decision = normalize_decision(args[:decision] || args[:status])
+          actor = resolve_user(args)
+
+          if decision.present?
+            return failure("user_id or user_name required") if actor.blank?
+
+            begin
+              approval = ApprovalFlow.decide!(req, actor, decision: decision, note: args[:note], force: ActiveModel::Type::Boolean.new.cast(args[:force]))
+              approval.broadcast_replacement if approval.respond_to?(:broadcast_replacement)
+              return success(approval.as_json.merge(echo_message_id: approval.echo_message_id))
+            rescue ArgumentError => e
+              return failure(e.message)
+            end
+          end
+
           attrs = {
-            status: args[:status],
+            status: map_status_for_update(args[:status]),
             payload: args[:payload]
           }.compact
           req.update!(attrs)
           req.broadcast_replacement if req.respond_to?(:broadcast_replacement)
           success(req.as_json)
+        end
+
+        private
+
+        def normalize_decision(value)
+          return nil if value.blank?
+
+          normalized = value.to_s.downcase
+          return normalized if ApprovalFlow::DECISIONS.key?(normalized)
+          return "approve" if normalized == "approved"
+          return "confirm" if normalized == "confirmed"
+          return "deny" if normalized == "denied"
+          return "cancel" if normalized == "canceled" || normalized == "cancelled"
+
+          nil
+        end
+
+        def map_status_for_update(status)
+          return nil if status.blank?
+
+          normalized = status.to_s.downcase
+          return "approved" if normalized == "approve" || normalized == "approved"
+          return "denied" if normalized == "deny" || normalized == "denied"
+          return "canceled" if normalized == "cancel" || normalized == "canceled" || normalized == "cancelled"
+          return "approved" if normalized == "confirm" || normalized == "confirmed"
+
+          status
         end
       end
 

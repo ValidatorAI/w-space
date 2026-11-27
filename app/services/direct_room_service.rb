@@ -1,0 +1,57 @@
+class DirectRoomService
+  class << self
+    def open_for(users, initial_message: nil, actor: nil)
+      room_users = Array(users).compact.uniq
+      creator = actor || room_users.first
+      room = Rooms::Direct.find_or_create_for(room_users, creator: creator)
+      created = room.previously_new_record?
+
+      message = if initial_message.present?
+                  payload = if initial_message.respond_to?(:to_unsafe_h)
+                              initial_message.to_unsafe_h.with_indifferent_access
+                            else
+                              initial_message.to_h.with_indifferent_access
+                            end
+                  payload.delete(:mode)
+                  payload.delete("mode")
+
+                  room.messages.create_with_attachment!(payload) if payload[:body].to_s.strip.present? || payload["body"].to_s.strip.present? || payload[:attachment].present? || payload["attachment"].present?
+                end
+
+      if created
+        group_id = SecureRandom.uuid
+        record_room_event(room, "room_created", actor: actor, group_id: group_id)
+        record_room_event(room, "direct_conversation_created", actor: actor, group_id: group_id)
+        room.users.find_each do |member|
+          record_room_member_added(room, member, actor: actor, group_id: group_id)
+        end
+      end
+
+      [room, created, message]
+    end
+
+    private
+      def record_room_event(room, event_type, actor:, group_id: nil)
+        OutputEvents::Recorder.record(
+          event_type: event_type,
+          event_id: room.id,
+          group_id: group_id,
+          actor: actor,
+          target_type: "Room",
+          data: { "room_type" => room.type, "project_id" => room.project_id, "parent_id" => room.parent_id }.compact
+        )
+      end
+
+      def record_room_member_added(room, user, actor:, group_id: nil)
+        OutputEvents::Recorder.record(
+          event_type: "room_member_added",
+          event_id: room.id,
+          group_id: group_id,
+          actor: actor,
+          target_type: "Room",
+          data: { "member" => { "type" => "User", "id" => user.id } }
+        )
+      end
+
+  end
+end

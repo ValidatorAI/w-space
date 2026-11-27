@@ -4,11 +4,32 @@ class Users::CompaniesController < ApplicationController
 
   def home
     @company_bot = FirstRun.ensure_company_bot!
-    @open_attention_items = AttentionItem.for_user(Current.user).open_items.ordered
+    @category_limit = 5
+    @expanded_categories = Array(params[:expanded_categories]).compact.map(&:to_s)
+
+    @open_attention_items = AttentionItem.company_home_for(Current.user).open_items.company_home_ordered
     @open_count = @open_attention_items.count
     @overdue_count = @open_attention_items.count(&:overdue?)
     @ai_count = @open_attention_items.count(&:ai_confirm?)
-    @items_by_category = @open_attention_items.group_by(&:category)
+
+    @items_by_category = {}
+    @category_totals = {}
+    @category_has_more = {}
+
+    AttentionItem::CATEGORIES.each do |category|
+      base_scope = AttentionItem.company_home_for(Current.user).where(category: category)
+      pending_items = base_scope.where(status: :pending).company_home_ordered
+      resolved_items = base_scope.where(status: [ :resolved, :dismissed ]).company_home_ordered
+      items = pending_items.exists? ? pending_items : resolved_items
+
+      total_count = items.count
+      expanded = @expanded_categories.include?(category)
+      visible_items = expanded ? items.to_a : items.limit(@category_limit).to_a
+
+      @items_by_category[category] = visible_items
+      @category_totals[category] = total_count
+      @category_has_more[category] = total_count > @category_limit
+    end
   end
 
   def status

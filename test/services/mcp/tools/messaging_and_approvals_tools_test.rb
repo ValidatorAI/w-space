@@ -8,6 +8,7 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
     @user = User.create!(name: "carol", display_name: "Carol Danvers", email_address: "carol@example.com", role: :member)
     @project = Project.create!(name: "Project Gamma", path: "/path/gamma", slug: "gamma")
     @room = Rooms::Open.create!(name: "General Room", creator: @user, project: @project)
+    @room.memberships.grant_to([@user])
   end
 
   test "message lifecycle and loading message" do
@@ -133,8 +134,110 @@ class MessagingAndApprovalsToolsTest < ActiveSupport::TestCase
 
     # Decide
     decide_tool = Mcp::Registry.find_tool("add_decision_message", scope: :action)
-    res_decide = decide_tool.call(approval_request_id: appr.id, decision: "approve", note: "Approved by lead")
+    res_decide = decide_tool.call(approval_request_id: appr.id, decision: "approve", note: "Approved by lead", user_name: @user.name)
     assert_equal false, res_decide[:isError]
     assert appr.reload.approved?
   end
+
+  test "edit_approval_request routes through the shared decision flow and emits a decision event" do
+    req = @room.approval_requests.create!(request_type: "decision", payload: { "decision" => "Ship it" }, status: :pending)
+    tool = Mcp::Registry.find_tool("edit_approval_request", scope: :action)
+
+    assert_difference -> { OutputEvent.where(event_type: "decision_approved").count }, 1 do
+      result = tool.call(request_id: req.id, status: "approve", user_id: @user.id, note: "Approved by MCP")
+      assert_equal false, result[:isError]
+    end
+
+    assert req.reload.approved?
+    assert_equal @user.id, req.resolved_by_id
+    assert_equal "decision_approved", OutputEvent.order(:created_at).last.event_type
+  end
+
+  test "project wrappers and room/actor guardrails behave correctly" do
+    project = Project.create!(name: "MCP Project Wrapper", path: "/tmp/mcp-project-wrapper", slug: "mcp-project-wrapper")
+    room = project.rooms.create!(type: "Rooms::Open", name: "Wrapper Room", creator: @user)
+
+    add_project = Mcp::Registry.find_tool("add_project", scope: :action)
+    create_res = add_project.call(path: "/tmp/mcp-project-wrapper-create", name: "MCP CRUD Project")
+    assert_equal false, create_res[:isError]
+    assert_equal true, JSON.parse(create_res[:content].first[:text])["created"]
+
+    duplicate_res = add_project.call(path: "/tmp/mcp-project-wrapper-create", name: "MCP CRUD Project")
+    assert_equal false, duplicate_res[:isError]
+    payload = JSON.parse(duplicate_res[:content].first[:text])
+    assert_equal false, payload["created"]
+
+    edit_project = Mcp::Registry.find_tool("edit_project", scope: :action)
+    edit_res = edit_project.call(project_id: project.id, name: "Renamed Wrapper Project")
+    assert_equal false, edit_res[:isError]
+    assert_equal "Renamed Wrapper Project", project.reload.name
+
+    approval = room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+    delete_project = Mcp::Registry.find_tool("delete_project", scope: :action)
+    blocked_res = delete_project.call(project_id: project.id)
+    assert_equal true, blocked_res[:isError]
+    assert_includes blocked_res[:content].first[:text], "open approvals exist"
+
+    approval.update!(status: :approved)
+    deleted_res = delete_project.call(project_id: project.id)
+    assert_equal false, deleted_res[:isError]
+    assert_nil Project.find_by(id: project.id)
+
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+    assert_no_difference("Message.count") do
+      missing_room_res = add_msg.call(body: "No room here", user_id: @user.id)
+      assert_equal true, missing_room_res[:isError]
+    end
+
+    decide_tool = Mcp::Registry.find_tool("add_decision_message", scope: :action)
+    approver = @room.approval_requests.create!(request_type: "deploy", payload: { "env" => "prod" }, status: :pending)
+    missing_actor_res = decide_tool.call(approval_request_id: approver.id, decision: "approve")
+    assert_equal true, missing_actor_res[:isError]
+    assert_includes missing_actor_res[:content].first[:text], "user_id or user_name required"
+    assert_equal "pending", approver.reload.status
+  end
+
+  test "message creation resolves a profile-backed bot sender by profile name" do
+    profile = AiProfile.create!(profile_name: "w_ai", bot: true, bot_name: "W Ai")
+    AiProfiles::BotSync.call(profile: profile, previous_bot: false, previous_bot_name: nil)
+    bot_user = User.bot.find_by!(name: "W Ai")
+    @room.memberships.grant_to([bot_user])
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    res = add_msg.call(room_id: @room.id, user_name: "w_ai", body: "Ping from the bot profile")
+    assert_equal false, res[:isError]
+    assert_equal "W Ai", @room.messages.last.creator.name
+  end
+
+  test "message creation fails instead of silently defaulting to the first user" do
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    assert_no_difference("Message.count") do
+      res = add_msg.call(room_id: @room.id, user_name: "missing-bot-user", body: "This should be rejected")
+      assert_equal true, res[:isError]
+      assert_includes res[:content].first[:text], "Sender (user or bot) not found"
+    end
+  end
+
+  test "add message rejects non-members identically for existing and missing rooms" do
+    outsider = User.create!(name: "outsider", display_name: "Outsider", email_address: "outsider@example.com", role: :member)
+    add_msg = Mcp::Registry.find_tool("add_message", scope: :action)
+
+    assert_no_difference("Message.count") do
+      [@room.id, 999_999].each do |room_id|
+        res = add_msg.call(room_id: room_id, user_id: outsider.id, body: "Forbidden MCP post")
+        assert_equal true, res[:isError]
+        assert_equal "Not allowed", res[:content].first[:text]
+      end
+    end
+  end
+
+  test "project tool calls fail instead of silently using the first project" do
+    tool = Mcp::Registry.find_tool("project_milestones", scope: :read)
+
+    res = tool.call
+    assert_equal true, res[:isError]
+    assert_includes res[:content].first[:text], "Project not found"
+  end
+
 end

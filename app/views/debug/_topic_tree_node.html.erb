@@ -1,0 +1,37 @@
+<% children = children_by_parent_id.fetch(topic.id, []) %>
+<li class="debug-topic-node" data-controller="debug-tree">
+  <div class="debug-topic-row">
+    <% if children.any? %>
+      <button
+        type="button"
+        class="debug-topic-toggle"
+        data-debug-tree-target="toggle"
+        data-action="click->debug-tree#toggleNode"
+        aria-expanded="true"
+        aria-label="Toggle <%= topic.name %> children"
+      >
+        −
+      </button>
+    <% else %>
+      <span class="debug-topic-spacer" aria-hidden="true"></span>
+    <% end %>
+
+    <div class="debug-topic-content">
+      <span class="debug-topic-name"><%= topic.name %></span>
+      <%= link_to "Open",
+            debug_topic_path(topic),
+            class: "debug-topic-open-link",
+            target: "_blank",
+            rel: "noopener noreferrer" %>
+      <span class="debug-topic-meta">(id=<%= topic.id %>, parent_id=<%= topic.parent_topic_id || "nil" %>)</span>
+    </div>
+  </div>
+
+  <% if children.any? %>
+    <ul class="debug-topic-children" data-debug-tree-target="panel">
+      <% children.each do |child| %>
+        <%= render "topic_tree_node", topic: child, children_by_parent_id: children_by_parent_id %>
+      <% end %>
+    </ul>
+  <% end %>
+</li>

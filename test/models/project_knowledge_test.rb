@@ -42,6 +42,31 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_equal "PDF • Validated", asset.display_meta
   end
 
+  test "rejects placeholder external URLs and overlong titles" do
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.external_assets.create!(
+        title: "Audit PDF",
+        doc_type: "pdf",
+        icon: "📄",
+        source_type: "external_url",
+        url: "https://example.invalid/audit.pdf",
+        meta_text: "PDF • Validated"
+      )
+    end
+
+    long_title = "A" * 256
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.external_assets.create!(
+        title: long_title,
+        doc_type: "pdf",
+        icon: "📄",
+        source_type: "external_url",
+        url: "https://example.com/audit.pdf",
+        meta_text: "PDF • Validated"
+      )
+    end
+  end
+
   test "creates and associates ADRs" do
     adr = @project.adrs.create!(
       identifier: "ADR-001",
@@ -101,6 +126,23 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_equal :file, tree.first[:children].first[:type]
   end
 
+  test "accepts short directory-item names and rejects prose-like names" do
+    valid = @project.directory_items.create!(
+      name: "Architecture",
+      item_type: "directory",
+      position: 1
+    )
+    assert valid.valid?
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @project.directory_items.create!(
+        name: "This is a full prose paragraph about launch metrics and should not be a directory entry.",
+        item_type: "file",
+        position: 2
+      )
+    end
+  end
+
   test "safe resolve path prevents path traversal" do
     storage_dir = ProjectKnowledge.ensure_storage_dir(@project)
     test_file = storage_dir.join("test.md")
@@ -126,5 +168,14 @@ class ProjectKnowledgeTest < ActiveSupport::TestCase
     assert_includes html, "<li>item 1</li>"
     assert_includes html, "<table>"
     assert_includes html, "<td>A</td>"
+  end
+
+  test "sanitizes unsafe HTML in rendered markdown" do
+    markdown_text = "# Hello\n\n<script>alert(1)</script>\n\n[bad](javascript:alert(1))"
+    html = ProjectKnowledge.render_markdown(markdown_text)
+
+    assert_includes html, "<h1>Hello</h1>"
+    assert_not_includes html, "<script"
+    assert_not_includes html, "javascript:"
   end
 end

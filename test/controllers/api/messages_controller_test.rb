@@ -6,6 +6,7 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     ENV["OUTPUT_EVENTS_TOKEN"] = "test-token"
     @project = Project.create!(path: "/tmp/api-messages-test", name: "Api Messages Test Project")
     @room = @project.rooms.create!(type: "Rooms::Project", name: "General", creator: users(:david))
+    @room.memberships.grant_to([users(:david)])
     @message = @room.messages.create!(body: "Hello world", client_message_id: "api-msg-1", creator: users(:david))
   end
 
@@ -65,6 +66,8 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "allows posting a message to a room without a project_id" do
+    @room.memberships.grant_to([users(:jason)])
+
     assert_difference -> { @room.messages.count }, 1 do
       post api_room_messages_url(@room.id),
         params: { user_id: users(:jason).id, body: "Posted via room-only API" },
@@ -75,6 +78,49 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal "Posted via room-only API", body["body"]
     assert_equal users(:jason).id, body["creator_id"]
+  end
+
+  test "rejects non-member message posts identically for existing and missing rooms" do
+    outsider = User.create!(name: "outsider", display_name: "Outsider", email_address: "outsider@example.com", role: :member)
+
+    [@room.id, 999_999].each do |room_id|
+      assert_no_difference -> { Message.count } do
+        post api_room_messages_url(room_id),
+          params: { user_id: outsider.id, body: "You shall not post" },
+          headers: { "Authorization" => "Bearer test-token" }
+      end
+
+      assert_response :forbidden
+      assert_equal({ "error" => "Not allowed" }, JSON.parse(response.body))
+    end
+  end
+
+  test "records the REST message event trio for message creation with attachment and ask mode" do
+    room = rooms(:bender_and_kevin)
+
+    assert_difference -> { OutputEvent.where(event_type: "message_created").count }, +1 do
+      assert_difference -> { OutputEvent.where(event_type: "message_attachment_uploaded").count }, +1 do
+        assert_difference -> { OutputEvent.where(event_type: "ai_question_asked").count }, +1 do
+          post api_room_messages_url(room.id),
+            params: {
+              user_id: users(:kevin).id,
+              body: "Status check",
+              mode: "ask",
+              attachment: fixture_file_upload("moon.jpg", "image/jpeg")
+            },
+            headers: { "Authorization" => "Bearer test-token" }
+        end
+      end
+    end
+
+    assert_response :created
+    message = Message.order(:id).last
+    assert_equal %w[ai_question_asked message_attachment_uploaded message_created].sort,
+      OutputEvent.where(event_id: message.id).pluck(:event_type).uniq.sort
+
+    ai_event = OutputEvent.find_by!(event_type: "ai_question_asked", event_id: message.id)
+    assert_equal [users(:bender).id], ai_event.event_data["bot_user_ids"]
+    assert_equal "ask", ai_event.event_data["mode"]
   end
 
   test "paginates messages when a page param is given" do
@@ -141,6 +187,8 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "posts a message to a room on behalf of a user with a valid token" do
+    @room.memberships.grant_to([users(:jason)])
+
     assert_difference -> { @room.messages.count }, 1 do
       post api_project_room_messages_url(@project.id, @room.id),
         params: { user_id: users(:jason).id, body: "Posted via API" },
@@ -161,6 +209,8 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "returns bad request when both body and attachment are missing" do
+    @room.memberships.grant_to([users(:jason)])
+
     post api_project_room_messages_url(@project.id, @room.id),
       params: { user_id: users(:jason).id },
       headers: { "Authorization" => "Bearer test-token" }
@@ -169,6 +219,8 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "posts a file to a room on behalf of a user" do
+    @room.memberships.grant_to([users(:jason)])
+
     assert_difference -> { @room.messages.count }, 1 do
       post api_project_room_messages_url(@project.id, @room.id),
         params: { user_id: users(:jason).id, attachment: fixture_file_upload("moon.jpg", "image/jpeg") },
@@ -184,6 +236,8 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "posts a file with a message body on behalf of a user" do
+    @room.memberships.grant_to([users(:jason)])
+
     post api_project_room_messages_url(@project.id, @room.id),
       params: { user_id: users(:jason).id, body: "Check this out", attachment: fixture_file_upload("moon.jpg", "image/jpeg") },
       headers: { "Authorization" => "Bearer test-token" }
@@ -202,12 +256,13 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "returns not found when posting to an unknown room" do
+  test "returns a generic forbidden response when posting to an unknown room as a non-member" do
     post api_project_room_messages_url(@project.id, -1),
       params: { user_id: users(:jason).id, body: "Posted via API" },
       headers: { "Authorization" => "Bearer test-token" }
 
-    assert_response :not_found
+    assert_response :forbidden
+    assert_equal({ "error" => "Not allowed" }, JSON.parse(response.body))
   end
 
   test "updates a message body with a valid token" do
@@ -260,6 +315,44 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
     assert_not Message.exists?(@message.id)
+  end
+
+  test "deletes a message and its dependent child rows" do
+    topic = @project.topics.create!(name: "Delete regression topic", active: true, need_an_action: false)
+    boost = @message.boosts.create!(booster: users(:david), content: "boost")
+    message_topic = MessageTopic.create!(message: @message, topic: topic, created_date: Date.current)
+    message_analysis = MessageAnalysis.create!(
+      message: @message,
+      importance_level: 3,
+      message_content_summary: "Delete regression summary",
+      message_type: "text",
+      is_a_response: false
+    )
+    approval_request = ApprovalRequest.create!(
+      room: @room,
+      message: @message,
+      request_type: "decision",
+      payload: { "title" => "Decision to delete" }
+    )
+
+    assert_difference -> { Message.count }, -1 do
+      assert_difference -> { Boost.count }, -1 do
+        assert_difference -> { MessageTopic.count }, -1 do
+          assert_difference -> { MessageAnalysis.count }, -1 do
+            assert_difference -> { ApprovalRequest.count }, -1 do
+              delete api_project_room_message_url(@project.id, @room.id, @message.id), headers: { "Authorization" => "Bearer test-token" }
+            end
+          end
+        end
+      end
+    end
+
+    assert_response :no_content
+    assert_not Message.exists?(@message.id)
+    assert_not Boost.exists?(boost.id)
+    assert_not MessageTopic.exists?(message_topic.id)
+    assert_not MessageAnalysis.exists?(message_analysis.id)
+    assert_not ApprovalRequest.exists?(approval_request.id)
   end
 
   test "rejects delete requests without a token" do
@@ -317,5 +410,18 @@ class Api::MessagesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :no_content
+  end
+
+  test "flat index accepts ids and include=body" do
+    second_message = @room.messages.create!(body: "Second message", client_message_id: "api-msg-flat-batch", creator: users(:david))
+
+    get "/api/messages?ids=#{@message.id},999,#{second_message.id}&include=body",
+        headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal 2, body["count"]
+    assert_equal [@message.id, second_message.id], body["messages"].map { |message| message["id"] }
+    assert_equal "Hello world", body["messages"].find { |message| message["id"] == @message.id }["body"]
   end
 end

@@ -129,9 +129,65 @@ class Api::AttentionItemsControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal "New decision item", body["title"]
     assert_equal "decisions_waiting", body["category"]
+    assert_equal "Approve", body["action_label"]
     assert_equal users(:jason).id, body["user_id"]
     assert_equal @project.id, body["project_id"]
     assert_equal @room.id, body["room_id"]
+
+    created_event = OutputEvent.order(:id).last
+    assert_equal "decision_waiting_created", created_event.event_type
+    assert_equal "AttentionItem", created_event.event_data["target_type"]
+    assert_equal "decisions_waiting", created_event.event_data["category"]
+  end
+
+  test "applies canonical default labels for API-created categories and preserves explicit labels" do
+    expected_defaults = {
+      "blockers" => "Assign & Unblock",
+      "mentions" => "Mark Reviewed",
+      "outcomes_review" => "Record Result"
+    }
+
+    expected_defaults.each do |category, label|
+      post api_attention_items_url,
+        params: {
+          title: "#{category} item",
+          category: category,
+          project_id: @project.id,
+          room_id: @room.id
+        },
+        headers: { "Authorization" => "Bearer test-token" }
+
+      assert_response :created
+      assert_equal label, JSON.parse(response.body)["action_label"]
+    end
+
+    post api_attention_items_url,
+      params: {
+        title: "Custom action label item",
+        category: "blockers",
+        action_label: "Custom Action",
+        project_id: @project.id,
+        room_id: @room.id
+      },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :created
+    assert_equal "Custom Action", JSON.parse(response.body)["action_label"]
+  end
+
+  test "emits terminal status events when the API resolves a pending item" do
+    patch api_attention_item_url(@attention_item.id),
+      params: { status: "resolved", actor_user_id: users(:david).id },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    @attention_item.reload
+    assert @attention_item.resolved?
+
+    event = OutputEvent.order(:id).last
+    assert_equal "decision_waiting_resolved", event.event_type
+    assert_equal @attention_item.id, event.event_id
+    assert_equal "resolved", event.event_data["status"]
   end
 
   test "rejects create requests without a token" do

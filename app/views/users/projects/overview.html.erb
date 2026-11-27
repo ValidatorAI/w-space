@@ -101,6 +101,41 @@
           <div class="project-overview-column">
             <div class="project-overview-card">
               <div class="project-overview-card-header">
+                <h3 class="project-overview-card-title">Attention &amp; Follow-ups</h3>
+              </div>
+              <div class="home-attention-grid">
+                <% AttentionItem::CATEGORIES.each do |cat| %>
+                  <% items = @project_items_by_category[cat] || [] %>
+                  <% total_count = @project_category_totals[cat].to_i %>
+                  <% expanded = @project_expanded_categories.include?(cat) %>
+                  <% more_items = @project_category_has_more[cat] %>
+                  <div class="home-attention-card" data-category="<%= cat %>">
+                    <h3>
+                      <%= AttentionItem.category_title(cat) %>
+                      <span class="badge <%= AttentionItem.category_badge_class(cat) %> home-card-count"><%= total_count %></span>
+                    </h3>
+
+                    <div class="card-items-list">
+                      <% if items.any? %>
+                        <%= render partial: "attention_items/attention_item", collection: items %>
+                      <% else %>
+                        <div class="company-cell-muted txt-small" style="padding: 8px 0;">No active items</div>
+                      <% end %>
+
+                      <% if more_items %>
+                        <% remaining = expanded ? @project_expanded_categories - [cat] : @project_expanded_categories + [cat] %>
+                        <% query = expanded ? { project_expanded_categories: remaining } : { project_expanded_categories: @project_expanded_categories + [cat] } %>
+                        <% show_path = user_company_project_overview_path(user_id: "me", id: @project.id, **query) %>
+                        <%= link_to expanded ? "Show less" : "Show more", show_path, class: "company-cell-muted txt-small" %>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="project-overview-card">
+              <div class="project-overview-card-header">
                 <h3 class="project-overview-card-title">Project Summary &amp; Objectives</h3>
               </div>
               <div class="project-overview-desc">

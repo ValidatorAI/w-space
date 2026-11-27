@@ -24,8 +24,21 @@ class CompanyStatusPeriod < ApplicationRecord
       risks: items.select { |item| item.category == "risks" }.map(&:as_status_payload),
       dependencies: items.select { |item| item.category == "dependencies" }.map(&:as_status_payload),
       changes: items.select { |item| item.category == "changes" }.map(&:as_status_payload),
-      decisions: items.select { |item| item.category == "decisions" }.map(&:as_status_payload),
+      decisions: ordered_decisions(items).map(&:as_status_payload),
       learnings: items.select { |item| item.category == "learnings" }.map(&:as_status_payload)
     }
   end
+
+  private
+    def ordered_decisions(items)
+      decisions = items.select { |item| item.category == "decisions" }
+      decisions.sort_by do |item|
+        [undecided_status?(item.status) ? 0 : 1, -item.created_at.to_i]
+      end.first(5)
+    end
+
+    def undecided_status?(status)
+      value = status.to_s.downcase
+      value.blank? || %w[pending open undecided not_decided].include?(value)
+    end
 end

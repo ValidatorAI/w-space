@@ -97,7 +97,30 @@ class Users::ProjectsController < ApplicationController
     @project_users = @project.users.active.without_bots.ordered
     @ai_teammates = @project.users.active_bots.ordered
     @project_rooms = @project.rooms.without_directs.order(:name)
-    @attention_items = @project.attention_items.open_items.ordered
+    @open_attention_items = @project.attention_items.open_items.company_home_ordered
+    @attention_items = @open_attention_items
+    @project_category_limit = 5
+    @project_expanded_categories = Array(params[:project_expanded_categories]).compact.map(&:to_s)
+
+    @project_items_by_category = {}
+    @project_category_totals = {}
+    @project_category_has_more = {}
+
+    AttentionItem::CATEGORIES.each do |category|
+      base_scope = @project.attention_items.where(category: category)
+      pending_items = base_scope.where(status: :pending).company_home_ordered
+      resolved_items = base_scope.where(status: [ :resolved, :dismissed ]).company_home_ordered
+      items = pending_items.exists? ? pending_items : resolved_items
+
+      total_count = items.count
+      expanded = @project_expanded_categories.include?(category)
+      visible_items = expanded ? items.to_a : items.limit(@project_category_limit).to_a
+
+      @project_items_by_category[category] = visible_items
+      @project_category_totals[category] = total_count
+      @project_category_has_more[category] = total_count > @project_category_limit
+    end
+
     @project_milestones = @project.project_milestones.active.ordered
     @total_rooms_count = @project_rooms.count
     @messages_count = Message.where(room_id: @project.rooms.select(:id)).count
@@ -107,12 +130,14 @@ class Users::ProjectsController < ApplicationController
     @bottlenecks = @project.bottlenecks.active.ordered
     @todos = @project.todos.ordered
     @knowledge_items = @project.knowledge_items.active.ordered
+    @project_decisions = @project.adrs.active.includes(:rooms).ordered
   end
 
   def all_hands
     @takeaways = @project.project_all_hands_takeaways.active.ordered
     @action_items = @project.project_all_hands_action_items.active.ordered
     @decisions = @project.project_all_hands_decisions.active.ordered
+    @running_meetings = ProjectAllHandsMeeting.current_running_for(@project)
   end
 
   def knowledge
@@ -125,14 +150,9 @@ class Users::ProjectsController < ApplicationController
   end
 
   def knowledge_file
-    path_param = params[:path].to_s
     item_id = params[:item_id]
-
     directory_item = if item_id.present?
       @project.directory_items.find_by(id: item_id)
-    elsif path_param.present?
-      @project.directory_items.find_by(file_path: path_param) ||
-        @project.directory_items.find_by(name: path_param)
     end
 
     if directory_item&.content.present?
@@ -158,7 +178,14 @@ class Users::ProjectsController < ApplicationController
       return
     end
 
-    target_rel = directory_item&.file_path.presence || directory_item&.relative_path || path_param
+    target_rel = if directory_item.present?
+      directory_item.file_path.presence || directory_item.relative_path
+    else
+      params[:path].presence
+    end
+
+    return head :not_found if target_rel.blank?
+
     file_path = ProjectKnowledge.safe_resolve_path(@project, target_rel)
 
     unless file_path && File.file?(file_path)

@@ -3,6 +3,6 @@ module FormsHelper
     data = attributes.delete(:data) || {}
     data[:controller] = "auto-submit #{data[:controller]}".strip
 
-    form_with **attributes, data: data, &
+    form_with authenticity_token: true, **attributes, data: data, &
   end
 end

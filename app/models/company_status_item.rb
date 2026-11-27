@@ -36,6 +36,8 @@ class CompanyStatusItem < ApplicationRecord
     self[:status] = val
   end
 
+  after_create_commit :record_created_event!
+
   def action_event_type(action:)
     base = case category.to_s
     when "priorities" then "priority"
@@ -58,6 +60,46 @@ class CompanyStatusItem < ApplicationRecord
     end
 
     "#{base}_#{suffix}"
+  end
+
+  def created_event_type
+    base = case category.to_s
+    when "priorities" then "priority"
+    when "progress" then "progress"
+    when "risks" then "risk"
+    when "dependencies" then "dependency"
+    when "changes" then "change"
+    when "decisions" then "decision"
+    when "learnings" then "learning"
+    else "company_status_item"
+    end
+
+    "#{base}_created"
+  end
+
+  def record_created_event!(actor: nil)
+    OutputEvents::Recorder.record(
+      event_type: created_event_type,
+      event_id: id,
+      actor: actor || (defined?(Current) && Current.respond_to?(:user) ? Current.user : nil),
+      target_type: "CompanyStatusItem",
+      data: {
+        "category" => category,
+        "status" => status.presence || "Open",
+        "title" => title,
+        "text" => text,
+        "company_status_period_id" => company_status_period_id,
+        "target_type" => "CompanyStatusItem",
+        "content" => title.presence || text.presence || "#{category} item",
+        "content_payload" => {
+          "type" => "company_status_item_created",
+          "company_status_item_id" => id,
+          "category" => category,
+          "status" => status.presence || "Open",
+          "company_status_period_id" => company_status_period_id
+        }.compact
+      }.compact
+    )
   end
 
   def record_action_event!(actor:, action:, status:)
@@ -92,15 +134,29 @@ class CompanyStatusItem < ApplicationRecord
     )
   end
 
+  def room_label
+    return nil unless category.to_s == "decisions"
+
+    label = detail_category.presence || owner.presence || from_name.presence || to_name.presence
+    return nil if label.blank?
+
+    value = label.to_s.sub(/\A\s*(?:room|room label)\s*[:\-]?\s*/i, "").strip
+    return nil if value.blank?
+
+    "Room: #{value}"
+  end
+
   def as_status_payload
     item_title = title.presence || text.presence || subtitle.presence || ""
     item_outcome = outcome.presence || ""
+    room_tag = room_label
+    payload_label = room_tag.present? ? room_tag : item_title
 
     {
       id: id.to_s,
       title: item_title,
       outcome: item_outcome,
-      label: item_title,
+      label: payload_label,
       percent: percent&.to_s,
       color: color,
       evidence: evidence,
@@ -117,7 +173,8 @@ class CompanyStatusItem < ApplicationRecord
         targetDate: target_date,
         status: status.presence || "Open",
         impact: impact,
-        actions: actions || []
+        actions: actions || [],
+        room_label: room_tag
       }
     }
   end

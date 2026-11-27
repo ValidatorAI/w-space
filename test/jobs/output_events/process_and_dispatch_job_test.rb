@@ -6,8 +6,10 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
   setup do
     ENV["OUTPUT_MESSAGE_PROFILE"] = "message_analyzer"
     ENV["OUTPUT_AI_SETTING_PROFILE"] = "ai_settings"
+    ENV["HERMES_MAX_ACTIVE_AGENTS"] = "2"
+    Hermes.configuration.max_active_agents = 2
 
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => false, "active_agents" => 0, "active_sessions" => 0, "overall" => "healthy" }.to_json,
@@ -28,6 +30,22 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     end
 
     group = OutputEventDispatchGroup.find_by!(dedupe_key: "message:grp-300:1:300")
+    assert_equal "deferred_merge_window", group.status
+  end
+
+  test "self-schedules a stale dispatch reconciliation sweep after claim" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 305,
+      group_id: "grp-305",
+      event_data: { "room_id" => 1, "message_id" => 305, "content" => "Hello again" }
+    )
+
+    assert_enqueued_with(job: OutputEvents::ReconcileDispatchesJob) do
+      OutputEvents::ProcessAndDispatchJob.perform_now(event.id)
+    end
+
+    group = OutputEventDispatchGroup.find_by!(dedupe_key: "message:grp-305:1:305")
     assert_equal "deferred_merge_window", group.status
   end
 
@@ -74,6 +92,80 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     assert_includes result["merged_members"], ev1.id
     assert_includes result["merged_members"], ev2.id
     assert_equal "Advice recorded", Hermes::PromptBuilder.extract_reply_text(result["response"])
+  end
+
+  test "resets synced flags when Hermes rejects with 401" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 410,
+      group_id: "grp-410",
+      event_data: { "room_id" => 1, "message_id" => 410, "content" => "Need advice" },
+      synced: true
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "ai_question_asked",
+      event_id: 410,
+      group_id: "grp-410",
+      event_data: { "room_id" => 1, "message_id" => 410, "bot_user_ids" => [9] },
+      synced: true
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-410:1:410",
+      lead_output_event_id: ev1.id,
+      status: "pending"
+    )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
+      .to_return(status: 401, body: { error: "unauthorized" }.to_json, headers: { "Content-Type" => "application/json" })
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      ev1.id,
+      stage: :dispatch,
+      dispatch_group_id: group.id
+    )
+
+    assert_equal "failed", group.reload.status
+    assert_not ev1.reload.synced?
+    assert_not ev2.reload.synced?
+    assert_equal 401, JSON.parse(group.result)["status_code"]
+  end
+
+  test "resets synced flags when Hermes times out" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 420,
+      group_id: "grp-420",
+      event_data: { "room_id" => 1, "message_id" => 420, "content" => "Need advice" },
+      synced: true
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "ai_question_asked",
+      event_id: 420,
+      group_id: "grp-420",
+      event_data: { "room_id" => 1, "message_id" => 420, "bot_user_ids" => [9] },
+      synced: true
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-420:1:420",
+      lead_output_event_id: ev1.id,
+      status: "pending"
+    )
+
+    stub_request(:post, "http://127.0.0.1:8642/p/message_analyzer/v1/chat/completions")
+      .to_raise(Net::ReadTimeout.new("timeout"))
+
+    OutputEvents::ProcessAndDispatchJob.perform_now(
+      ev1.id,
+      stage: :dispatch,
+      dispatch_group_id: group.id
+    )
+
+    assert_equal "pending", group.reload.status
+    assert_not ev1.reload.synced?
+    assert_not ev2.reload.synced?
+    assert_match(/timeout|transient/i, group.result.to_s)
   end
 
   test "routes AI setting events to the AI settings profile and message events to the message profile" do
@@ -173,8 +265,63 @@ class ProcessAndDispatchJobTest < ActiveJob::TestCase
     ENV["OUTPUT_WORKSPACE_PROFILE"] = previous_workspace_profile
   end
 
+  test "re-enqueues duplicate claim recovery for failed groups" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 460,
+      group_id: "grp-460",
+      event_data: { "room_id" => 1, "message_id" => 460, "content" => "hello" }
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 461,
+      group_id: "grp-460",
+      event_data: { "room_id" => 1, "message_id" => 461, "content" => "again" }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-460:1:460",
+      lead_output_event_id: ev1.id,
+      status: "failed",
+      result: { scheduled_at: 10.minutes.ago.iso8601 }.to_json
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [ev2.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      OutputEvents::ProcessAndDispatchJob.perform_now(ev2.id, stage: :claim)
+    end
+
+    assert_equal "pending", group.reload.status
+    assert_match(/dispatch_queued_at/, group.result)
+  end
+
+  test "does not stack duplicate dispatch recovery while queue token is fresh" do
+    ev1 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 470,
+      group_id: "grp-470",
+      event_data: { "room_id" => 1, "message_id" => 470, "content" => "hello" }
+    )
+    ev2 = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 471,
+      group_id: "grp-470",
+      event_data: { "room_id" => 1, "message_id" => 471, "content" => "again" }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-470:1:470",
+      lead_output_event_id: ev1.id,
+      status: "pending",
+      result: { dispatch_queued_at: 2.seconds.ago.iso8601, scheduled_at: 2.seconds.ago.iso8601 }.to_json
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ProcessAndDispatchJob.perform_now(ev2.id, stage: :claim)
+    end
+  end
+
   test "throttles dispatch when Hermes active agents exceed threshold" do
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => true, "active_agents" => 2, "active_sessions" => 5, "overall" => "busy" }.to_json,

@@ -250,6 +250,20 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "(AI)", @response.body
   end
 
+  test "overview shows room-aware attention tags for project items" do
+    project = create_project_for(users(:david))
+    room = project.rooms.create!(name: "Launch Room", type: "Rooms::Open", private: false, creator: users(:david))
+
+    AttentionItem.create!(title: "Project-wide blocker", category: "blockers", project: project, status: :pending)
+    AttentionItem.create!(title: "Room blocker", category: "blockers", project: project, room: room, status: :pending)
+
+    get user_company_project_overview_url(id: project.id)
+
+    assert_response :success
+    assert_match "Project-wide", @response.body
+    assert_match "Room: Launch Room", @response.body
+  end
+
   test "overview returns not found for non-member project" do
     assert_raises(ActiveRecord::RecordNotFound) do
       get user_company_project_overview_url(id: -1)
@@ -271,6 +285,28 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to root_url
       assert_equal "Project is archived. Sub-items are hidden until unarchived.", flash[:alert]
     end
+  end
+
+  test "status includes room-linked decision records with room labels" do
+    project = create_project_for(users(:david))
+    room = project.rooms.create!(name: "Launch Room", type: "Rooms::Open", private: false, creator: users(:david))
+    adr = project.adrs.create!(
+      identifier: "ADR-001",
+      title: "Need room signoff",
+      status: "proposed",
+      decision_date: Date.current,
+      active: true,
+      project: project,
+      position: 1
+    )
+    adr.decision_rooms.create!(room: room)
+
+    get user_company_project_status_url(id: project.id)
+
+    assert_response :success
+    assert_match "Need room signoff", @response.body
+    assert_match "Room: Launch Room", @response.body
+    assert_match "Decision Records", @response.body
   end
 
   test "status" do
@@ -319,6 +355,112 @@ class Users::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_match "No Active All-Hands Items", @response.body
     assert_match "This project does not currently have any active takeaways, action items, or decisions.", @response.body
     assert_no_match "Watch Recording", @response.body
+  end
+
+  test "all hands shows project-scoped BBB meetings when BBB returns a single meeting hash" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "local-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.stubs(:get_all_meetings).returns({
+      meetings: {
+        meeting: {
+          meetingID: meeting.bbb_meeting_id,
+          meetingName: "#{project.display_name} - Daily standup"
+        }
+      }
+    })
+
+    get user_company_project_all_hands_url(id: project.id)
+
+    assert_response :success
+    assert_match meeting.title, @response.body
+    assert_match meeting_path(id: meeting.id, role: "member"), @response.body
+    assert_match 'data-turbo="false"', @response.body
+  end
+
+  test "all hands hides local meetings when BBB has not reported them as running" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "local-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.stubs(:get_all_meetings).returns({ meetings: { meeting: [] } })
+
+    get user_company_project_all_hands_url(id: project.id)
+
+    assert_response :success
+    assert_match "No meetings are currently running for this project.", @response.body
+    assert_no_match meeting_path(id: meeting.id, role: "member"), @response.body
+    assert_no_match 'data-turbo="false"', @response.body
+  end
+
+  test "meeting show joins as moderator when role is moderator" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "redirect-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      join_url: "https://class.yogasina.com/html5client/join?sessionToken=stale-token",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.expects(:join_moderator).with(
+      meeting_id: meeting.bbb_meeting_id,
+      full_name: anything,
+      user_id: "moderator-#{meeting.id}",
+      password: "modpass"
+    ).returns({ url: "https://class.yogasina.com/html5client/join?sessionToken=fresh-token" })
+
+    get meeting_url(id: meeting.id, role: "moderator")
+
+    assert_response :success
+    assert_match "Redirecting to meeting", @response.body
+    assert_match "window.location.href", @response.body
+    assert_match "fresh-token", @response.body
+    assert_match "https://class.yogasina.com/html5client/join?sessionToken=fresh-token", @response.body
+  end
+
+  test "meeting show joins as member when role is member" do
+    project = create_project_for(users(:david))
+    meeting = project.project_all_hands_meetings.create!(
+      title: "Daily standup",
+      bbb_meeting_id: "member-meeting-#{SecureRandom.hex(8)}",
+      moderator_pw: "modpass",
+      attendee_pw: "memberpass",
+      running: true,
+      started_at: Time.current,
+      last_seen_at: Time.current
+    )
+
+    BigBlueButtonService.expects(:join_member).with(
+      meeting_id: meeting.bbb_meeting_id,
+      full_name: anything,
+      user_id: "attendee-#{meeting.id}",
+      password: "memberpass"
+    ).returns({ url: "https://class.yogasina.com/html5client/join?sessionToken=member-token" })
+
+    get meeting_url(id: meeting.id, role: "member")
+
+    assert_response :success
+    assert_match "member-token", @response.body
+    assert_match "https://class.yogasina.com/html5client/join?sessionToken=member-token", @response.body
   end
 
   test "all hands with dynamic project data" do

@@ -350,7 +350,7 @@
           <p>Sign in to continue to your workspace.</p>
         </div>
 
-        <%= form_with url: session_url, class: "w-form", method: :post do |form| %>
+        <%= form_with url: session_url, authenticity_token: true, class: "w-form", method: :post do |form| %>
           <div class="w-field">
             <%= form.label :email_address, "Email address" %>
             <div class="w-input-wrap">

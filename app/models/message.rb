@@ -5,6 +5,8 @@ class Message < ApplicationRecord
   belongs_to :creator, polymorphic: true, default: -> { Current.user }
 
   has_many :boosts, dependent: :destroy
+  has_many :message_topics, dependent: :destroy
+  has_one :message_analysis, class_name: "MessageAnalysis", dependent: :destroy
   has_one :approval_request, dependent: :destroy
 
   has_rich_text :body

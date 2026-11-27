@@ -54,6 +54,16 @@ module Mcp
       Registry.register(tool, scopes: scopes)
     end
 
+    # Project CRUD
+    project_tools = [
+      Tools::Projects::AddProjectTool.new,
+      Tools::Projects::EditProjectTool.new,
+      Tools::Projects::DeleteProjectTool.new
+    ]
+    project_tools.each do |tool|
+      Registry.register(tool, scopes: %i[all action])
+    end
+
     # Project Items
     project_item_tools = [
       Tools::ProjectItems::ProjectMilestonesTool.new,
@@ -144,6 +154,7 @@ module Mcp
     Registry.register(Tools::RoomContext::RoomEconomicsTool.new, scopes: %i[all read])
     Registry.register(Tools::RoomContext::RoomContextSummaryTool.new, scopes: %i[all read])
     Registry.register(Tools::Messaging::AddMessageTool.new, scopes: %i[all action])
+    Registry.register(Tools::Messaging::EditMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::DeleteMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::AddLoadingMessageTool.new, scopes: %i[all action])
     Registry.register(Tools::Messaging::EditLoadingMessageTool.new, scopes: %i[all action])
@@ -229,6 +240,22 @@ module Mcp
     ]
     task_tools.each do |tool|
       scopes = tool.name.start_with?("create_", "update_", "delete_", "task_cost") ? %i[all action task] : %i[all read action task]
+      Registry.register(tool, scopes: scopes)
+    end
+
+    reservation_tools = [
+      Tools::Reservations::CheckFileConflictsTool.new,
+      Tools::Reservations::ReserveFileTool.new,
+      Tools::Reservations::RenewFileReservationTool.new,
+      Tools::Reservations::ReleaseFileReservationTool.new
+    ]
+    reservation_tools.each do |tool|
+      scopes = case tool.name
+               when "check_file_conflicts"
+                 %i[all read action]
+               else
+                 %i[all action]
+               end
       Registry.register(tool, scopes: scopes)
     end
   end

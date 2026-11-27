@@ -23,6 +23,23 @@ class Users::CompaniesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".list-item-title", text: "Approve smart contract audit"
   end
 
+  test "home includes project-scoped roomless attention items" do
+    project = Project.create!(name: "Ops", path: "/tmp/company-home-controller-ops")
+
+    AttentionItem.create!(
+      title: "Ops blocker without room",
+      category: "blockers",
+      project: project,
+      room_id: nil,
+      status: :pending
+    )
+
+    get user_company_home_url(user_id: "me")
+
+    assert_response :ok
+    assert_select ".list-item-title", text: "Ops blocker without room"
+  end
+
   test "home renders ask company form for the company bot" do
     company_bot = FirstRun.ensure_company_bot!
 

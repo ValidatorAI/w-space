@@ -33,7 +33,7 @@ module Mcp
             return success(k.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.knowledge_items.order(position: :asc, created_at: :asc), args)
@@ -64,7 +64,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           k = project.knowledge_items.create!(
@@ -154,7 +154,7 @@ module Mcp
             return success(a.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.adrs.order(position: :asc, created_at: :asc), args)
@@ -186,7 +186,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           a = project.adrs.create!(
@@ -279,7 +279,7 @@ module Mcp
             return success(n.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.notes.order(created_at: :desc), args)
@@ -311,7 +311,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           n = project.notes.create!(
@@ -404,7 +404,7 @@ module Mcp
             return success(d.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.directory_items.order(position: :asc, created_at: :asc), args)
@@ -436,7 +436,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           d = project.directory_items.create!(
@@ -529,7 +529,7 @@ module Mcp
             return success(a.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.external_assets.order(created_at: :desc), args)
@@ -562,7 +562,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           a = project.external_assets.create!(
@@ -658,7 +658,7 @@ module Mcp
             return success(a.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.knowledge_activities.order(created_at: :desc), args)
@@ -690,7 +690,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           a = project.knowledge_activities.create!(
@@ -783,7 +783,7 @@ module Mcp
             return success(k.as_json)
           end
 
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           items = paginate(project.knowledge_items.order(position: :asc, created_at: :asc), args)
@@ -813,7 +813,7 @@ module Mcp
         end
 
         def execute(args)
-          project = resolve_project(args) || Project.first
+          project = resolve_project(args)
           return failure("Project not found") unless project
 
           k = project.knowledge_items.create!(

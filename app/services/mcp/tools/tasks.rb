@@ -36,9 +36,15 @@ module Mcp
             return success(AiTask.find(args[:task_id]).as_json)
           end
 
+          project = args[:project_id].present? ? resolve_project(args) : nil
+          raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}" if args[:project_id].present? && project.nil?
+
+          room = args[:room_id].present? ? resolve_room(args, project: project) : nil
+          raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}" if args[:room_id].present? && room.nil?
+
           scope = AiTask.all
-          scope = scope.where(project_id: args[:project_id]) if args[:project_id].present?
-          scope = scope.where(room_id: args[:room_id]) if args[:room_id].present?
+          scope = scope.where(project_id: project.id) if project.present?
+          scope = scope.where(room_id: room.id) if room.present?
           scope = scope.where(parent_task_id: args[:parent_task_id]) if args[:parent_task_id].present?
           scope = scope.where(grand_parent_id: args[:grand_parent_id]) if args[:grand_parent_id].present?
           scope = scope.where(topic_id: args[:topic_id]) if args[:topic_id].present?
@@ -71,6 +77,15 @@ module Mcp
       end
 
       class CreateTaskTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        VALID_KEYS = %w[
+          description project_id room_id parent_task_id grand_parent_id task_id
+          input_event_entity_id adder_profile assigneee_profile assignee_profile
+          proposed_task_context dispatched finished added_to_kanban runned
+          topic_id token_used usd_used usd_budget importance level
+        ].freeze
+
         def name = "create_ai_task"
         def description = "Create a project AI task"
         def aliases = %w[create_task CreateTask CreateAITask]
@@ -88,6 +103,7 @@ module Mcp
               input_event_entity_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              assignee_profile: { type: "string" },
               proposed_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
@@ -105,16 +121,24 @@ module Mcp
         end
 
         def execute(args)
+          validate_allowed_keys!(args, VALID_KEYS)
+          assignee_profile = [args[:assigneee_profile], args[:assignee_profile]].filter_map { |value| value.to_s.strip.presence }.first
+
+          project = resolve_task_project(args)
+          room = resolve_task_room(args, project: project)
+
+          validate_assignee_profile!(assignee_profile)
+
           task = AiTask.create!(
             task_id: args[:task_id].presence,
             input_event_entity_id: args[:input_event_entity_id].presence,
             description: args[:description],
-            project_id: args[:project_id],
-            room_id: args[:room_id],
-            parent_task_id: args[:parent_task_id],
-            grand_parent_id: args[:grand_parent_id],
+            project_id: project&.id,
+            room_id: room&.id,
+            parent_task_id: args[:parent_task_id].presence,
+            grand_parent_id: args[:grand_parent_id].presence,
             adder_profile: args[:adder_profile],
-            assigneee_profile: args[:assigneee_profile],
+            assigneee_profile: assignee_profile,
             proposed_task_context: args[:proposed_task_context].presence,
             actual_task_context: nil,
             dispatched: args.key?(:dispatched) ? boolean_param(args[:dispatched]) : (args.key?(:added_to_kanban) ? boolean_param(args[:added_to_kanban]) : false),
@@ -126,11 +150,87 @@ module Mcp
             importance: args[:importance] || 0,
             level: args[:level] || 0
           )
-          success(task.as_json)
+
+          result = task.as_json
+          if assignee_profile.blank?
+            result["warning"] = missing_assignee_warning(task)
+          end
+          success(result)
+        end
+
+        private
+
+        def resolve_task_project(args)
+          return nil if args[:project_id].blank?
+
+          project = resolve_project(args)
+          raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}" if project.nil?
+
+          project
+        end
+
+        def resolve_task_room(args, project: nil)
+          return nil if args[:room_id].blank?
+
+          room = resolve_room(args, project: project)
+          raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}" if room.nil?
+
+          room
+        end
+
+        def validate_allowed_keys!(args, allowed_keys)
+          unexpected = args.keys.map(&:to_s) - allowed_keys.map(&:to_s)
+          return if unexpected.empty?
+
+          raise ArgumentError, "Unknown argument(s): #{unexpected.sort.join(', ')}. Allowed keys: #{allowed_keys.sort.join(', ')}"
+        end
+
+        def missing_assignee_warning(task)
+          project = task.project
+          attention_item = nil
+
+          if project.present?
+            attention_item = project.attention_items.create!(
+              category: "blockers",
+              title: "AI task missing assignee profile: #{task.description.to_s.truncate(80)}",
+              meta_text: "Task #{task.id} was created without an assignee profile and will not dispatch until a profile is assigned.",
+              status: "pending"
+            )
+          end
+
+          {
+            code: "missing_assignee_profile",
+            message: "Task was created without an assignee profile and will not dispatch until a profile is assigned.",
+            attention_item: {
+              id: attention_item&.id,
+              category: "blockers",
+              project_id: project&.id,
+              title: attention_item&.title || "AI task missing assignee profile",
+              status: attention_item&.status || "pending"
+            }.compact
+          }
+        end
+
+        def validate_assignee_profile!(assignee_profile)
+          return if assignee_profile.blank?
+
+          profile_exists = Hermes::Client.new.profile_exists?(assignee_profile)
+          return if profile_exists.nil?
+          return if profile_exists
+
+          raise ArgumentError, "Unknown assignee profile '#{assignee_profile}' for the active Hermes gateway."
         end
       end
 
       class UpdateTaskTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        VALID_KEYS = %w[
+          task_id description project_id room_id adder_profile assigneee_profile assignee_profile
+          input_event_entity_id actual_task_context dispatched finished added_to_kanban
+          runned topic_id dispatch_attempts
+        ].freeze
+
         def name = "update_ai_task"
         def description = "Update a project AI task"
         def aliases = %w[update_task UpdateTask UpdateAITask]
@@ -141,31 +241,56 @@ module Mcp
             properties: {
               task_id: { type: %w[string integer] },
               description: { type: "string" },
+              project_id: { type: %w[string integer] },
+              room_id: { type: %w[string integer] },
               adder_profile: { type: "string" },
               assigneee_profile: { type: "string" },
+              assignee_profile: { type: "string" },
               input_event_entity_id: { type: %w[string integer] },
               actual_task_context: { type: "string" },
               dispatched: { type: "boolean" },
               finished: { type: "boolean" },
               added_to_kanban: { type: "boolean" },
               runned: { type: "boolean" },
-              topic_id: { type: %w[string integer] }
+              topic_id: { type: %w[string integer] },
+              dispatch_attempts: { type: "integer" }
             },
             required: ["task_id"]
           }
         end
 
         def execute(args)
+          validate_allowed_keys!(args, VALID_KEYS)
           task = AiTask.find(args[:task_id])
           attrs = {}
 
+          if AiTask.finished_task_update_blocked?(task, args)
+            raise ArgumentError, "Finished tasks are frozen: cost and lifecycle fields cannot be changed after completion"
+          end
+
+          project = args[:project_id].present? ? resolve_project(args) : nil
+          if args[:project_id].present? && project.nil?
+            raise ArgumentError, "Project not found for project_id=#{args[:project_id].inspect}"
+          end
+
+          room = args[:room_id].present? ? resolve_room(args, project: project || task.project) : nil
+          if args[:room_id].present? && room.nil?
+            raise ArgumentError, "Room not found for room_id=#{args[:room_id].inspect}"
+          end
+
           attrs[:description] = args[:description] if args.key?(:description)
           attrs[:adder_profile] = args[:adder_profile] if args.key?(:adder_profile)
-          attrs[:assigneee_profile] = args[:assigneee_profile] if args.key?(:assigneee_profile)
+          assignee_profile = [args[:assigneee_profile], args[:assignee_profile]].filter_map { |value| value.to_s.strip.presence }.first
+          if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
+            validate_assignee_profile!(assignee_profile) if assignee_profile.present?
+            attrs[:assigneee_profile] = assignee_profile if assignee_profile.present? || args.key?(:assigneee_profile) || args.key?(:assignee_profile)
+          end
           attrs[:task_id] = args[:task_id].presence if args.key?(:task_id) && args[:task_id].to_i != task.id.to_i
           attrs[:input_event_entity_id] = args[:input_event_entity_id].presence if args.key?(:input_event_entity_id)
           attrs[:actual_task_context] = args[:actual_task_context].presence if args.key?(:actual_task_context)
           attrs[:proposed_task_context] = nil
+          attrs[:project_id] = project.id if project.present?
+          attrs[:room_id] = room.id if room.present?
 
           if args.key?(:dispatched) || args.key?(:added_to_kanban)
             attrs[:dispatched] = args.key?(:dispatched) ? boolean_param(args[:dispatched]) : boolean_param(args[:added_to_kanban])
@@ -175,10 +300,44 @@ module Mcp
             attrs[:finished] = args.key?(:finished) ? boolean_param(args[:finished]) : boolean_param(args[:runned])
           end
 
+          if args.key?(:dispatch_attempts)
+            dispatch_attempts = parse_dispatch_attempts!(args[:dispatch_attempts])
+            raise ArgumentError, "dispatch_attempts must be an integer between 0 and #{AiTask::MAX_DISPATCH_ATTEMPTS}" unless dispatch_attempts
+
+            attrs[:dispatch_attempts] = dispatch_attempts
+            if attrs[:dispatch_attempts].zero?
+              attrs[:dispatched] = false
+              attrs[:finished] = false
+              attrs[:dispatch_error] = nil
+            end
+          end
+
           attrs[:topic_id] = args[:topic_id].presence if args.key?(:topic_id)
 
           task.update!(attrs)
           success(task.as_json)
+        end
+
+        private
+
+        def validate_allowed_keys!(args, allowed_keys)
+          unexpected = args.keys.map(&:to_s) - allowed_keys.map(&:to_s)
+          return if unexpected.empty?
+
+          raise ArgumentError, "Unknown argument(s): #{unexpected.sort.join(', ')}. Allowed keys: #{allowed_keys.sort.join(', ')}"
+        end
+
+        def parse_dispatch_attempts!(raw_value)
+          return nil if raw_value.nil?
+
+          value = raw_value.to_s.strip
+          return nil if value.empty?
+          return nil unless value.match?(/\A-?\d+\z/)
+
+          integer_value = value.to_i
+          return nil if integer_value.negative? || integer_value > AiTask::MAX_DISPATCH_ATTEMPTS
+
+          integer_value
         end
       end
 
@@ -254,6 +413,10 @@ module Mcp
 
         def execute(args)
           task = AiTask.find(args[:task_id])
+          if task.finished?
+            raise ArgumentError, "Finished tasks are frozen: cost fields cannot be changed after completion"
+          end
+
           task.apply_task_cost!(args[:token_used], args[:usd_used])
           success(task.as_json)
         end

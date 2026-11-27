@@ -1,6 +1,9 @@
 class AiTask < ApplicationRecord
   self.table_name = "ai_tasks"
 
+  PROFILE_NAME_PATTERN = /\A[a-zA-Z0-9][a-zA-Z0-9_-]*\z/.freeze
+  MAX_DISPATCH_ATTEMPTS = 3
+
   alias_attribute :added_to_kanban, :dispatched
   alias_attribute :runned, :finished
 
@@ -12,8 +15,18 @@ class AiTask < ApplicationRecord
   belongs_to :grand_parent_task, class_name: "AiTask", optional: true, foreign_key: :grand_parent_id, inverse_of: :grand_child_tasks
   has_many :grand_child_tasks, class_name: "AiTask", foreign_key: :grand_parent_id, dependent: :nullify, inverse_of: :grand_parent_task
 
+  before_validation :normalize_assignee_profile
+
   validates :description, presence: true
+  validates :assigneee_profile, format: { with: PROFILE_NAME_PATTERN, message: "must be a valid Hermes profile name" }, if: -> { assigneee_profile.present? }
   validates :importance, :level, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :dispatch_attempts,
+            numericality: {
+              only_integer: true,
+              greater_than_or_equal_to: 0,
+              less_than_or_equal_to: MAX_DISPATCH_ATTEMPTS,
+              allow_nil: true
+            }
   validates :token_used, numericality: { only_integer: true, allow_nil: true }
   validates :usd_used, numericality: true, allow_nil: true
   validates :usd_budget, numericality: true, allow_nil: true
@@ -32,7 +45,24 @@ class AiTask < ApplicationRecord
     json
   end
 
+  def self.finished_task_update_blocked?(task, attrs)
+    return false unless task.present? && task.finished?
+    return false if attrs.blank?
+
+    cost_fields = attrs.slice(:token_used, :usd_used, :token_budget, :usd_budget)
+    return true if cost_fields.present?
+
+    lifecycle_fields = attrs.slice(:dispatched, :dispatch_attempts, :runned, :added_to_kanban)
+    return false if attrs.key?(:finished)
+
+    lifecycle_fields.present?
+  end
+
   def apply_task_cost!(new_token_used, new_usd_used)
+    if finished?
+      raise ArgumentError, "Finished tasks are frozen: cost fields cannot be changed after completion"
+    end
+
     old_token_used = token_used.to_i
     old_usd_used = usd_used.to_f
     next_token_used = new_token_used.nil? ? old_token_used : new_token_used.to_i
@@ -50,6 +80,51 @@ class AiTask < ApplicationRecord
         usd_used: (parent.usd_used.to_f + usd_delta)
       )
       parent = parent.parent_task
+    end
+  end
+
+  def dispatchable_profile
+    profile = assigneee_profile.to_s.strip
+    return nil if profile.blank?
+    return nil if dispatch_attempts.to_i >= MAX_DISPATCH_ATTEMPTS
+
+    profile if profile.match?(PROFILE_NAME_PATTERN)
+  end
+
+  def mark_dispatch_failed!(error_message)
+    attempts = dispatch_attempts.to_i + 1
+    update!(dispatch_attempts: attempts, dispatch_error: error_message.to_s)
+
+    return unless attempts >= MAX_DISPATCH_ATTEMPTS
+
+    update!(dispatched: true, finished: false, dispatch_error: error_message.to_s)
+    create_dispatch_failure_blocker!(error_message.to_s)
+  end
+
+  private
+
+  def normalize_assignee_profile
+    self.assigneee_profile = assigneee_profile.to_s.strip
+  end
+
+  def create_dispatch_failure_blocker!(error_message)
+    title = "Dispatch failed after #{MAX_DISPATCH_ATTEMPTS} attempts: task #{id} (#{assigneee_profile})"
+    attrs = {
+      category: "blockers",
+      title: title,
+      meta_text: "Dispatch error: #{error_message}",
+      status: :pending,
+      room_id: room_id,
+      project_id: project_id,
+      source: self
+    }
+
+    if room.present?
+      room.attention_items.create!(attrs)
+    elsif project.present?
+      project.attention_items.create!(attrs)
+    else
+      AttentionItem.create!(attrs)
     end
   end
 end

@@ -21,10 +21,12 @@ module Api
         return render json: { error: "Unsupported decision: #{decision}. Allowed: #{DECISION_ACTIONS.join(", ")}" }, status: :bad_request
       end
 
-      approval_request.public_send("#{decision}!", user, note: params[:note])
+      approval_request = ApprovalFlow.decide!(approval_request, user, decision: decision, note: params[:note])
 
-      render json: approval_request.as_json(only: APPROVAL_REQUEST_FIELDS)
-    rescue ActiveRecord::RecordInvalid => e
+      payload = approval_request.as_json(only: APPROVAL_REQUEST_FIELDS)
+      payload["echo_message_id"] = approval_request.echo_message_id if approval_request.respond_to?(:echo_message_id)
+      render json: payload
+    rescue ActiveRecord::RecordInvalid, ArgumentError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
   end

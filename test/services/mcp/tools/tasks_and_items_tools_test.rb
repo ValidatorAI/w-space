@@ -45,6 +45,28 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
     assert_in_delta 0.05, parent.usd_used, 0.001
   end
 
+  test "task_cost rejects writes on finished tasks and leaves lifecycle state unchanged" do
+    task = AiTask.create!(
+      description: "Closed MCP task",
+      project: @project,
+      token_used: 10,
+      usd_used: 2.5,
+      finished: true,
+      dispatched: true
+    )
+
+    cost_tool = Mcp::Registry.find_tool("task_cost", scope: :task)
+    result = cost_tool.call(task_id: task.id, token_used: 99, usd_used: 42.5)
+
+    assert_equal true, result[:isError]
+    assert_match(/finished|frozen|cost/i, result[:content].first[:text])
+
+    task.reload
+    assert_equal true, task.finished
+    assert_equal 10, task.token_used
+    assert_in_delta 2.5, task.usd_used, 0.01
+  end
+
   test "task context fields are split between proposal and actual execution" do
     create_task = Mcp::Registry.find_tool("create_task", scope: :task)
     create_result = create_task.call(
@@ -93,5 +115,103 @@ class TasksAndItemsToolsTest < ActiveSupport::TestCase
 
     task.reload
     assert_equal 777, task.input_event_entity_id
+  end
+
+  test "create_ai_task rejects unknown arguments and accepts assignee alias" do
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    rejected = create_task.call(
+      description: "Reject bad payload",
+      project_id: @project.id,
+      profile_name: "ghost-agent"
+    )
+    assert_equal true, rejected[:isError]
+    assert_match(/profile_name|Unknown argument|unexpected/i, rejected[:content].first[:text])
+
+    Hermes::Client.any_instance.expects(:profile_exists?).with("agent-42").returns(true)
+    accepted = create_task.call(
+      description: "Alias assignee",
+      project_id: @project.id,
+      assignee_profile: "agent-42"
+    )
+    assert_equal false, accepted[:isError]
+    assert_equal "agent-42", AiTask.last.assigneee_profile
+  end
+
+  test "create_ai_task resolves project slug and rejects invalid project or room refs" do
+    room = Room.create!(name: "Ops room", project: @project, type: "Rooms::Open", private: false, creator: @user)
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    accepted = create_task.call(
+      description: "Task with project slug",
+      project_id: @project.slug,
+      room_id: room.id.to_s
+    )
+    assert_equal false, accepted[:isError]
+    task = AiTask.last
+    assert_equal @project.id, task.project_id
+    assert_equal room.id, task.room_id
+
+    invalid_project = create_task.call(
+      description: "Task with missing project",
+      project_id: "not-a-project",
+      room_id: room.id
+    )
+    assert_equal true, invalid_project[:isError]
+    assert_match(/Project not found|project_id/i, invalid_project[:content].first[:text])
+
+    invalid_room = create_task.call(
+      description: "Task with missing room",
+      project_id: @project.id,
+      room_id: 9_999_999
+    )
+    assert_equal true, invalid_room[:isError]
+    assert_match(/Room not found|room_id/i, invalid_room[:content].first[:text])
+  end
+
+  test "create_ai_task resolves string room names to the correct room" do
+    room = Room.create!(name: "Ops room", project: @project, type: "Rooms::Open", private: false, creator: @user)
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    accepted = create_task.call(
+      description: "Task with room-by-name",
+      project_id: @project.id,
+      room_id: "Ops room"
+    )
+
+    assert_equal false, accepted[:isError]
+    assert_equal room.id, AiTask.last.room_id
+  end
+
+  test "create_ai_task keeps task rows for blank assignee and creates warning attention item" do
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    result = create_task.call(
+      description: "Task without assignee",
+      project_id: @project.id,
+      assignee_profile: "   "
+    )
+
+    assert_equal false, result[:isError]
+    payload = JSON.parse(result[:content].first[:text])
+    assert_equal "Task without assignee", payload["description"]
+    assert_equal "missing_assignee_profile", payload["warning"]["code"]
+    assert_equal "blockers", payload["warning"]["attention_item"]["category"]
+    assert_equal @project.id, payload["warning"]["attention_item"]["project_id"]
+    assert_equal 1, AttentionItem.where(project_id: @project.id, category: "blockers", status: "pending").count
+  end
+
+  test "create_ai_task rejects unknown assignee profiles when the gateway profile probe says they do not exist" do
+    Hermes::Client.any_instance.expects(:profile_exists?).with("planner").returns(false)
+    create_task = Mcp::Registry.find_tool("create_ai_task", scope: :task)
+
+    result = create_task.call(
+      description: "Task with unknown assignee",
+      project_id: @project.id,
+      assignee_profile: "planner"
+    )
+
+    assert_equal true, result[:isError]
+    assert_match(/unknown assignee|planner/i, result[:content].first[:text])
   end
 end

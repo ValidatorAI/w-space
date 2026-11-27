@@ -7,31 +7,21 @@ class Accounts::UsersController < ApplicationController
   end
 
   def create
-    user = User.new(create_user_params)
-    user.display_name = user.name if user.display_name.blank?
-
-    if user.save
-      OutputEvents::Recorder.record(
-        event_type: "user_activated",
-        event_id: user.id,
-        actor: Current.user,
-        target_type: "User",
-        data: { "created" => true }
-      )
-      if company_settings_modal_request?
-        render "users/companies/add_user_success", layout: false
-      else
-        redirect_after_member_change(notice: "User added")
-      end
+    user = UserAdminService.create(create_user_params, actor: Current.user)
+    if company_settings_modal_request?
+      render "users/companies/add_user_success", layout: false
     else
-      if company_settings_modal_request?
-        @new_user = user
-        render "users/companies/add_user_modal", layout: false, status: :unprocessable_entity
-      else
-        redirect_after_member_change(alert: user.errors.full_messages.to_sentence.presence || "Unable to add user")
-      end
+      redirect_after_member_change(notice: "User added")
     end
-  rescue ActiveRecord::RecordNotUnique
+  rescue UserAdminService::ValidationError => e
+    user = e.record
+    if company_settings_modal_request?
+      @new_user = user
+      render "users/companies/add_user_modal", layout: false, status: :unprocessable_entity
+    else
+      redirect_after_member_change(alert: user.errors.full_messages.to_sentence.presence || "Unable to add user")
+    end
+  rescue UserAdminService::DuplicateEmailError
     if company_settings_modal_request?
       @new_user = User.new(create_user_params.except(:password))
       @new_user.errors.add(:email_address, "is already in use")
@@ -42,19 +32,19 @@ class Accounts::UsersController < ApplicationController
   end
 
   def update
-    @user.update(role_params)
+    UserAdminService.update(@user, user_update_params)
     redirect_after_member_change
+  rescue UserAdminService::ValidationError => e
+    redirect_after_member_change(alert: e.record.errors.full_messages.to_sentence.presence || "Invalid user")
   end
 
   def destroy
-    @user.deactivate
-    record_user_status_event("user_deactivated")
+    UserAdminService.deactivate(@user, actor: Current.user)
     redirect_after_member_change
   end
 
   def activate
-    @user.update!(status: :active)
-    record_user_status_event("user_activated")
+    UserAdminService.activate(@user, actor: Current.user)
     redirect_after_member_change
   end
 
@@ -75,8 +65,17 @@ class Accounts::UsersController < ApplicationController
       params[:return_to] == "company_settings" && params[:modal_source] == "company_add_user_modal"
     end
 
-    def role_params
-      { role: params.require(:user)[:role].presence_in(%w[ member administrator ]) || "member" }
+    def user_update_params
+      payload = params.require(:user)
+      attrs = payload.permit(:name, :display_name, :email_address, :password, :role).to_h.with_indifferent_access
+      role = attrs[:role].to_s.strip
+
+      if role.present?
+        return attrs if User.roles.key?(role)
+      end
+
+      attrs.delete(:role)
+      attrs.compact_blank
     end
 
     def create_user_params

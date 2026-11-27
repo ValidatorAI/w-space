@@ -96,6 +96,98 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
+  test "PATCH dispatch_attempts=0 resets the task back to a dispatchable state" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Stalled task",
+      assigneee_profile: "planner",
+      dispatched: true,
+      finished: false,
+      dispatch_attempts: 3,
+      dispatch_error: "profile not found"
+    )
+
+    patch api_task_url(task.id),
+      params: { dispatch_attempts: 0 },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    task.reload
+    assert_equal 0, task.dispatch_attempts
+    assert_equal false, task.dispatched
+    assert_equal false, task.finished
+    assert_nil task.dispatch_error
+  end
+
+  test "PATCH dispatch_attempts rejects invalid values and leaves the task untouched" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Invalid attempts",
+      assigneee_profile: "planner",
+      dispatched: false,
+      finished: false,
+      dispatch_attempts: 1
+    )
+
+    [9, -1, "abc", ""].each do |invalid_value|
+      patch api_task_url(task.id),
+        params: { dispatch_attempts: invalid_value },
+        headers: { "Authorization" => "Bearer test-token" }
+
+      assert_response :unprocessable_entity
+      task.reload
+      assert_equal 1, task.dispatch_attempts
+    end
+  end
+
+  test "rejects cost writes on finished tasks and preserves the closed state" do
+    task = Task.create!(
+      project: @project,
+      room: @room,
+      description: "Closed task",
+      importance: 1,
+      level: 1,
+      token_used: 10,
+      usd_used: 2.5,
+      finished: true
+    )
+
+    patch api_task_url(task.id),
+      params: { token_used: 500, usd_used: 25.0 },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_match(/finished|frozen|cost/i, body["error"])
+
+    task.reload
+    assert_equal true, task.finished
+    assert_equal 10, task.token_used
+    assert_in_delta 2.5, task.usd_used, 0.01
+  end
+
+  test "partial PATCHes on finished tasks do not reopen them when finished is omitted" do
+    task = Task.create!(
+      project: @project,
+      room: @room,
+      description: "Closed task",
+      importance: 1,
+      level: 1,
+      finished: true
+    )
+
+    patch api_task_url(task.id),
+      params: { description: "Updated description" },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    task.reload
+    assert_equal "Updated description", task.description
+    assert_equal true, task.finished
+  end
+
   test "rolls task cost up through parent and grandparent tasks" do
     root = Task.create!(
       project: @project,

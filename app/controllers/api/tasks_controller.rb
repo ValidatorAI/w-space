@@ -29,8 +29,26 @@ module Api
       task = AiTask.find_by(id: params[:id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
-      if task.update(task_params)
-        render json: serialize(task)
+      attrs = task_params
+      if params.key?(:dispatch_attempts)
+        parsed_attempts = parse_dispatch_attempts!(params[:dispatch_attempts])
+        return render json: { error: "dispatch_attempts must be an integer between 0 and #{AiTask::MAX_DISPATCH_ATTEMPTS}" }, status: :unprocessable_entity unless parsed_attempts
+
+        if parsed_attempts.zero?
+          attrs[:dispatched] = false
+          attrs[:finished] = false
+          attrs[:dispatch_error] = nil
+        end
+      else
+        attrs.delete(:dispatch_attempts)
+      end
+
+      if AiTask.finished_task_update_blocked?(task, attrs)
+        return render json: { error: "Finished tasks are frozen: cost and lifecycle fields cannot be changed after completion" }, status: :unprocessable_entity
+      end
+
+      if task.update(attrs)
+        render json: serialize(task.reload)
       else
         render json: { error: task.errors.full_messages.to_sentence }, status: :unprocessable_entity
       end
@@ -48,8 +66,14 @@ module Api
       task = AiTask.find_by(id: params[:task_id])
       return render json: { error: "Task not found" }, status: :not_found unless task
 
+      if task.finished?
+        return render json: { error: "Finished tasks are frozen: cost fields cannot be changed after completion" }, status: :unprocessable_entity
+      end
+
       task.apply_task_cost!(params[:token_used], params[:usd_used])
       render json: serialize(task)
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def children
@@ -93,12 +117,26 @@ module Api
         :finished,
         :added_to_kanban,
         :runned,
+        :dispatch_attempts,
         :topic_id,
         :parent_task_id,
         :grand_parent_id,
         :importance,
         :level
       )
+    end
+
+    def parse_dispatch_attempts!(raw_value)
+      return nil if raw_value.nil?
+
+      value = raw_value.to_s.strip
+      return nil if value.empty?
+      return nil unless value.match?(/\A-?\d+\z/)
+
+      integer_value = value.to_i
+      return nil if integer_value.negative? || integer_value > AiTask::MAX_DISPATCH_ATTEMPTS
+
+      integer_value
     end
 
     def filter_tasks(scope)

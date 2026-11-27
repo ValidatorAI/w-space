@@ -69,7 +69,12 @@ class Room < ApplicationRecord
   validate :parent_cannot_be_self
 
   class << self
-    def create_for(attributes, users:)
+    def create_for(attributes, users:, creator: nil)
+      attributes = attributes.to_h.dup
+      if creator.present? && attributes[:creator].blank? && attributes[:creator_id].blank?
+        attributes[:creator] = creator
+      end
+
       transaction do
         create!(attributes).tap do |room|
           room.memberships.grant_to users
@@ -138,6 +143,15 @@ class Room < ApplicationRecord
   # Get all participants
   def participants
     memberships.includes(:participant).map(&:participant)
+  end
+
+  def member?(user)
+    return false if user.blank?
+
+    resolved_user = user.is_a?(User) ? user : User.find_by(id: user)
+    return false if resolved_user.nil?
+
+    memberships.exists?(participant_type: "User", participant_id: resolved_user.id)
   end
 
   private

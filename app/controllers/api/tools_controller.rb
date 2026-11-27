@@ -16,5 +16,16 @@ module Api
 
       render json: tool.as_json(only: TOOL_FIELDS)
     end
+
+    def toggle
+      tool = Tool.find_by(id: params[:id])
+      return render json: { error: "Tool not found" }, status: :not_found unless tool
+
+      if tool.update(active: cast_boolean(params[:active]))
+        render json: tool.as_json(only: TOOL_FIELDS)
+      else
+        render json: { error: tool.errors.full_messages.to_sentence }, status: :unprocessable_entity
+      end
+    end
   end
 end

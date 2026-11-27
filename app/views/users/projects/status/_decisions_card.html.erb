@@ -1,0 +1,30 @@
+<div class="status-card">
+  <div class="status-card-header">⚖️ Decision Records</div>
+
+  <% if decisions.any? %>
+    <div class="status-decisions-list">
+      <% decisions.each_with_index do |decision, idx| %>
+        <div class="status-decision-item">
+          <div class="status-decision-heading">
+            <strong><%= decision.title %></strong>
+            <% if decision.room_label.present? %>
+              <span class="status-room-pill"><%= decision.room_label %></span>
+            <% end %>
+          </div>
+
+          <div class="status-decision-meta">
+            <span><%= decision.identifier %></span>
+            <span><%= decision.status.to_s.titleize %></span>
+            <span><%= decision.formatted_date %></span>
+          </div>
+        </div>
+
+        <% if idx < decisions.size - 1 %>
+          <hr class="status-divider">
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="status-empty-text">No project decision records yet.</p>
+  <% end %>
+</div>

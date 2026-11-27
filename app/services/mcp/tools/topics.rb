@@ -302,21 +302,17 @@ module Mcp
           terms = query.split(/\s+/).reject(&:empty?)
           return success([]) if terms.empty?
 
-          where_clauses = []
-          values = {}
-          terms.each_with_index do |term, index|
-            term_key = "term_#{index}".to_sym
-            where_clauses << "(
-              LOWER(COALESCE(topics.name, '')) LIKE :#{term_key}
-              OR LOWER(COALESCE(topics.memory, '')) LIKE :#{term_key}
-              OR LOWER(COALESCE(topics.state, '')) LIKE :#{term_key}
-              OR LOWER(COALESCE(topics.related_topics, '')) LIKE :#{term_key}
-            )"
-            values[term_key] = "%#{term.downcase}%"
+          topic_table = Topic.arel_table
+          search_predicates = terms.map do |term|
+            pattern = "%#{term.downcase}%"
+            topic_table[:name].lower.matches(pattern)
+              .or(topic_table[:memory].lower.matches(pattern))
+              .or(topic_table[:state].lower.matches(pattern))
+              .or(topic_table[:related_topics].lower.matches(pattern))
           end
 
           limit = args[:limit].presence&.to_i || 20
-          matches = scope.where(where_clauses.join(" OR "), values).order(:name).limit(limit)
+          matches = scope.where(search_predicates.reduce(:or)).order(topic_table[:name].lower.asc).limit(limit)
           success(matches.map(&:as_json))
         end
 

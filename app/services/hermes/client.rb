@@ -70,10 +70,10 @@ module Hermes
     end
 
     def api_status
-      url = URI("#{@status_base_uri}/api/status")
+      url = URI(normalized_status_url)
       req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
       response = execute_http(url, req, timeout: @timeout)
-      parse_json(response)
+      normalize_status_payload(parse_json(response))
     rescue Exception => e
       { "overall" => "unavailable", "error" => e.message, "gateway_busy" => true, "active_agents" => nil, "active_sessions" => nil }
     end
@@ -84,8 +84,46 @@ module Hermes
         "gateway_busy" => status["gateway_busy"],
         "active_agents" => status["active_agents"],
         "active_sessions" => status["active_sessions"],
-        "overall" => status["overall"]
+        "overall" => status["overall"] || status["status"] || status.dig("readiness", "status")
       }
+    end
+
+    def available_profile_names
+      url = URI(build_url("/v1/models"))
+      req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
+      response = execute_http(url, req, timeout: @timeout)
+      data = parse_json(response)
+      parse_profile_names(data)
+    rescue HttpError => e
+      Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
+      nil
+    rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Timeout::Error, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
+      Rails.logger.warn("[Hermes::Client] Gateway unreachable while fetching profile names: #{e.class}: #{e.message}")
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[Hermes::Client] Failed to fetch available profiles: #{e.class}: #{e.message}")
+      nil
+    end
+
+    def profile_exists?(profile_name, timeout: nil)
+      profile = profile_name.to_s.strip
+      return false if profile.blank?
+
+      url = URI(build_url("/v1/models", profile: profile))
+      req = Net::HTTP::Get.new(url, auth_headers(include_json: true))
+      execute_http(url, req, timeout: timeout || @timeout)
+      true
+    rescue HttpError => e
+      return false if e.status_code == 404
+
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} returned HTTP #{e.status_code}: #{e.message}")
+      nil
+    rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Timeout::Error, Errno::ETIMEDOUT => e
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} could not reach the Hermes gateway: #{e.class}: #{e.message}")
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[Hermes::Client] Profile probe for #{profile} failed: #{e.class}: #{e.message}")
+      nil
     end
 
     def build_url(path, profile: nil)
@@ -101,6 +139,22 @@ module Hermes
     end
 
     private
+
+    def normalized_status_url
+      status_url = @status_base_uri.to_s.chomp("/")
+      return status_url if status_url.end_with?("/health/detailed")
+      return status_url.sub(%r{/api/status\z}, "/health/detailed") if status_url.end_with?("/api/status")
+
+      "#{status_url}/health/detailed"
+    end
+
+    def normalize_status_payload(payload)
+      return payload unless payload.is_a?(Hash)
+
+      normalized = payload.dup
+      normalized["overall"] ||= normalized["status"] || normalized.dig("readiness", "status") || "unknown"
+      normalized
+    end
 
     def post_json(path, payload:, profile:, session_id: nil, session_key: nil, timeout: nil)
       url = URI(build_url(path, profile: profile))
@@ -158,11 +212,41 @@ module Hermes
       headers
     end
 
+    def parse_profile_names(data)
+      names = case data
+              when Array
+                data.map { |entry| extract_profile_name(entry) }
+              when Hash
+                values = []
+                ["data", "models", "profiles", "agents"].each do |key|
+                  values.concat(data[key]).compact if data[key].is_a?(Array)
+                end
+                values.map { |entry| extract_profile_name(entry) }
+              else
+                []
+              end
+
+      names.compact.map(&:to_s).map(&:strip).reject(&:blank?).uniq
+    end
+
+    def extract_profile_name(entry)
+      return entry if entry.is_a?(String) && entry.present?
+      return entry["profile_name"] if entry.is_a?(Hash) && entry["profile_name"].present?
+      return entry["name"] if entry.is_a?(Hash) && entry["name"].present?
+      return entry["id"] if entry.is_a?(Hash) && entry["id"].present?
+
+      nil
+    end
+
     def execute_http(url, req, timeout:)
       http = Net::HTTP.new(url.host, url.port)
       http.use_ssl = (url.scheme == "https")
       http.open_timeout = timeout
       http.read_timeout = timeout
+
+      # Force a fresh connection for each outbound request so stale sockets
+      # from failed dispatch jobs do not get reused and hang the request loop.
+      req["Connection"] = "close"
 
       response = http.request(req)
       unless response.is_a?(Net::HTTPSuccess)

@@ -40,6 +40,10 @@ module OutputEvents
 
     def self.claim(event)
       key = dedupe_key_for(event)
+      existing_group = find_existing_group(event, key)
+      if existing_group.present?
+        return ClaimResult.new(claim_status: :duplicate, group: existing_group, dedupe_key: key)
+      end
 
       # Attempt atomic claim by inserting into output_event_dispatch_groups
       group = OutputEventDispatchGroup.new(
@@ -51,12 +55,29 @@ module OutputEvents
       if group.save
         ClaimResult.new(claim_status: :claimed, group: group, dedupe_key: key)
       else
-        existing_group = OutputEventDispatchGroup.find_by(dedupe_key: key)
+        existing_group = find_existing_group(event, key)
         ClaimResult.new(claim_status: :duplicate, group: existing_group, dedupe_key: key)
       end
     rescue ActiveRecord::RecordNotUnique
-      existing_group = OutputEventDispatchGroup.find_by(dedupe_key: key)
+      existing_group = find_existing_group(event, key)
       ClaimResult.new(claim_status: :duplicate, group: existing_group, dedupe_key: key)
+    end
+
+    def self.find_existing_group(event, key)
+      existing_group = OutputEventDispatchGroup.find_by(dedupe_key: key)
+      return existing_group if existing_group.present?
+
+      return unless message_family?(event.event_type, event.group_id)
+
+      data = (event.event_data || {}).deep_stringify_keys
+      room_id = data["room_id"] || data.dig("content_payload", "room_id")
+      group_id = event.group_id
+      return if group_id.blank? || room_id.blank?
+
+      OutputEventDispatchGroup
+        .where("dedupe_key LIKE ?", "message:#{group_id}:#{room_id}:%")
+        .order(:id)
+        .first
     end
 
     def self.message_family?(event_type, group_id)

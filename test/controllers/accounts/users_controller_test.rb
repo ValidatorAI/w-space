@@ -19,6 +19,25 @@ class Accounts::UsersControllerTest < ActionDispatch::IntegrationTest
     assert users(:david).reload.member?
   end
 
+  test "update preserves role when only profile fields change" do
+    sign_in :david
+
+    put account_user_url(users(:david)), params: { user: { display_name: "David Updated" } }
+
+    assert_redirected_to edit_account_url
+    assert_equal "David Updated", users(:david).reload.display_name
+    assert users(:david).reload.administrator?
+  end
+
+  test "update rejects invalid role values without changing the user" do
+    sign_in :david
+
+    put account_user_url(users(:david)), params: { user: { role: "owner" } }
+
+    assert_redirected_to edit_account_url
+    assert users(:david).reload.administrator?
+  end
+
   test "create" do
     sign_in :david
     assert_difference -> { User.count }, 1 do

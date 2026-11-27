@@ -50,13 +50,26 @@ class AttentionItem < ApplicationRecord
   validates :category, inclusion: { in: CATEGORIES }, allow_blank: true
   validates :title, presence: true, length: { maximum: 255 }
 
+  after_initialize :apply_default_action_label, if: -> { action_label.blank? }
+  before_validation :apply_default_action_label, if: -> { action_label.blank? }
+
+  def self.default_action_for(category)
+    CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
+  end
+
   scope :open_items, -> { where(status: :pending) }
   scope :resolved_items, -> { where(status: :resolved) }
   scope :overdue_items, -> { where(overdue: true) }
   scope :ai_awaiting_confirmation, -> { where(ai_confirm: true) }
   scope :for_user, ->(user) { where(user_id: [ user&.id, nil ]) }
+  scope :company_home_for, ->(user) do
+    where("(user_id IS NULL OR user_id = ?) OR (project_id IS NOT NULL AND room_id IS NULL)", user&.id)
+  end
   scope :by_category, ->(category) { where(category: category) }
   scope :ordered, -> { order(overdue: :desc, due_at: :asc, created_at: :desc) }
+  scope :company_home_ordered, -> do
+    order(Arel.sql("CASE WHEN status = 0 THEN 0 ELSE 1 END ASC"), overdue: :desc, due_at: :asc, created_at: :desc)
+  end
   scope :recent, -> { order(created_at: :desc) }
 
   def self.category_title(cat)
@@ -68,7 +81,15 @@ class AttentionItem < ApplicationRecord
   end
 
   def effective_action_label
-    action_label.presence || CATEGORY_CONFIG.dig(category.to_s, :default_action) || "Resolve"
+    action_label.presence || self.class.default_action_for(category)
+  end
+
+  def location_label
+    return "Room: #{room.name}" if room_id.present? && room.present?
+    return "Room: #{Room.find_by(id: room_id)&.name || "Unknown room"}" if room_id.present?
+    return "Project-wide" if project_id.present?
+
+    "Company-wide"
   end
 
   def resolved_event_type
@@ -77,6 +98,19 @@ class AttentionItem < ApplicationRecord
 
   def dismissed_event_type
     DISMISSED_EVENT_TYPES[category.to_s] || "attention_item_dismissed"
+  end
+
+  def created_event_type
+    case category.to_s
+    when "decisions_waiting" then "decision_waiting_created"
+    when "blockers" then "blocker_created"
+    when "outcomes_review" then "outcome_review_created"
+    when "mentions" then "mention_created"
+    when "material_changes" then "material_change_created"
+    when "ai_confirm" then "ai_confirm_created"
+    when "knowledge_proposals" then "knowledge_proposal_created"
+    else "attention_item_created"
+    end
   end
 
   def record_action_event!(actor:, action:, status:)
@@ -120,21 +154,53 @@ class AttentionItem < ApplicationRecord
     )
   end
 
+  def record_created_event!(actor: nil)
+    OutputEvents::Recorder.record(
+      event_type: created_event_type,
+      event_id: id,
+      actor: actor || (defined?(Current) && Current.respond_to?(:user) ? Current.user : nil),
+      target_type: "AttentionItem",
+      data: {
+        "category" => category,
+        "status" => status.to_s,
+        "title" => title,
+        "content" => title,
+        "project_id" => project_id,
+        "room_id" => room_id,
+        "target_type" => "AttentionItem"
+      }.compact
+    )
+  end
+
   def resolve!(user = Current.user)
+    return self if resolved?
+
     update!(
       status: :resolved,
       resolved_at: Time.current,
       resolved_by: user
     )
     record_action_event!(actor: user, action: "resolve", status: :resolved)
+    self
   end
 
   def dismiss!(user = Current.user)
+    return self if dismissed?
+
     update!(
       status: :dismissed,
       resolved_at: Time.current,
       resolved_by: user
     )
     record_action_event!(actor: user, action: "dismiss", status: :dismissed)
+    self
+  end
+
+  after_create_commit :record_created_event!
+
+  private
+
+  def apply_default_action_label
+    self.action_label = self.class.default_action_for(category)
   end
 end

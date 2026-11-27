@@ -1,0 +1,336 @@
+<main class="container py-4 debug-page">
+  <header class="debug-page__header">
+    <div>
+      <p class="debug-page__eyebrow">Admin</p>
+      <h1>Debug</h1>
+    </div>
+    <p class="debug-page__subtitle">
+      Debug tools are enabled for admin users.
+      <%= link_to "Hermes status", debug_hermes_status_path, class: "debug-topic-open-link" %>
+    </p>
+  </header>
+
+  <div class="debug-tabs" data-controller="debug-tabs">
+    <div class="debug-tabs__nav" role="tablist" aria-label="Debug sections">
+      <button
+        type="button"
+        role="tab"
+        aria-selected="true"
+        class="debug-tab active"
+        data-debug-tabs-target="tab"
+        data-debug-tabs-tab-param="project-topic"
+        data-action="click->debug-tabs#switchTab"
+      >
+        Project / Topic
+      </button>
+
+      <button
+        type="button"
+        role="tab"
+        aria-selected="false"
+        class="debug-tab"
+        data-debug-tabs-target="tab"
+        data-debug-tabs-tab-param="project-room-history"
+        data-action="click->debug-tabs#switchTab"
+      >
+        Project / Room / History
+      </button>
+
+      <button
+        type="button"
+        role="tab"
+        aria-selected="false"
+        class="debug-tab"
+        data-debug-tabs-target="tab"
+        data-debug-tabs-tab-param="project-tool-call-log"
+        data-action="click->debug-tabs#switchTab"
+      >
+        Project / Tool Call Log
+      </button>
+    </div>
+
+    <section
+      class="debug-tab-panel"
+      role="tabpanel"
+      data-debug-tabs-target="panel"
+      data-debug-tabs-panel="project-topic"
+    >
+      <section class="debug-projects">
+        <% @project_topic_debug.each_value do |debug_data| %>
+          <% project = debug_data[:project] %>
+          <article class="card debug-project" data-controller="debug-tree">
+            <div class="debug-project__header">
+              <div>
+                <h2 class="h5 debug-project__title"><%= project.display_name %></h2>
+                <p class="debug-project__meta">Project ID: <%= project.id %></p>
+              </div>
+
+              <button
+                type="button"
+                class="debug-project__toggle"
+                data-debug-tree-target="toggle"
+                data-action="click->debug-tree#toggleProject"
+                aria-expanded="false"
+              >
+                Expand
+              </button>
+            </div>
+
+            <div class="debug-project__body" data-debug-tree-target="panel" hidden>
+              <div class="debug-section">
+                <h3 class="h6 debug-section__title">Topic tree</h3>
+
+                <% if debug_data[:roots].any? %>
+                  <ul class="debug-topic-tree">
+                    <% debug_data[:roots].each do |topic| %>
+                      <%= render "topic_tree_node", topic: topic, children_by_parent_id: debug_data[:children_by_parent_id] %>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <p class="debug-empty">No root topics.</p>
+                <% end %>
+              </div>
+
+              <div class="debug-section">
+                <h3 class="h6 debug-section__title">Anomalies</h3>
+
+                <% if debug_data[:anomaly_entries].any? %>
+                  <ul class="debug-anomalies">
+                    <% debug_data[:anomaly_entries].each do |entry| %>
+                      <li class="debug-anomaly">
+                        <strong><%= entry[:topic].name %></strong>
+                        (id=<%= entry[:topic].id %>, parent_id=<%= entry[:topic].parent_topic_id || "nil" %>)
+                        - <%= entry[:reasons].join("; ") %>
+                      </li>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <p class="debug-empty">No anomalies detected.</p>
+                <% end %>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </section>
+    </section>
+
+    <section
+      class="debug-tab-panel"
+      role="tabpanel"
+      data-debug-tabs-target="panel"
+      data-debug-tabs-panel="project-room-history"
+      hidden
+    >
+      <section class="debug-projects">
+        <% @projects.each do |project| %>
+          <% room_history = @project_room_history[project] || [] %>
+
+          <article class="card debug-project debug-project--history">
+            <div class="debug-project__header debug-project__header--history">
+              <div>
+                <h2 class="h5 debug-project__title"><%= project.display_name %></h2>
+                <p class="debug-project__meta">Project ID: <%= project.id %></p>
+              </div>
+            </div>
+
+            <div class="debug-project__body debug-project__body--history">
+              <% if room_history.any? %>
+                <div class="debug-room-history-groups">
+                  <% room_history.each do |room, entries| %>
+                    <% topic_names = entries.filter_map { |entry| entry.topic&.name }.uniq.first(3) %>
+
+                    <details class="debug-room-history-group debug-room-history-group--room" data-room-history-group>
+                      <summary class="debug-room-history-group__summary">
+                        <span><%= room&.name || "Unknown room" %></span>
+                        <span class="debug-room-history-group__count"><%= entries.size %></span>
+                      </summary>
+
+                      <% if topic_names.any? %>
+                        <div class="debug-room-history-group__topics">
+                          Topic: <%= topic_names.join(", ") %>
+                        </div>
+                      <% end %>
+
+                      <div class="debug-list debug-room-history-group__body">
+                        <% entries.each do |entry| %>
+                          <div class="debug-list-item debug-list-item--history">
+                            <div class="debug-list-item__main">
+                              <strong>Topic: <%= entry.topic&.name || "Unknown topic" %></strong>
+                              <% if entry.topic.present? %>
+                                <%= link_to "Open",
+                                      debug_topic_path(entry.topic),
+                                      class: "debug-topic-open-link",
+                                      target: "_blank",
+                                      rel: "noopener noreferrer" %>
+                              <% end %>
+                              <span class="debug-list-item__meta">(topic_id=<%= entry.topic_id || "n/a" %>)</span>
+                            </div>
+                            <div class="debug-list-item__meta">Created: <%= entry.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                            <% if entry.last_state.present? %>
+                              <div class="debug-list-item__detail">last_state: <%= entry.last_state %></div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </details>
+                  <% end %>
+                </div>
+              <% else %>
+                <p class="debug-empty">No room history entries for this project.</p>
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </section>
+    </section>
+
+    <section
+      class="debug-tab-panel"
+      role="tabpanel"
+      data-debug-tabs-target="panel"
+      data-debug-tabs-panel="project-tool-call-log"
+      hidden
+    >
+      <section class="debug-projects">
+        <% @projects.each do |project| %>
+          <% tool_log_groups = @project_tool_logs[project] || { project_logs: [], room_logs: {}, topic_logs: {} } %>
+          <% project_logs = tool_log_groups[:project_logs] || [] %>
+          <% room_logs = tool_log_groups[:room_logs] || {} %>
+          <% topic_logs = tool_log_groups[:topic_logs] || {} %>
+
+          <article class="card debug-project debug-project--tool-log">
+            <div class="debug-project__header debug-project__header--tool-log">
+              <div>
+                <h2 class="h5 debug-project__title"><%= project.display_name %></h2>
+                <p class="debug-project__meta">Project ID: <%= project.id %></p>
+              </div>
+            </div>
+
+            <div class="debug-project__body debug-project__body--tool-log">
+              <% if project_logs.any? || room_logs.any? || topic_logs.any? %>
+                <div class="debug-tool-log-hierarchy">
+                  <details class="debug-tool-log-section debug-tool-log-section--project">
+                    <summary class="h6 debug-tool-log-section__title">
+                      <span>Project logs</span>
+                      <span class="debug-tool-log-group__count"><%= project_logs.size %></span>
+                    </summary>
+                    <div class="debug-tool-log-section__body">
+                      <% if project_logs.any? %>
+                        <div class="debug-list">
+                          <% project_logs.each do |log| %>
+                            <div class="debug-list-item debug-list-item--project-log">
+                              <div class="debug-list-item__main">
+                                <strong><%= log.used_tool_name %></strong>
+                                <span class="debug-list-item__meta">(tool_cal_log_id=<%= log.id %>)</span>
+                              </div>
+                              <div class="debug-list-item__meta">Created: <%= log.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                              <% if log.change_log.present? %>
+                                <div class="debug-list-item__detail"><%= log.change_log %></div>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% else %>
+                        <p class="debug-empty">No project-level tool call logs.</p>
+                      <% end %>
+                    </div>
+                  </details>
+
+                  <details class="debug-tool-log-section debug-tool-log-section--room">
+                    <summary class="h6 debug-tool-log-section__title">
+                      <span>Room logs</span>
+                      <span class="debug-tool-log-group__count"><%= room_logs.values.sum(&:size) %></span>
+                    </summary>
+                    <div class="debug-tool-log-section__body">
+                      <% if room_logs.any? %>
+                        <div class="debug-tool-log-groups">
+                          <% room_logs.each do |room, logs| %>
+                            <details class="debug-tool-log-group debug-tool-log-group--room">
+                              <summary class="debug-tool-log-group__header">
+                                <span><%= room&.name || "Unknown room" %></span>
+                                <span class="debug-tool-log-group__count"><%= logs.size %></span>
+                              </summary>
+                              <div class="debug-tool-log-group__body">
+                                <div class="debug-list">
+                                  <% logs.each do |log| %>
+                                    <div class="debug-list-item debug-list-item--room-log">
+                                      <div class="debug-list-item__main">
+                                        <strong><%= log.used_tool_name %></strong>
+                                        <span class="debug-list-item__meta">(tool_cal_log_id=<%= log.id %>)</span>
+                                      </div>
+                                      <div class="debug-list-item__meta">Created: <%= log.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                                      <% if log.change_log.present? %>
+                                        <div class="debug-list-item__detail"><%= log.change_log %></div>
+                                      <% end %>
+                                    </div>
+                                  <% end %>
+                                </div>
+                              </div>
+                            </details>
+                          <% end %>
+                        </div>
+                      <% else %>
+                        <p class="debug-empty">No room-level tool call logs.</p>
+                      <% end %>
+                    </div>
+                  </details>
+
+                  <details class="debug-tool-log-section debug-tool-log-section--topic">
+                    <summary class="h6 debug-tool-log-section__title">
+                      <span>Topic logs</span>
+                      <span class="debug-tool-log-group__count"><%= topic_logs.values.sum(&:size) %></span>
+                    </summary>
+                    <div class="debug-tool-log-section__body">
+                      <% if topic_logs.any? %>
+                        <div class="debug-tool-log-groups">
+                          <% topic_logs.each do |topic, logs| %>
+                            <details class="debug-tool-log-group debug-tool-log-group--topic">
+                              <summary class="debug-tool-log-group__header">
+                                <div class="debug-tool-log-group__label">
+                                  <span><%= topic&.name || "Unknown topic" %></span>
+                                  <% if topic.present? %>
+                                    <%= link_to "Open",
+                                          debug_topic_path(topic),
+                                          class: "debug-topic-open-link",
+                                          target: "_blank",
+                                          rel: "noopener noreferrer" %>
+                                  <% end %>
+                                </div>
+                                <span class="debug-tool-log-group__count"><%= logs.size %></span>
+                              </summary>
+                              <div class="debug-tool-log-group__body">
+                                <div class="debug-list">
+                                  <% logs.each do |log| %>
+                                    <div class="debug-list-item debug-list-item--topic-log">
+                                      <div class="debug-list-item__main">
+                                        <strong><%= log.used_tool_name %></strong>
+                                        <span class="debug-list-item__meta">(tool_cal_log_id=<%= log.id %>)</span>
+                                      </div>
+                                      <div class="debug-list-item__meta">Room: <%= log.room&.name || "Unknown room" %></div>
+                                      <div class="debug-list-item__meta">Created: <%= log.created_date&.strftime("%Y-%m-%d %H:%M:%S") || "n/a" %></div>
+                                      <% if log.change_log.present? %>
+                                        <div class="debug-list-item__detail"><%= log.change_log %></div>
+                                      <% end %>
+                                    </div>
+                                  <% end %>
+                                </div>
+                              </div>
+                            </details>
+                          <% end %>
+                        </div>
+                      <% else %>
+                        <p class="debug-empty">No topic-level tool call logs.</p>
+                      <% end %>
+                    </div>
+                  </details>
+                </div>
+              <% else %>
+                <p class="debug-empty">No tool call logs for this project.</p>
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </section>
+    </section>
+  </div>
+</main>

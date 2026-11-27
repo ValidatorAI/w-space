@@ -43,6 +43,15 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Ship it", body["decision_text"]
   end
 
+  test "returns a single approval request via the flat api route" do
+    get api_approval_request_url(@approval_request.id), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal @approval_request.id, body["id"]
+    assert_equal "Ship it", body["decision_text"]
+  end
+
   test "allows project-scoped listing with a valid token" do
     get api_project_room_approval_requests_url(@project.id, @room.id), headers: { "Authorization" => "Bearer test-token" }
 
@@ -123,6 +132,20 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Do not ship", body["decision_text"]
   end
 
+  test "routes API status transitions through the shared approval flow and emits a decision event" do
+    assert_difference -> { OutputEvent.where(event_type: "decision_approved").count }, 1 do
+      patch api_room_approval_request_url(@room.id, @approval_request.id),
+        params: { status: "approve", resolved_by_id: users(:jason).id, note: "Approved by API" },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :success
+    assert_equal "approved", @approval_request.reload.status
+    assert_equal users(:jason).id, @approval_request.resolved_by_id
+    assert_equal "Approved by API", @approval_request.approval_request_actions.last.note
+    assert_equal "decision_approved", OutputEvent.order(:created_at).last.event_type
+  end
+
   test "updates status to approved and auto-sets resolved_at" do
     patch api_room_approval_request_url(@room.id, @approval_request.id),
       params: { status: "approved", resolved_by_id: users(:jason).id },
@@ -135,15 +158,16 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal users(:jason).id, body["resolved_by_id"]
   end
 
-  test "does not override resolved_at when already set" do
+  test "rejects re-deciding an already resolved approval without force" do
     original_resolved_at = 1.day.ago.utc.iso8601(3)
     @approval_request.update!(status: :approved, resolved_at: original_resolved_at)
 
     patch api_room_approval_request_url(@room.id, @approval_request.id),
-      params: { status: "denied" },
+      params: { status: "deny" },
       headers: { "Authorization" => "Bearer test-token" }
 
-    assert_response :success
+    assert_response :unprocessable_entity
+    assert_equal "Approval request is already approved. Use force: true to override.", JSON.parse(response.body)["error"]
     assert_in_delta Time.parse(original_resolved_at), @approval_request.reload.resolved_at, 1
   end
 
@@ -162,6 +186,13 @@ class Api::ApprovalRequestsControllerTest < ActionDispatch::IntegrationTest
     get api_room_approval_request_url(other_room.id, @approval_request.id), headers: { "Authorization" => "Bearer test-token" }
 
     assert_response :not_found
+  end
+
+  test "returns not found for an unknown approval request on the flat api route" do
+    get api_approval_request_url(-1), headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :not_found
+    assert_equal "Approval request not found", JSON.parse(response.body)["error"]
   end
 
   test "returns not found for an unknown room" do

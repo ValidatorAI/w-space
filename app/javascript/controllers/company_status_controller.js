@@ -159,9 +159,16 @@ export default class extends Controller {
 
       if (this.hasDecisionsTarget) {
         this.decisionsTarget.innerHTML = (data.decisions && data.decisions.length > 0)
-          ? data.decisions.map((decision) => `
-            <li class="company-clickable" data-month-id="${monthId}" data-collection-key="decisions" data-item-id="${decision.id}">${decision.text}</li>
-          `).join("")
+          ? data.decisions.map((decision) => {
+              const roomLabel = decision?.details?.room_label
+              const displayText = decision?.label || decision?.text || decision?.title || "Decision"
+              return `
+                <li class="company-clickable" data-month-id="${monthId}" data-collection-key="decisions" data-item-id="${decision.id}">
+                  <span>${displayText}</span>
+                  ${roomLabel ? `<span class="company-room-badge">${roomLabel}</span>` : ""}
+                </li>
+              `
+            }).join("")
           : '<span class="company-empty-note">No decisions logged.</span>'
       }
 
@@ -259,7 +266,10 @@ export default class extends Controller {
     }
 
     if (this.hasDrawerMetaTarget) {
+      const roomLabel = details.room_label ? `<span class="company-meta-pill">🏠 Room: <strong>${details.room_label}</strong></span>` : ""
+
       this.drawerMetaTarget.innerHTML = `
+        ${roomLabel}
         <span class="company-meta-pill">👤 Owner: <strong>${details.owner || "Unassigned"}</strong></span>
         <span class="company-meta-pill">📅 Target: <strong>${details.targetDate || "N/A"}</strong></span>
         <span class="company-meta-pill">📊 Status: <strong>${details.status || "Open"}</strong></span>

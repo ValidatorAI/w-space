@@ -4,6 +4,9 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
   self.fixture_table_names = []
 
   setup do
+    ENV["HERMES_MAX_ACTIVE_AGENTS"] = "2"
+    Hermes.configuration.reset!
+
     @hermes_status = {
       "gateway_busy" => false,
       "active_agents" => 1,
@@ -11,7 +14,7 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
       "overall" => "healthy"
     }
 
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(status: 200, body: @hermes_status.to_json, headers: { "Content-Type" => "application/json" })
   end
 
@@ -58,8 +61,91 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
     assert_includes group.result, "Reconciliation expired"
   end
 
-  test "throttles when active_agents exceeds threshold" do
-    stub_request(:get, "http://127.0.0.1:9119/api/status")
+  test "re-enqueues stale dispatching groups that are still pending retry" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 503,
+      group_id: "grp-stale-dispatching-1",
+      event_data: { "room_id" => 1, "message_id" => 503 }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-stale-dispatching-1:1:503",
+      lead_output_event_id: event.id,
+      status: "dispatching",
+      created_at: 8.minutes.ago,
+      result: { retry_reason: "hermes_busy", scheduled_at: 8.minutes.ago.iso8601 }.to_json
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 1, result[:reconciled_count]
+      assert_includes result[:reconciled_group_ids], group.id
+    end
+  end
+
+  test "repeated sweeps do not re-enqueue the same stale pending group while the token is fresh" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 505,
+      group_id: "grp-stale-repeat-1",
+      event_data: { "room_id" => 1, "message_id" => 505 }
+    )
+
+    group = OutputEventDispatchGroup.create!(
+      dedupe_key: "message:grp-stale-repeat-1:1:505",
+      lead_output_event_id: event.id,
+      status: "pending",
+      created_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id, { stage: :dispatch, dispatch_group_id: group.id }]) do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 1, result[:reconciled_count]
+    end
+
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs do
+      result = OutputEvents::ReconcileDispatchesJob.perform_now
+      assert_equal 0, result[:reconciled_count]
+    end
+  end
+
+  test "re-enqueues orphan unsynced events with no dispatch group after the settle window" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 506,
+      group_id: "grp-orphan-1",
+      event_data: { "room_id" => 1, "message_id" => 506, "content" => "orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id]) do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "ignores orphan unsynced events younger than the settle window" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 507,
+      group_id: "grp-orphan-young",
+      event_data: { "room_id" => 1, "message_id" => 507, "content" => "young orphan" },
+      synced: false,
+      created_at: 10.seconds.ago,
+      updated_at: 10.seconds.ago
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "does not re-enqueue orphan events while Hermes is busy" do
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
       .to_return(
         status: 200,
         body: { "gateway_busy" => true, "active_agents" => 3, "active_sessions" => 5, "overall" => "busy" }.to_json,
@@ -68,13 +154,58 @@ class ReconcileDispatchesJobTest < ActiveJob::TestCase
 
     event = OutputEvent.create!(
       event_type: "message_created",
-      event_id: 503,
+      event_id: 508,
+      group_id: "grp-orphan-busy",
+      event_data: { "room_id" => 1, "message_id" => 508, "content" => "busy orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "two sweeps do not double-enqueue the same orphan event" do
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 509,
+      group_id: "grp-orphan-dup",
+      event_data: { "room_id" => 1, "message_id" => 509, "content" => "dup orphan" },
+      synced: false,
+      created_at: 2.minutes.ago,
+      updated_at: 2.minutes.ago
+    )
+
+    assert_enqueued_with(job: OutputEvents::ProcessAndDispatchJob, args: [event.id]) do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs do
+      OutputEvents::ReconcileDispatchesJob.perform_now
+    end
+  end
+
+  test "throttles when active_agents exceeds threshold" do
+    stub_request(:get, "http://127.0.0.1:8642/health/detailed")
+      .to_return(
+        status: 200,
+        body: { "gateway_busy" => true, "active_agents" => 3, "active_sessions" => 5, "overall" => "busy" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    event = OutputEvent.create!(
+      event_type: "message_created",
+      event_id: 504,
       group_id: "grp-throttle-1",
-      event_data: { "room_id" => 1, "message_id" => 503 }
+      event_data: { "room_id" => 1, "message_id" => 504 }
     )
 
     OutputEventDispatchGroup.create!(
-      dedupe_key: "message:grp-throttle-1:1:503",
+      dedupe_key: "message:grp-throttle-1:1:504",
       lead_output_event_id: event.id,
       status: "pending",
       created_at: 2.minutes.ago

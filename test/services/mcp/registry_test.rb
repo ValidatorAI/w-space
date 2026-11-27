@@ -60,6 +60,41 @@ class McpRegistryTest < ActiveSupport::TestCase
     assert log.duration_ms >= 0
   end
 
+  test "ignores telemetry writes when MCP tables are missing" do
+    connection = ActiveRecord::Base.connection
+    Mcp::Registry.register(@dummy, scopes: [:all])
+
+    connection.drop_table(:mcp_call_logs, if_exists: true)
+    connection.drop_table(:mcp_exceptions, if_exists: true)
+
+    begin
+      result = Mcp::Registry.call_tool("dummy_tool", { text: "secret_value" }, scope: :all, jsonrpc_id: "req_missing_table")
+      assert_equal false, result[:isError]
+      assert_equal "Echo: secret_value", result[:content].first[:text]
+    ensure
+      connection.create_table(:mcp_call_logs) do |t|
+        t.string :jsonrpc_id
+        t.string :tool_call_name, null: false
+        t.json :params_sanitized
+        t.boolean :is_error, default: false, null: false
+        t.text :error_message
+        t.text :result_preview
+        t.integer :result_size
+        t.integer :duration_ms
+        t.timestamps
+      end
+
+      connection.create_table(:mcp_exceptions) do |t|
+        t.string :tool_call_name, null: false
+        t.string :exception_class, null: false
+        t.text :error_message, null: false
+        t.text :backtrace
+        t.json :params_sanitized
+        t.timestamps
+      end
+    end
+  end
+
   test "returns error when tool is not found" do
     result = Mcp::Registry.call_tool("missing_tool", {}, scope: :all)
     assert_equal true, result[:isError]

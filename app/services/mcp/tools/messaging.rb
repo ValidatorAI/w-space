@@ -328,11 +328,11 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
-
           sender = resolve_sender(args, project: project)
           return failure("Sender (user or bot) not found") unless sender
+
+          room = resolve_room(args, project: project)
+          return failure("Not allowed") unless MessagePostingAuthorization.allowed?(room: room, actor: sender)
 
           message = room.messages.create!(
             body: args[:body],
@@ -349,6 +349,42 @@ module Mcp
             body: message.plain_text_body,
             created_at: message.created_at
           )
+        end
+      end
+
+      class EditMessageTool < Mcp::BaseTool
+        include Mcp::Tools::Concerns::ResolutionHelpers
+
+        def name = "edit_message"
+        def description = "Edit an existing message"
+        def aliases = ["EditMessage"]
+
+        def input_schema
+          {
+            type: "object",
+            properties: {
+              message_id: { type: %w[string integer] },
+              body: { type: "string" },
+              user_id: { type: %w[string integer] },
+              user_name: { type: "string" }
+            },
+            required: %w[message_id body]
+          }
+        end
+
+        def execute(args)
+          message = Message.find_by(id: args[:message_id])
+          return failure("Message not found") unless message
+
+          actor = resolve_user(args)
+          return failure("user_id or user_name required") if actor.nil?
+
+          begin
+            MessageUpdateService.call(message, body: args[:body], actor: actor)
+            success(id: message.id, body: message.plain_text_body, updated_at: message.updated_at)
+          rescue ArgumentError => e
+            failure(e.message)
+          end
         end
       end
 
@@ -393,10 +429,13 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
+          return failure("Sender (user or bot) not found") unless sender
+          return failure("Forbidden") unless room.member?(sender)
+
           body_text = "#{LOADING_PREFIX} #{args[:body]}".strip
 
           msg = room.messages.create!(
@@ -473,8 +512,8 @@ module Mcp
 
         def execute(args)
           project = resolve_project(args)
-          room = resolve_room(args, project: project) || Room.first
-          return failure("Room not found") unless room
+          room = resolve_room(args, project: project)
+          return failure("Room not found: provide room_id or room_name") unless room
 
           sender = resolve_sender(args, project: project)
           action_type = args[:action_type].presence || "typing_start"
@@ -499,7 +538,9 @@ module Mcp
             properties: {
               approval_request_id: { type: %w[string integer] },
               decision: { type: "string", description: "Decision: approve, confirm, deny, cancel" },
-              note: { type: "string" }
+              note: { type: "string" },
+              user_id: { type: %w[string integer], description: "Either user_id or user_name is required" },
+              user_name: { type: "string", description: "Either user_id or user_name is required" }
             },
             required: %w[approval_request_id decision]
           }
@@ -508,18 +549,24 @@ module Mcp
         def execute(args)
           req = ApprovalRequest.find(args[:approval_request_id])
           decision = args[:decision].to_s.downcase
+          return failure("user_id or user_name required") if args[:user_id].blank? && args[:user_name].blank?
 
-          case decision
-          when "approve" then req.approve!(User.first, note: args[:note])
-          when "confirm" then req.confirm!(User.first, note: args[:note])
-          when "deny"    then req.deny!(User.first, note: args[:note])
-          when "cancel"  then req.cancel!(User.first, note: args[:note])
+          user = resolve_user(args)
+          result = if user.nil?
+            failure("User not found for decision actor")
+          elsif user.bot?
+            failure("Only human users can decide approval requests")
           else
-            return failure("Unknown decision: #{decision}. Expected: approve, confirm, deny, cancel")
+            begin
+              approval = ApprovalFlow.decide!(req, user, decision: decision, note: args[:note])
+              approval.broadcast_replacement if approval.respond_to?(:broadcast_replacement)
+              success(approval.as_json.merge(echo_message_id: approval.echo_message_id))
+            rescue ArgumentError => e
+              failure(e.message)
+            end
           end
 
-          req.broadcast_replacement if req.respond_to?(:broadcast_replacement)
-          success(req.as_json)
+          result || failure("Decision could not be processed")
         end
       end
     end

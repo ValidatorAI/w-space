@@ -2,8 +2,8 @@
 # always refer to the same direct room.
 class Rooms::Direct < Room
   class << self
-    def find_or_create_for(users)
-      find_for(users) || create_for({}, users: users)
+    def find_or_create_for(users, creator: nil)
+      find_for(users) || create_for({}, users: users, creator: creator)
     end
 
     private
