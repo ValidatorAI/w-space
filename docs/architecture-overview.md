@@ -29,6 +29,21 @@ Primary interaction surfaces:
 - Realtime channels for room and message updates.
 - Token-protected API and MCP endpoints.
 
+```mermaid
+flowchart LR
+	HU[Human Users] --> WEB[Space Web App]
+	AG[Bot Users and Agents] --> WEB
+	EXT[External API and MCP Clients] --> WEB
+
+	WEB <--> AC[ActionCable Realtime]
+	WEB --> DB[(SQLite)]
+	WEB --> REDIS[(Redis)]
+	REDIS --> WORKERS[Resque Workers]
+	WORKERS --> HERMES[Hermes Gateway]
+```
+
+The following sections expand each component and boundary in this diagram.
+
 ## Codebase Structure
 
 Core directories and responsibilities:
