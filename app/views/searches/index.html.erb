@@ -197,7 +197,7 @@
   </main>
 </div>
 
-<script>
+<%= javascript_tag nonce: true do %>
   (function () {
     const projectButtons = document.querySelectorAll('[data-project-filter]');
     const typeChips = document.querySelectorAll('.search-page__chip[data-type-filter]');
@@ -264,5 +264,5 @@
 
     applyFilters();
   })();
-</script>
+<% end %>
 

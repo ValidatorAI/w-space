@@ -10,6 +10,10 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
   test "new is permitted when no other users exit" do
     get first_run_url
     assert_response :success
+    assert_select "form[data-controller='first-run']"
+    assert_select "button[data-action='first-run#next']"
+    assert_select "button[data-action='first-run#back']"
+    assert_select "body script:not([nonce])", count: 0
   end
 
   test "new is not permitted when account exist" do
@@ -29,6 +33,24 @@ class FirstRunsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to user_company_home_path(user_id: "me")
 
     assert parsed_cookies.signed[:session_token]
+  end
+
+  test "create attaches avatar when provided" do
+    post first_run_url, params: {
+      account: { name: "37signals" },
+      user: {
+        name: "New Person",
+        display_name: "New Person",
+        email_address: "new@37signals.com",
+        password: "secret123456",
+        avatar: fixture_file_upload("moon.jpg", "image/jpeg")
+      }
+    }
+
+    assert_redirected_to user_company_home_path(user_id: "me")
+    admin = User.find_by(email_address: "new@37signals.com")
+    assert admin.present?
+    assert admin.avatar.attached?
   end
 
   test "create initializes selected ai coworker bots by default" do

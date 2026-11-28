@@ -9,8 +9,8 @@
   <div id="bbb-meeting-target" data-url="<%= h(target_url) %>" style="display: none;"></div>
 </div>
 
-<script>
+<%= javascript_tag nonce: true do %>
   const meetingTargetUrl = document.getElementById("bbb-meeting-target")?.dataset.url || "<%= j(target_url) %>";
   console.log("BigBlueButton meeting URL:", meetingTargetUrl);
   window.location.href = meetingTargetUrl;
-</script>
+<% end %>

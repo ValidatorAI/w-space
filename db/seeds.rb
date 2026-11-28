@@ -589,21 +589,19 @@ puts "Seeding Action & Approval Messages in Chat Rooms..."
 
 target_rooms = [ b2b_project.project_room, Room.find_by(name: "All Talk"), Room.find_by(name: "som") ].compact.uniq
 
-w_assistant = User.find_or_create_by!(email: "w-assistant@#{b2b_project.slug}.example") do |user|
-  user.name = "W Assistant"
-  user.display_name = "W Assistant"
-  user.password = SecureRandom.hex(16)
-  user.password_confirmation = user.password
-  user.bot = true
-end
+w_email = "w-assistant@#{b2b_project.slug}.example"
+w_assistant = User.find_by(email_address: w_email) || User.create_bot!(
+  name: "W Assistant",
+  display_name: "W Assistant",
+  email_address: w_email
+)
 
-researcher = User.find_or_create_by!(email: "researcher@#{b2b_project.slug}.example") do |user|
-  user.name = "Researcher"
-  user.display_name = "Researcher"
-  user.password = SecureRandom.hex(16)
-  user.password_confirmation = user.password
-  user.bot = true
-end
+researcher_email = "researcher@#{b2b_project.slug}.example"
+researcher = User.find_by(email_address: researcher_email) || User.create_bot!(
+  name: "Researcher",
+  display_name: "Researcher",
+  email_address: researcher_email
+)
 
 target_rooms.each do |room|
   Membership.find_or_create_by!(room: room, participant: w_assistant)

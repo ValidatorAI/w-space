@@ -388,8 +388,14 @@
           <p>Set up your admin profile to start using W.</p>
         </header>
 
-        <%= form_with model: @user, url: first_run_path, class: "w-form" do |form| %>
-          <div class="w-step" data-step="1">
+        <% if @user.errors.any? %>
+          <div style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.9rem;">
+            <%= @user.errors.full_messages.to_sentence %>
+          </div>
+        <% end %>
+
+        <%= form_with model: @user, url: first_run_path, class: "w-form", data: { controller: "first-run" } do |form| %>
+          <div class="w-step" data-step="1" data-first-run-target="stepOne">
             <fieldset class="w-field">
               <label class="avatar__form" data-controller="upload-preview">
                 <div class="btn input--file">
@@ -434,11 +440,11 @@
             </div>
 
             <div class="w-step-actions">
-              <button type="button" class="w-button" data-next-step>Next</button>
+              <button type="button" class="w-button" data-next-step data-action="first-run#next">Next</button>
             </div>
           </div>
 
-          <div class="w-step" data-step="2" hidden>
+          <div class="w-step" data-step="2" data-first-run-target="stepTwo" hidden>
             <div class="w-field">
               <label>AI coworkers</label>
               <div class="w-ai-checklist">
@@ -452,50 +458,13 @@
             </div>
 
             <div class="w-step-actions">
-              <button type="button" class="w-button w-button-secondary" data-prev-step>Back</button>
+              <button type="button" class="w-button w-button-secondary" data-prev-step data-action="first-run#back">Back</button>
               <%= form.button class: "w-button", type: "submit" do %>
                 Create workspace
               <% end %>
             </div>
           </div>
         <% end %>
-
-        <script>
-          const initFirstRunSteps = () => {
-            const form = document.querySelector(".w-form");
-            if (!form) return;
-
-            const stepOne = form.querySelector("[data-step='1']");
-            const stepTwo = form.querySelector("[data-step='2']");
-            const nextButton = form.querySelector("[data-next-step]");
-            const backButton = form.querySelector("[data-prev-step]");
-
-            if (!stepOne || !stepTwo || !nextButton || !backButton) return;
-
-            const showStep = (step) => {
-              const isFirst = step === "1";
-              stepOne.hidden = !isFirst;
-              stepTwo.hidden = isFirst;
-            };
-
-            nextButton.addEventListener("click", function () {
-              const firstInvalid = stepOne.querySelector("input[required]:invalid");
-              if (firstInvalid) {
-                firstInvalid.reportValidity();
-                return;
-              }
-
-              showStep("2");
-            });
-
-            backButton.addEventListener("click", function () {
-              showStep("1");
-            });
-          };
-
-          document.addEventListener("DOMContentLoaded", initFirstRunSteps);
-          document.addEventListener("turbo:load", initFirstRunSteps);
-        </script>
       </div>
     </section>
   </main>

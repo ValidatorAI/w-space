@@ -46,7 +46,7 @@ class FirstRunsController < ApplicationController
     end
 
     def user_params
-      params.fetch(:user, {}).permit(:name, :display_name, :email_address, :password).tap do |attrs|
+      params.fetch(:user, {}).permit(:name, :display_name, :email_address, :password, :avatar).tap do |attrs|
         attrs[:display_name] = attrs[:display_name].presence || attrs[:name]
       end
     end
