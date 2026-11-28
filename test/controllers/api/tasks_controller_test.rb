@@ -264,4 +264,129 @@ class Api::TasksControllerTest < ActionDispatch::IntegrationTest
     get api_tasks_url
     assert_response :unauthorized
   end
+
+  test "POST create rejects unknown assignee profile when Hermes profile check returns false" do
+    Hermes::Client.any_instance.expects(:profile_exists?).with("nonexistent_xyz").returns(false)
+
+    assert_no_difference -> { AiTask.count } do
+      post api_tasks_url,
+        params: {
+          project_id: @project.id,
+          room_id: @room.id,
+          description: "Task with unknown assignee",
+          assigneee_profile: "nonexistent_xyz"
+        },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_equal "Unknown assignee profile: nonexistent_xyz", body["error"]
+  end
+
+  test "POST create accepts valid assignee profile when Hermes profile check returns true" do
+    Hermes::Client.any_instance.expects(:profile_exists?).with("coder").returns(true)
+
+    assert_difference -> { AiTask.count }, 1 do
+      post api_tasks_url,
+        params: {
+          project_id: @project.id,
+          room_id: @room.id,
+          description: "Task with valid assignee",
+          assigneee_profile: "coder"
+        },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "coder", body["assigneee_profile"]
+  end
+
+  test "POST create falls back gracefully when Hermes gateway is unreachable" do
+    Hermes::Client.any_instance.expects(:profile_exists?).with("planner").returns(nil)
+
+    assert_difference -> { AiTask.count }, 1 do
+      post api_tasks_url,
+        params: {
+          project_id: @project.id,
+          room_id: @room.id,
+          description: "Task with unreachable Hermes",
+          assigneee_profile: "planner"
+        },
+        headers: { "Authorization" => "Bearer test-token" }
+    end
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "planner", body["assigneee_profile"]
+  end
+
+  test "PATCH update rejects unknown assignee profile when Hermes profile check returns false" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Existing task",
+      assigneee_profile: "original_profile"
+    )
+
+    Hermes::Client.any_instance.expects(:profile_exists?).with("bad_profile").returns(false)
+
+    patch api_task_url(task.id),
+      params: { assigneee_profile: "bad_profile" },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :unprocessable_entity
+    body = JSON.parse(response.body)
+    assert_equal "Unknown assignee profile: bad_profile", body["error"]
+
+    task.reload
+    assert_equal "original_profile", task.assigneee_profile
+  end
+
+  test "PATCH update accepts valid assignee profile when Hermes profile check returns true" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Existing task",
+      assigneee_profile: "original_profile"
+    )
+
+    Hermes::Client.any_instance.expects(:profile_exists?).with("new_profile").returns(true)
+
+    patch api_task_url(task.id),
+      params: { assigneee_profile: "new_profile" },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "new_profile", body["assigneee_profile"]
+
+    task.reload
+    assert_equal "new_profile", task.assigneee_profile
+  end
+
+  test "PATCH update without assignee profile does not query Hermes profile_exists?" do
+    task = AiTask.create!(
+      project: @project,
+      room: @room,
+      description: "Existing task",
+      assigneee_profile: "original_profile"
+    )
+
+    Hermes::Client.any_instance.expects(:profile_exists?).never
+
+    patch api_task_url(task.id),
+      params: { description: "Renamed task" },
+      headers: { "Authorization" => "Bearer test-token" }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "Renamed task", body["description"]
+    assert_equal "original_profile", body["assigneee_profile"]
+
+    task.reload
+    assert_equal "Renamed task", task.description
+    assert_equal "original_profile", task.assigneee_profile
+  end
 end

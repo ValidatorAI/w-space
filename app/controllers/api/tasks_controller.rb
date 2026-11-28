@@ -17,7 +17,10 @@ module Api
     end
 
     def create
-      task = AiTask.new(task_params)
+      attrs = task_params
+      return unless validate_assigneee_profile_or_render_error!(attrs[:assigneee_profile])
+
+      task = AiTask.new(attrs)
       if task.save
         render json: serialize(task), status: :created
       else
@@ -46,6 +49,8 @@ module Api
       if AiTask.finished_task_update_blocked?(task, attrs)
         return render json: { error: "Finished tasks are frozen: cost and lifecycle fields cannot be changed after completion" }, status: :unprocessable_entity
       end
+
+      return unless validate_assigneee_profile_or_render_error!(attrs[:assigneee_profile])
 
       if task.update(attrs)
         render json: serialize(task.reload)
@@ -188,6 +193,23 @@ module Api
 
     def serialize(task)
       task.as_json
+    end
+
+    def validate_assigneee_profile_or_render_error!(profile)
+      return true if profile.blank?
+
+      target_profile = profile.to_s.strip
+      profile_exists = begin
+        Hermes::Client.new.profile_exists?(target_profile)
+      rescue StandardError => e
+        Rails.logger.warn("[Api::TasksController] Hermes profile check error: #{e.message}")
+        nil
+      end
+
+      return true if profile_exists || profile_exists.nil?
+
+      render json: { error: "Unknown assignee profile: #{target_profile}" }, status: :unprocessable_entity
+      false
     end
   end
 end
